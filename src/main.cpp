@@ -1,12 +1,11 @@
 #include <iostream>
 #include <armadillo>
+#include "FastMarchCDTW.h"
 
 using namespace arma;
 
 int main() {
-    mat A = randu<mat>(4, 5);
-
-    std::cout << A << std::endl;
+    FastMarchCDTW::compute();
 
     return 0;
 }
