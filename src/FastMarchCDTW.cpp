@@ -78,7 +78,7 @@ double FastMarchCDTW::compute(const Curve<double>& curve1, const Curve<double>& 
                 if (neighbor.second > 0) {
                     uj = std::min(uj, costs(neighbor.first, neighbor.second - 1));
                 }
-                if (neighbor.second < n_rows - 1) {
+                if (neighbor.second < n_cols - 1) {
                     uj = std::min(uj, costs(neighbor.first, neighbor.second + 1));
                 }
 
