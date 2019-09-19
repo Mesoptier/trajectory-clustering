@@ -28,7 +28,7 @@ namespace FastMarchCDTW {
         Far,
     };
 
-    void compute(const Curve<double>& curve1, const Curve<double>& curve2);
+    double compute(const Curve<double>& curve1, const Curve<double>& curve2, double h);
 
 }
 

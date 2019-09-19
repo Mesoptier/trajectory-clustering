@@ -4,8 +4,7 @@
 
 using namespace arma;
 
-void FastMarchCDTW::compute(const Curve<double>& curve1, const Curve<double>& curve2) {
-    double h = 2.0 / 20;
+double FastMarchCDTW::compute(const Curve<double>& curve1, const Curve<double>& curve2, double h) {
     double hi = h;
     double hj = h;
     unsigned int n_rows = curve1.getLength() / hi;
@@ -128,4 +127,6 @@ void FastMarchCDTW::compute(const Curve<double>& curve1, const Curve<double>& cu
             }
         }
     } while (!considered_points.empty());
+
+    return costs(n_rows - 1, n_cols - 1);
 }
