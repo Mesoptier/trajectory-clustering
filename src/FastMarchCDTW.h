@@ -3,6 +3,7 @@
 
 #include <utility>
 #include <vector>
+#include "Curve.h"
 
 namespace FastMarchCDTW {
 
@@ -27,7 +28,7 @@ namespace FastMarchCDTW {
         Far,
     };
 
-    void compute();
+    void compute(const Curve<double>& curve1, const Curve<double>& curve2);
 
 }
 
