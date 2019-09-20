@@ -4,7 +4,7 @@
 
 using namespace arma;
 
-double FastMarchCDTW::compute(const Curve<double>& curve1, const Curve<double>& curve2, double h) {
+double FastMarchCDTW::compute(const Curve<double>& curve1, const Curve<double>& curve2, double h, bool saveMatrices) {
     double hi = h;
     double hj = h;
     unsigned int n_rows = curve1.getLength() / hi;
@@ -18,6 +18,10 @@ double FastMarchCDTW::compute(const Curve<double>& curve1, const Curve<double>& 
         for (unsigned int j = 0; j < n_cols; ++j) {
             mesh(i, j) = norm(curve1.interp((double) i / (n_rows - 1)) - curve2.interp((double) j / (n_cols - 1)), 2);
         }
+    }
+
+    if (saveMatrices) {
+        mesh.save("mesh.csv", csv_ascii);
     }
 
     Mat<short> tags(n_rows, n_cols);
@@ -127,6 +131,10 @@ double FastMarchCDTW::compute(const Curve<double>& curve1, const Curve<double>& 
             }
         }
     } while (!considered_points.empty());
+
+    if (saveMatrices) {
+        costs.save("costs.csv", csv_ascii);
+    }
 
     return costs(n_rows - 1, n_cols - 1);
 }
