@@ -20,10 +20,6 @@ double FastMarchCDTW::compute(const Curve<double>& curve1, const Curve<double>& 
         }
     }
 
-    if (saveMatrices) {
-        mesh.save("mesh.csv", csv_ascii);
-    }
-
     Mat<short> tags(n_rows, n_cols);
     tags.fill(Far);
 
@@ -35,8 +31,8 @@ double FastMarchCDTW::compute(const Curve<double>& curve1, const Curve<double>& 
     Heap considered_points;
     std::map<Point, Heap::handle_type> handles;
 
-    Point start(0, 0);
-    double start_cost = 0;
+    const Point start = { 0, 0 };
+    const double start_cost = 0;
     tags(start.first, start.second) = Considered;
     costs(start.first, start.second) = start_cost;
     handles.emplace(start, considered_points.emplace(start, start_cost));
@@ -61,7 +57,7 @@ double FastMarchCDTW::compute(const Curve<double>& curve1, const Curve<double>& 
                     continue;
                 }
 
-                Point neighbor(trial.first + xx, trial.second + yy);
+                Point neighbor = {trial.first + xx, trial.second + yy};
 
                 auto& tag = tags(neighbor.first, neighbor.second);
 
@@ -132,9 +128,56 @@ double FastMarchCDTW::compute(const Curve<double>& curve1, const Curve<double>& 
         }
     } while (!considered_points.empty());
 
+    // TODO: Use backtracking using Gradient Descent
+
+    // Backtrack to find shortest path
+    dmat path(n_rows + n_cols, 4);
+    Point point = {n_rows - 1, n_cols - 1};
+    unsigned int rowIndex = 0;
+
+    while (true) {
+        drowvec row = join_rows(curve1.interp((double) point.first / (n_rows - 1)),
+                             curve2.interp((double) point.second / (n_cols - 1)));
+
+        path.row(rowIndex) = row;
+
+        if (point == start) {
+            break;
+        }
+
+        // Find neighbor with lowest cost
+        double lowestCost = INFINITY;
+        Point lowestNeighbor = point;
+        const std::vector<Point> directions = {{-1, 0}, {0, -1}};
+        for (const auto& direction : directions) {
+            const Point neighbor = point + direction;
+            if (inBounds(neighbor, n_rows, n_cols)) {
+                const double cost = costs(neighbor.first, neighbor.second);
+                if (cost < lowestCost) {
+                    lowestCost = cost;
+                    lowestNeighbor = neighbor;
+                }
+            }
+        }
+
+        point = lowestNeighbor;
+        ++rowIndex;
+    }
+
+    path.resize(rowIndex + 1, 4);
+
     if (saveMatrices) {
+        mesh.save("mesh.csv", csv_ascii);
         costs.save("costs.csv", csv_ascii);
+        path.save("path.csv", csv_ascii);
+
+        curve1.getVertices().save("curve1.csv", csv_ascii);
+        curve2.getVertices().save("curve2.csv", csv_ascii);
     }
 
     return costs(n_rows - 1, n_cols - 1);
+}
+
+bool FastMarchCDTW::inBounds(FastMarchCDTW::Point point, unsigned int n_rows, unsigned int n_cols) {
+    return (point.first >= 0) && (point.first < n_rows) && (point.second >= 0) && (point.second < n_cols);
 }

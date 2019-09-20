@@ -69,6 +69,10 @@ public:
     V getLength() const {
         return length;
     }
+
+    const arma::Mat<V>& getVertices() const {
+        return vertices;
+    }
 };
 
 #endif //CODE_CURVE_H
