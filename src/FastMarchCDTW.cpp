@@ -175,7 +175,10 @@ double FastMarchCDTW::compute(const Curve<double>& curve1, const Curve<double>& 
         interp2(domain_j, domain_i, grad_j, current_x.col(1), current_x.col(0), dx_j);
         dx = {dx_i[0], dx_j[0]};
 
-        next_x = clamp(current_x - step_size * normalise(dx, 2), 0, INFINITY);
+        next_x = current_x - step_size * normalise(dx, 2);
+
+        next_x(0) = std::min(std::max(next_x(0), 0.0), curve1.getLength());
+        next_x(1) = std::min(std::max(next_x(1), 0.0), curve2.getLength());
     }
 
     // Compute matching
