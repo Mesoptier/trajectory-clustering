@@ -90,26 +90,38 @@ double FastMarchCDTW::compute(const Curve<double>& curve1, const Curve<double>& 
                     throw std::range_error("f must be positive at all mesh vertices");
                 }
 
+                // Using L1-norm:
                 double u;
+
                 if (f < (uj - ui) / hi && ui < uj) {
                     u = f * hi + ui;
-                } else if (f < (ui - uj) / hj && uj < ui) {
+                } else if (f < (ui - uj) / hi && uj < ui) {
                     u = f * hj + uj;
                 } else {
-                    const double hi2 = hi * hi;
-                    const double hi4 = hi2 * hi2;
-                    const double hj2 = hj * hj;
-                    const double hj4 = hj2 * hj2;
-                    const double f2 = f * f;
-                    const double ui2 = ui * ui;
-                    const double uj2 = uj * uj;
-
-                    u = (hj2 * ui + hi2 * uj) / (hi2 + hj2);
-                    u += sqrt(
-                        (f2 * hi4 * hj2 + f2 * hi2 * hj4 - hi2 * hj2 * ui2 + 2 * hi2 * hj2 * ui * uj - hi2 * hj2 * uj2)
-                        / ((hi2 + hj2) * (hi2 + hj2))
-                    );
+                    u = (f * hi * hj + hj * ui + hi * uj) / (hi + hj);
                 }
+
+                // Using L2-norm:
+//                double u;
+//                if (f < (uj - ui) / hi && ui < uj) {
+//                    u = f * hi + ui;
+//                } else if (f < (ui - uj) / hj && uj < ui) {
+//                    u = f * hj + uj;
+//                } else {
+//                    const double hi2 = hi * hi;
+//                    const double hi4 = hi2 * hi2;
+//                    const double hj2 = hj * hj;
+//                    const double hj4 = hj2 * hj2;
+//                    const double f2 = f * f;
+//                    const double ui2 = ui * ui;
+//                    const double uj2 = uj * uj;
+//
+//                    u = (hj2 * ui + hi2 * uj) / (hi2 + hj2);
+//                    u += sqrt(
+//                        (f2 * hi4 * hj2 + f2 * hi2 * hj4 - hi2 * hj2 * ui2 + 2 * hi2 * hj2 * ui * uj - hi2 * hj2 * uj2)
+//                        / ((hi2 + hj2) * (hi2 + hj2))
+//                    );
+//                }
 
                 const double prev_u = costs(neighbor.first, neighbor.second);
                 if (u < prev_u) {
