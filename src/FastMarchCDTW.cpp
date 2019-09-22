@@ -11,12 +11,12 @@ double FastMarchCDTW::compute(const Curve<double>& curve1, const Curve<double>& 
     unsigned int n_cols = curve2.getLength() / hj;
 
     // Mesh of the f-function
-    mat mesh(n_rows, n_cols);
+    mat local_costs(n_rows, n_cols);
 
     // TODO: calculate this in a more clever way, should be possible to do linear in grid size
     for (unsigned int i = 0; i < n_rows; ++i) {
         for (unsigned int j = 0; j < n_cols; ++j) {
-            mesh(i, j) = norm(curve1.interp((double) i / (n_rows - 1)) - curve2.interp((double) j / (n_cols - 1)), 2);
+            local_costs(i, j) = norm(curve1.interp((double) i / (n_rows - 1)) - curve2.interp((double) j / (n_cols - 1)), 2);
         }
     }
 
@@ -82,7 +82,7 @@ double FastMarchCDTW::compute(const Curve<double>& curve1, const Curve<double>& 
                     uj = std::min(uj, costs(neighbor.first, neighbor.second + 1));
                 }
 
-                const double f = mesh(neighbor.first, neighbor.second);
+                const double f = local_costs(neighbor.first, neighbor.second);
 
                 if (f <= 0) {
                     // TODO: Allow f = 0?
@@ -168,7 +168,7 @@ double FastMarchCDTW::compute(const Curve<double>& curve1, const Curve<double>& 
 
     // Save the resulting matrices
     if (saveMatrices) {
-        mesh.save("mesh.csv", csv_ascii);
+        local_costs.save("mesh.csv", csv_ascii);
         costs.save("costs.csv", csv_ascii);
         path.save("path.csv", csv_ascii);
 
