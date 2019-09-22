@@ -166,6 +166,7 @@ double FastMarchCDTW::compute(const Curve<double>& curve1, const Curve<double>& 
 
     path.resize(rowIndex + 1, 4);
 
+    // Save the resulting matrices
     if (saveMatrices) {
         mesh.save("mesh.csv", csv_ascii);
         costs.save("costs.csv", csv_ascii);
