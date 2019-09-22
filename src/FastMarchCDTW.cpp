@@ -16,7 +16,8 @@ double FastMarchCDTW::compute(const Curve<double>& curve1, const Curve<double>& 
     // TODO: calculate this in a more clever way, should be possible to do linear in grid size
     for (unsigned int i = 0; i < n_rows; ++i) {
         for (unsigned int j = 0; j < n_cols; ++j) {
-            local_costs(i, j) = norm(curve1.interp((double) i / (n_rows - 1)) - curve2.interp((double) j / (n_cols - 1)), 2);
+            local_costs(i, j) = norm(
+                curve1.interp((double) i / (n_rows - 1)) - curve2.interp((double) j / (n_cols - 1)), 2);
         }
     }
 
@@ -31,7 +32,7 @@ double FastMarchCDTW::compute(const Curve<double>& curve1, const Curve<double>& 
     Heap considered_points;
     std::map<Point, Heap::handle_type> handles;
 
-    const Point start = { 0, 0 };
+    const Point start = {0, 0};
     const double start_cost = 0;
     tags(start.first, start.second) = Considered;
     costs(start.first, start.second) = start_cost;
@@ -128,49 +129,70 @@ double FastMarchCDTW::compute(const Curve<double>& curve1, const Curve<double>& 
         }
     } while (!considered_points.empty());
 
-    // TODO: Use backtracking using Gradient Descent
+    // Compute gradient
+    mat grad_i(n_rows, n_cols);
+    mat grad_j(n_rows, n_cols);
 
-    // Backtrack to find shortest path
-    dmat path(n_rows + n_cols, 4);
-    Point point = {n_rows - 1, n_cols - 1};
-    unsigned int rowIndex = 0;
+    for (int i = 0; i < n_rows; ++i) {
+        for (int j = 0; j < n_cols; ++j) {
+            if (i > 0) {
+                grad_i(i, j) = (costs(i, j) - costs(i - 1, j)) / hi;
+            }
+            if (j > 0) {
+                grad_j(i, j) = (costs(i, j) - costs(i, j - 1)) / hj;
+            }
+        }
+    }
 
-    while (true) {
-        drowvec row = join_rows(curve1.interp((double) point.first / (n_rows - 1)),
-                             curve2.interp((double) point.second / (n_cols - 1)));
+    // Gradient descent to recover shortest path
+    double step_size = std::min(hi, hj);
+    double precision = 0.00001;
+    int max_iters = 10000;
 
-        path.row(rowIndex) = row;
+    rowvec current_x;
+    rowvec next_x = {curve1.getLength(), curve2.getLength()};
+    rowvec target_x = {0, 0};
 
-        if (point == start) {
+    vec domain_i = linspace(0, curve1.getLength(), n_rows);
+    vec domain_j = linspace(0, curve2.getLength(), n_cols);
+
+    mat dx_i;
+    mat dx_j;
+    rowvec dx;
+
+    std::vector<rowvec> path_list;
+
+    for (int i = 0; i < max_iters; ++i) {
+        current_x = next_x;
+        path_list.push_back(current_x);
+
+        if (norm(target_x - current_x) < precision) {
             break;
         }
 
-        // Find neighbor with lowest cost
-        double lowestCost = INFINITY;
-        Point lowestNeighbor = point;
-        const std::vector<Point> directions = {{-1, 0}, {0, -1}};
-        for (const auto& direction : directions) {
-            const Point neighbor = point + direction;
-            if (inBounds(neighbor, n_rows, n_cols)) {
-                const double cost = costs(neighbor.first, neighbor.second);
-                if (cost < lowestCost) {
-                    lowestCost = cost;
-                    lowestNeighbor = neighbor;
-                }
-            }
-        }
+        // Compute local gradient
+        interp2(domain_j, domain_i, grad_i, current_x.col(1), current_x.col(0), dx_i);
+        interp2(domain_j, domain_i, grad_j, current_x.col(1), current_x.col(0), dx_j);
+        dx = {dx_i[0], dx_j[0]};
 
-        point = lowestNeighbor;
-        ++rowIndex;
+        next_x = clamp(current_x - step_size * normalise(dx, 2), 0, INFINITY);
     }
 
-    path.resize(rowIndex + 1, 4);
+    // Compute matching
+    mat matching_param(path_list.size(), 2);
+    mat matching_image(path_list.size(), 4);
+
+    for (int i = 0; i < path_list.size(); ++i) {
+        matching_param.row(i) = path_list[i];
+        matching_image.row(i) = join_rows(curve1.interpLength(path_list[i](0)), curve2.interpLength(path_list[i](1)));
+    }
 
     // Save the resulting matrices
     if (saveMatrices) {
         local_costs.save("mesh.csv", csv_ascii);
         costs.save("costs.csv", csv_ascii);
-        path.save("path.csv", csv_ascii);
+        matching_param.save("matching_param.csv", csv_ascii);
+        matching_image.save("matching_image.csv", csv_ascii);
 
         curve1.getVertices().save("curve1.csv", csv_ascii);
         curve2.getVertices().save("curve2.csv", csv_ascii);

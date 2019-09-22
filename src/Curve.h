@@ -36,6 +36,9 @@ public:
         }
     }
 
+    arma::Row<V> interpLength(double length) const {
+        return interp(length / getLength());
+    }
 
     // Get a point on the curve at normalized distance t
     arma::Row<V> interp(double t) const {
