@@ -33,9 +33,18 @@ namespace FastMarchCDTW {
         Far,
     };
 
-    double compute(const Curve<double>& curve1, const Curve<double>& curve2, double h, bool saveMatrices = false);
+    double compute(
+        const Curve<double>& curve1,
+        const Curve<double>& curve2,
+        double h,
+        int imageNorm = 2,
+        int paramNorm = 2,
+        bool saveMatrices = false
+    );
 
     bool inBounds(Point point, unsigned int n_rows, unsigned int n_cols);
+
+    double eikonalUpdate(const arma::mat& u_mat, const arma::mat& f_mat, int i, int j, double hi, double hj, int norm);
 }
 
 
