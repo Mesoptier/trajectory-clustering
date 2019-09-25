@@ -140,69 +140,69 @@ double FastMarchCDTW::compute(const Curve<double>& curve1, const Curve<double>& 
         }
     } while (!considered_points.empty());
 
-    // Compute gradient
-    mat grad_i(n_rows, n_cols);
-    mat grad_j(n_rows, n_cols);
-
-    for (int i = 0; i < n_rows; ++i) {
-        for (int j = 0; j < n_cols; ++j) {
-            if (i > 0) {
-                grad_i(i, j) = (costs(i, j) - costs(i - 1, j)) / hi;
-            }
-            if (j > 0) {
-                grad_j(i, j) = (costs(i, j) - costs(i, j - 1)) / hj;
-            }
-        }
-    }
-
-    // Gradient descent to recover shortest path
-    double step_size = std::min(hi, hj);
-    double precision = 0.00001;
-    int max_iters = 10000;
-
-    rowvec current_x;
-    rowvec next_x = {curve1.getLength(), curve2.getLength()};
-    rowvec target_x = {0, 0};
-
-    vec domain_i = linspace(0, curve1.getLength(), n_rows);
-    vec domain_j = linspace(0, curve2.getLength(), n_cols);
-
-    mat dx_i;
-    mat dx_j;
-    rowvec dx;
-
-    std::vector<rowvec> path_list;
-
-    for (int i = 0; i < max_iters; ++i) {
-        current_x = next_x;
-        path_list.push_back(current_x);
-
-        if (norm(target_x - current_x) < precision) {
-            break;
-        }
-
-        // Compute local gradient
-        interp2(domain_j, domain_i, grad_i, current_x.col(1), current_x.col(0), dx_i);
-        interp2(domain_j, domain_i, grad_j, current_x.col(1), current_x.col(0), dx_j);
-        dx = {dx_i[0], dx_j[0]};
-
-        next_x = current_x - step_size * normalise(dx, 2);
-
-        next_x(0) = std::min(std::max(next_x(0), 0.0), curve1.getLength());
-        next_x(1) = std::min(std::max(next_x(1), 0.0), curve2.getLength());
-    }
-
-    // Compute matching
-    mat matching_param(path_list.size(), 2);
-    mat matching_image(path_list.size(), 4);
-
-    for (int i = 0; i < path_list.size(); ++i) {
-        matching_param.row(i) = path_list[i];
-        matching_image.row(i) = join_rows(curve1.interpLength(path_list[i](0)), curve2.interpLength(path_list[i](1)));
-    }
-
-    // Save the resulting matrices
     if (saveMatrices) {
+        // Compute gradient
+        mat grad_i(n_rows, n_cols);
+        mat grad_j(n_rows, n_cols);
+
+        for (int i = 0; i < n_rows; ++i) {
+            for (int j = 0; j < n_cols; ++j) {
+                if (i > 0) {
+                    grad_i(i, j) = (costs(i, j) - costs(i - 1, j)) / hi;
+                }
+                if (j > 0) {
+                    grad_j(i, j) = (costs(i, j) - costs(i, j - 1)) / hj;
+                }
+            }
+        }
+
+        // Gradient descent to recover shortest path
+        double step_size = std::min(hi, hj);
+        double precision = 0.00001;
+        int max_iters = 10000;
+
+        rowvec current_x;
+        rowvec next_x = {curve1.getLength(), curve2.getLength()};
+        rowvec target_x = {0, 0};
+
+        vec domain_i = linspace(0, curve1.getLength(), n_rows);
+        vec domain_j = linspace(0, curve2.getLength(), n_cols);
+
+        mat dx_i;
+        mat dx_j;
+        rowvec dx;
+
+        std::vector<rowvec> path_list;
+
+        for (int i = 0; i < max_iters; ++i) {
+            current_x = next_x;
+            path_list.push_back(current_x);
+
+            if (norm(target_x - current_x) < precision) {
+                break;
+            }
+
+            // Compute local gradient
+            interp2(domain_j, domain_i, grad_i, current_x.col(1), current_x.col(0), dx_i);
+            interp2(domain_j, domain_i, grad_j, current_x.col(1), current_x.col(0), dx_j);
+            dx = {dx_i[0], dx_j[0]};
+
+            next_x = current_x - step_size * normalise(dx, 2);
+
+            next_x(0) = std::min(std::max(next_x(0), 0.0), curve1.getLength());
+            next_x(1) = std::min(std::max(next_x(1), 0.0), curve2.getLength());
+        }
+
+        // Compute matching
+        mat matching_param(path_list.size(), 2);
+        mat matching_image(path_list.size(), 4);
+
+        for (int i = 0; i < path_list.size(); ++i) {
+            matching_param.row(i) = path_list[i];
+            matching_image.row(i) = join_rows(curve1.interpLength(path_list[i](0)), curve2.interpLength(path_list[i](1)));
+        }
+
+        // Save the resulting matrices
         local_costs.save("mesh.csv", csv_ascii);
         costs.save("costs.csv", csv_ascii);
         matching_param.save("matching_param.csv", csv_ascii);
