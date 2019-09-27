@@ -109,7 +109,7 @@ FastMarchCDTW::compute(
         }
 
         // Gradient descent to recover shortest path
-        double step_size = 0.1;
+        double step_size = 0.05;
         double precision = 0.00001;
         int max_iters = 10000;
 
@@ -125,6 +125,8 @@ FastMarchCDTW::compute(
         rowvec dx;
 
         std::vector<rowvec> path_list;
+
+        // TODO: Fix Gradient descent for use with L1 norm (see Mathematica notebook)
 
         for (int i = 0; i < max_iters; ++i) {
             current_x = next_x;
@@ -197,20 +199,21 @@ double FastMarchCDTW::eikonalUpdate(const mat& u_mat, const mat& f_mat, int i, i
         uj = std::min(uj, u_mat(i, j + 1));
     }
 
-    // Lower-dimensional update (identical for L1 and L2 norms)
-    if (f < (uj - ui) / hi && ui < uj) {
-        return f * hi + ui;
-    } else if (f < (ui - uj) / hi && uj < ui) {
-        return f * hj + uj;
-    }
-
     // L1 norm
     if (norm == 1) {
-        return (f * hi * hj + hj * ui + hi * uj) / (hi + hj);
+        return std::min(ui + f * hi, uj + f * hj);
     }
 
     // L2 norm
+    // TODO: This does not take into account distance travelled along curve
     if (norm == 2) {
+        // Lower-dimensional update
+        if (f < (uj - ui) / (hi * hi) && ui < uj) {
+            return f * hi * hi + f * hi * hj + ui;
+        } else if (f < (ui - uj) / (hj * hj) && uj < ui) {
+            return f * hi * hj + f * hj * hj + uj;
+        }
+
         // Solved in Mathematica: Solve[(Max[u-ui,0]/hi)^2+(Max[u-uj,0]/hj)^2==f^2&&hi>0&&hj>0&&f>0,u,Reals]
         const double hi2 = hi * hi;
         const double hi4 = hi2 * hi2;
