@@ -136,11 +136,17 @@ FastMarchCDTW::compute(
             interp2(domain_j, domain_i, grad_i, current_x.col(1), current_x.col(0), dx_i);
             interp2(domain_j, domain_i, grad_j, current_x.col(1), current_x.col(0), dx_j);
 
-            const std::vector<rowvec> trial_offsets = {
+            // Directions to check for potential next steps
+            std::vector<rowvec> trial_offsets = {
                 {-1, 0},
                 {-dx_i[0], -dx_j[0]},
-                {0, -1}
+                {0, -1},
             };
+
+            // Add more directions with controllable precision
+//            for (double j = 0; j <= 1; j += 0.01) {
+//                trial_offsets.push_back({-j, -(1 - j)});
+//            }
 
             double min_u = INFINITY;
             for (const auto& offset : trial_offsets) {
