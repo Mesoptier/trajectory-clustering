@@ -179,7 +179,7 @@ FastMarchCDTW::compute(
     return u_mat(n_rows - 1, n_cols - 1);
 }
 
-bool FastMarchCDTW::inBounds(FastMarchCDTW::Point point, unsigned int n_rows, unsigned int n_cols) {
+bool FastMarchCDTW::inBounds(Point point, unsigned int n_rows, unsigned int n_cols) {
     return (point.first >= 0) && (point.first < n_rows) && (point.second >= 0) && (point.second < n_cols);
 }
 
