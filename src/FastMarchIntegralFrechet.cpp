@@ -180,10 +180,21 @@ void FastMarchIntegralFrechet::computeMatching(double stepSize, int maxIteration
     }
 }
 
+void FastMarchIntegralFrechet::computeCenter() {
+    center = mat(matching.n_rows, matching.n_cols);
+
+    for (int i = 0; i < matching.n_rows; ++i) {
+        rowvec p1 = curve1.interpLength(matching(i, 0));
+        rowvec p2 = curve2.interpLength(matching(i, 1));
+        center.row(i) = (p1 + p2) / 2;
+    }
+}
+
 void FastMarchIntegralFrechet::save() {
     f_mat.save("f_mat.csv", csv_ascii);
     u_mat.save("u_mat.csv", csv_ascii);
     matching.save("matching.csv", csv_ascii);
+    center.save("center.csv", csv_ascii);
 
     curve1.getVertices().save("curve1.csv", csv_ascii);
     curve2.getVertices().save("curve2.csv", csv_ascii);

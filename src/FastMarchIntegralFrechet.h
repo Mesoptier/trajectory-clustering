@@ -27,7 +27,9 @@ class FastMarchIntegralFrechet {
     double hj = 0;
     arma::mat f_mat;
     arma::mat u_mat;
+
     arma::mat matching;
+    arma::mat center;
 
 
 public:
@@ -36,6 +38,8 @@ public:
     double computeDistance();
 
     void computeMatching(double stepSize = 0.01, int maxIterations = 10000);
+
+    void computeCenter();
 
     void save();
 
