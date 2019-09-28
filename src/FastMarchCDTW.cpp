@@ -109,9 +109,9 @@ FastMarchCDTW::compute(
         }
 
         // Mix of gradient/coordinate descent to recover shortest path
-        double step_size = 0.05;
+        double step_size = 0.01;
         double precision = step_size;
-        int max_iters = 100;
+        int max_iters = 10000;
 
         rowvec current_x;
         rowvec next_x = {curve1.getLength(), curve2.getLength()};
