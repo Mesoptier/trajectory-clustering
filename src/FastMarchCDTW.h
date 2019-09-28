@@ -22,8 +22,8 @@ class FastMarchCDTW {
     // Own variables (initialized in ::compute)
     arma::mat f_mat;
     arma::mat u_mat;
-    unsigned int n_rows;
-    unsigned int n_cols;
+    unsigned int n_rows = 0;
+    unsigned int n_cols = 0;
     double hi = 0;
     double hj = 0;
 
