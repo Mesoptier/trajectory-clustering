@@ -93,7 +93,7 @@ FastMarchCDTW::compute(
     } while (!considered_points.empty());
 
     if (saveMatrices) {
-        // Compute gradient
+        // Compute gradient in I and J directions
         mat grad_i(n_rows, n_cols);
         mat grad_j(n_rows, n_cols);
 
@@ -108,10 +108,10 @@ FastMarchCDTW::compute(
             }
         }
 
-        // Gradient descent to recover shortest path
+        // Mix of gradient/coordinate descent to recover shortest path
         double step_size = 0.05;
-        double precision = 0.00001;
-        int max_iters = 10000;
+        double precision = step_size;
+        int max_iters = 100;
 
         rowvec current_x;
         rowvec next_x = {curve1.getLength(), curve2.getLength()};
@@ -122,29 +122,37 @@ FastMarchCDTW::compute(
 
         mat dx_i;
         mat dx_j;
-        rowvec dx;
 
         std::vector<rowvec> path_list;
-
-        // TODO: Fix Gradient descent for use with L1 norm (see Mathematica notebook)
 
         for (int i = 0; i < max_iters; ++i) {
             current_x = next_x;
             path_list.push_back(current_x);
 
-            if (norm(target_x - current_x) < precision) {
+            if (norm(target_x - current_x, paramNorm) < precision) {
                 break;
             }
 
-            // Compute local gradient
             interp2(domain_j, domain_i, grad_i, current_x.col(1), current_x.col(0), dx_i);
             interp2(domain_j, domain_i, grad_j, current_x.col(1), current_x.col(0), dx_j);
-            dx = {dx_i[0], dx_j[0]};
 
-            next_x = current_x - step_size * normalise(dx, 2);
+            const std::vector<rowvec> trial_offsets = {
+                {-1, 0},
+                {-dx_i[0], -dx_j[0]},
+                {0, -1}
+            };
 
-            next_x(0) = std::min(std::max(next_x(0), 0.0), curve1.getLength());
-            next_x(1) = std::min(std::max(next_x(1), 0.0), curve2.getLength());
+            double min_u = INFINITY;
+            for (const auto& offset : trial_offsets) {
+                rowvec trial_x = current_x + step_size * normalise(offset, paramNorm);
+                mat trial_u;
+                interp2(domain_j, domain_i, u_mat, trial_x.col(1), trial_x.col(0), trial_u, "linear", INFINITY);
+
+                if (trial_u[0] < min_u) {
+                    min_u = trial_u[0];
+                    next_x = trial_x;
+                }
+            }
         }
 
         // Compute matching
@@ -152,8 +160,8 @@ FastMarchCDTW::compute(
         mat matching_image(path_list.size(), 4);
 
         for (int i = 0; i < path_list.size(); ++i) {
-            matching_param.row(i) = path_list[i];
-            matching_image.row(i) = join_rows(curve1.interpLength(path_list[i](0)),
+            matching_param.row(path_list.size() - i - 1) = path_list[i];
+            matching_image.row(path_list.size() - i - 1) = join_rows(curve1.interpLength(path_list[i](0)),
                                               curve2.interpLength(path_list[i](1)));
         }
 
