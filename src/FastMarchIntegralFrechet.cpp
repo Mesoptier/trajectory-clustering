@@ -23,7 +23,7 @@ FastMarchIntegralFrechet::FastMarchIntegralFrechet(
     f_mat(n_rows, n_cols),
     u_mat(n_rows, n_cols) {}
 
-double FastMarchIntegralFrechet::computeDistance(bool saveMatrices) {
+double FastMarchIntegralFrechet::computeDistance() {
     // Fill f-matrix
     // TODO: calculate this in a more clever way, should be possible to do linear in grid size
     for (unsigned int i = 0; i < n_rows; ++i) {
@@ -102,91 +102,91 @@ double FastMarchIntegralFrechet::computeDistance(bool saveMatrices) {
         }
     } while (!considered_points.empty());
 
-    if (saveMatrices) {
-        // Compute gradient in I and J directions
-        mat grad_i(n_rows, n_cols);
-        mat grad_j(n_rows, n_cols);
+    return u_mat(n_rows - 1, n_cols - 1);
+}
 
-        for (int i = 0; i < n_rows; ++i) {
-            for (int j = 0; j < n_cols; ++j) {
-                if (i > 0) {
-                    grad_i(i, j) = (u_mat(i, j) - u_mat(i - 1, j)) / hi;
-                }
-                if (j > 0) {
-                    grad_j(i, j) = (u_mat(i, j) - u_mat(i, j - 1)) / hj;
-                }
+void FastMarchIntegralFrechet::computeMatching(double stepSize, int maxIterations) {
+    // TODO: Allow configuring precision
+    double precision = stepSize;
+
+    // Compute gradient in I and J directions
+    mat grad_i(n_rows, n_cols);
+    mat grad_j(n_rows, n_cols);
+
+    for (int i = 0; i < n_rows; ++i) {
+        for (int j = 0; j < n_cols; ++j) {
+            if (i > 0) {
+                grad_i(i, j) = (u_mat(i, j) - u_mat(i - 1, j)) / hi;
+            }
+            if (j > 0) {
+                grad_j(i, j) = (u_mat(i, j) - u_mat(i, j - 1)) / hj;
             }
         }
+    }
 
-        // Mix of gradient/coordinate descent to recover shortest path
-        double step_size = 0.01;
-        double precision = step_size;
-        int max_iters = 10000;
+    // Mix of gradient/coordinate descent to recover shortest path
+    rowvec current_x;
+    rowvec next_x = {curve1.getLength(), curve2.getLength()};
+    rowvec target_x = {0, 0};
 
-        rowvec current_x;
-        rowvec next_x = {curve1.getLength(), curve2.getLength()};
-        rowvec target_x = {0, 0};
+    vec domain_i = linspace(0, curve1.getLength(), n_rows);
+    vec domain_j = linspace(0, curve2.getLength(), n_cols);
 
-        vec domain_i = linspace(0, curve1.getLength(), n_rows);
-        vec domain_j = linspace(0, curve2.getLength(), n_cols);
+    mat dx_i;
+    mat dx_j;
 
-        mat dx_i;
-        mat dx_j;
+    std::vector<rowvec> path_list;
 
-        std::vector<rowvec> path_list;
+    for (int i = 0; i < maxIterations; ++i) {
+        current_x = next_x;
+        path_list.push_back(current_x);
 
-        for (int i = 0; i < max_iters; ++i) {
-            current_x = next_x;
-            path_list.push_back(current_x);
+        if (norm(target_x - current_x, paramNorm) < precision) {
+            break;
+        }
 
-            if (norm(target_x - current_x, paramNorm) < precision) {
-                break;
-            }
+        interp2(domain_j, domain_i, grad_i, current_x.col(1), current_x.col(0), dx_i);
+        interp2(domain_j, domain_i, grad_j, current_x.col(1), current_x.col(0), dx_j);
 
-            interp2(domain_j, domain_i, grad_i, current_x.col(1), current_x.col(0), dx_i);
-            interp2(domain_j, domain_i, grad_j, current_x.col(1), current_x.col(0), dx_j);
+        // Directions to check for potential next steps
+        std::vector<rowvec> trial_offsets = {
+            {-1,       0},
+            {-dx_i[0], -dx_j[0]},
+            {0,        -1},
+        };
 
-            // Directions to check for potential next steps
-            std::vector<rowvec> trial_offsets = {
-                {-1,       0},
-                {-dx_i[0], -dx_j[0]},
-                {0,        -1},
-            };
-
-            // Add more directions with controllable precision
+        // Add more directions with controllable precision
 //            for (double j = 0; j <= 1; j += 0.01) {
 //                trial_offsets.push_back({-j, -(1 - j)});
 //            }
 
-            double min_u = INFINITY;
-            for (const auto& offset : trial_offsets) {
-                rowvec trial_x = current_x + step_size * normalise(offset, paramNorm);
-                mat trial_u;
-                interp2(domain_j, domain_i, u_mat, trial_x.col(1), trial_x.col(0), trial_u, "linear", INFINITY);
+        double min_u = INFINITY;
+        for (const auto& offset : trial_offsets) {
+            rowvec trial_x = current_x + stepSize * normalise(offset, paramNorm);
+            mat trial_u;
+            interp2(domain_j, domain_i, u_mat, trial_x.col(1), trial_x.col(0), trial_u, "linear", INFINITY);
 
-                if (trial_u[0] < min_u) {
-                    min_u = trial_u[0];
-                    next_x = trial_x;
-                }
+            if (trial_u[0] < min_u) {
+                min_u = trial_u[0];
+                next_x = trial_x;
             }
         }
-
-        // Create matching matrix from list of path vertices
-        mat matching(path_list.size(), 2);
-        for (int i = 0; i < path_list.size(); ++i) {
-            matching.row(path_list.size() - i - 1) = path_list[i];
-        }
-
-        // Save the resulting matrices
-        f_mat.save("f_mat.csv", csv_ascii);
-        u_mat.save("u_mat.csv", csv_ascii);
-        matching.save("matching.csv", csv_ascii);
-
-        curve1.getVertices().save("curve1.csv", csv_ascii);
-        curve2.getVertices().save("curve2.csv", csv_ascii);
     }
 
-    return u_mat(n_rows - 1, n_cols - 1);
+    // Create matching matrix from list of path vertices
+    matching = mat(path_list.size(), 2);
+    for (int i = 0; i < path_list.size(); ++i) {
+        matching.row(path_list.size() - i - 1) = path_list[i];
+    }
+}
+
+void FastMarchIntegralFrechet::save() {
+    f_mat.save("f_mat.csv", csv_ascii);
+    u_mat.save("u_mat.csv", csv_ascii);
+    matching.save("matching.csv", csv_ascii);
+
+    curve1.getVertices().save("curve1.csv", csv_ascii);
+    curve2.getVertices().save("curve2.csv", csv_ascii);
 }
 
 bool FastMarchIntegralFrechet::inBounds(Point point) {

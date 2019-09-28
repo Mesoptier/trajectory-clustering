@@ -27,13 +27,17 @@ class FastMarchIntegralFrechet {
     double hj = 0;
     arma::mat f_mat;
     arma::mat u_mat;
+    arma::mat matching;
 
 
 public:
-    FastMarchIntegralFrechet(const Curve<double>& curve1, const Curve<double>& curve2, double h, int imageNorm, int paramNorm);
+    FastMarchIntegralFrechet(const Curve<double>& curve1, const Curve<double>& curve2, double h, int imageNorm = 2, int paramNorm = 1);
 
-    double computeDistance(bool saveMatrices = false);
+    double computeDistance();
 
+    void computeMatching(double stepSize = 0.01, int maxIterations = 10000);
+
+    void save();
 
 private:
     struct Node {

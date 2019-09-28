@@ -8,7 +8,9 @@ int main() {
 
     FastMarchIntegralFrechet solver(curve1, curve2, 0.01, 2, 1);
 
-    std::cout << solver.computeDistance(true) << std::endl;
+    std::cout << solver.computeDistance() << std::endl;
+    solver.computeMatching();
+    solver.save();
 
     return 0;
 }
