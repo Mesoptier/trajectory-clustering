@@ -4,21 +4,27 @@
 
 using namespace arma;
 
-FastMarchCDTW::FastMarchCDTW(double h, int imageNorm, int paramNorm)
-    : h(h), imageNorm(imageNorm), paramNorm(paramNorm) {}
+FastMarchCDTW::FastMarchCDTW(
+    const Curve<double>& curve1, const Curve<double>& curve2, double h, int imageNorm, int paramNorm
+) :
+    curve1(curve1),
+    curve2(curve2),
+    imageNorm(imageNorm),
+    paramNorm(paramNorm),
 
-double FastMarchCDTW::compute(const Curve<double>& curve1, const Curve<double>& curve2, bool saveMatrices) {
     // Compute size of matrices
-    n_rows = ceil(curve1.getLength() / h);
-    n_cols = ceil(curve2.getLength() / h);
+    n_rows(ceil(curve1.getLength() / h)),
+    n_cols(ceil(curve2.getLength() / h)),
 
     // Compute adjusted uniform step sizes
-    hi = curve1.getLength() / n_rows;
-    hj = curve2.getLength() / n_cols;
+    hi(curve1.getLength() / n_rows),
+    hj(curve2.getLength() / n_cols),
 
-    // Initialize and fill f-matrix (local cost)
-    f_mat = mat(n_rows, n_cols);
+    f_mat(n_rows, n_cols),
+    u_mat(n_rows, n_cols) {}
 
+double FastMarchCDTW::compute(bool saveMatrices) {
+    // Fill f-matrix
     // TODO: calculate this in a more clever way, should be possible to do linear in grid size
     for (unsigned int i = 0; i < n_rows; ++i) {
         for (unsigned int j = 0; j < n_cols; ++j) {
@@ -29,13 +35,12 @@ double FastMarchCDTW::compute(const Curve<double>& curve1, const Curve<double>& 
         }
     }
 
+    // Fill u-matrix
+    u_mat.fill(INFINITY);
+
     // Initialize and fill tags-matrix
     Mat<short> tags(n_rows, n_cols);
     tags.fill(Far);
-
-    // Initialize and fill u-matrix (total cost of shortest path)
-    u_mat = mat(n_rows, n_cols);
-    u_mat.fill(INFINITY);
 
     // Fibonacci heap for efficient retrieval of considered point with lowest cost
     typedef boost::heap::fibonacci_heap<Node, boost::heap::compare<CompareNode>> Heap;
@@ -65,7 +70,7 @@ double FastMarchCDTW::compute(const Curve<double>& curve1, const Curve<double>& 
         // Update direct neighbors
         for (const auto& offset : offsets) {
             const auto neighbor = trial + offset;
-            if (!inBounds(neighbor, n_rows, n_cols)) {
+            if (!inBounds(neighbor)) {
                 continue;
             }
 
@@ -184,7 +189,7 @@ double FastMarchCDTW::compute(const Curve<double>& curve1, const Curve<double>& 
     return u_mat(n_rows - 1, n_cols - 1);
 }
 
-bool FastMarchCDTW::inBounds(Point point, unsigned int n_rows, unsigned int n_cols) {
+bool FastMarchCDTW::inBounds(Point point) {
     return (point.first >= 0) && (point.first < n_rows) && (point.second >= 0) && (point.second < n_cols);
 }
 

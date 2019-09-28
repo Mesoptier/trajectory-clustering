@@ -15,23 +15,24 @@ inline Point operator +(const Point& lhs, const Point& rhs) {
 class FastMarchCDTW {
 
     // User options
-    double h;
-    int imageNorm = 2;
-    int paramNorm = 1;
+    const Curve<double>& curve1;
+    const Curve<double>& curve2;
+    int imageNorm;
+    int paramNorm;
 
-    // Own variables (initialized in ::compute)
-    arma::mat f_mat;
-    arma::mat u_mat;
+    // Own variables
     unsigned int n_rows = 0;
     unsigned int n_cols = 0;
     double hi = 0;
     double hj = 0;
+    arma::mat f_mat;
+    arma::mat u_mat;
 
 
 public:
-    FastMarchCDTW(double h, int imageNorm, int paramNorm);
+    FastMarchCDTW(const Curve<double>& curve1, const Curve<double>& curve2, double h, int imageNorm, int paramNorm);
 
-    double compute(const Curve<double>& curve1, const Curve<double>& curve2, bool saveMatrices = false);
+    double compute(bool saveMatrices = false);
 
 
 private:
@@ -54,7 +55,7 @@ private:
         Far,
     };
 
-    bool inBounds(Point point, unsigned int n_rows, unsigned int n_cols);
+    bool inBounds(Point point);
 
     double eikonalUpdate(int i, int j);
 };

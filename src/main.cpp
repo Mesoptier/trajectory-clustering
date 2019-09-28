@@ -6,9 +6,9 @@ int main() {
 
     Curve<double> curve1({{0, 1}, {2, 2}});
 
-    FastMarchCDTW solver(0.01, 2, 1);
+    FastMarchCDTW solver(curve1, curve2, 0.01, 2, 1);
 
-    std::cout << solver.compute(curve1, curve2, true) << std::endl;
+    std::cout << solver.compute(true) << std::endl;
 
     return 0;
 }
