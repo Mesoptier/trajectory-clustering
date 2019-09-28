@@ -14,6 +14,27 @@ inline Point operator +(const Point& lhs, const Point& rhs) {
 
 class FastMarchCDTW {
 
+    // User options
+    double h;
+    int imageNorm = 2;
+    int paramNorm = 1;
+
+    // Own variables (initialized in ::compute)
+    arma::mat f_mat;
+    arma::mat u_mat;
+    unsigned int n_rows;
+    unsigned int n_cols;
+    double hi = 0;
+    double hj = 0;
+
+
+public:
+    FastMarchCDTW(double h, int imageNorm, int paramNorm);
+
+    double compute(const Curve<double>& curve1, const Curve<double>& curve2, bool saveMatrices = false);
+
+
+private:
     struct Node {
         Node(Point point, double cost) : point(point), cost(cost) {}
 
@@ -35,17 +56,7 @@ class FastMarchCDTW {
 
     bool inBounds(Point point, unsigned int n_rows, unsigned int n_cols);
 
-    double eikonalUpdate(const arma::mat& u_mat, const arma::mat& f_mat, int i, int j, double hi, double hj, int norm);
-
-public:
-    double compute(
-        const Curve<double>& curve1,
-        const Curve<double>& curve2,
-        double h,
-        int imageNorm = 2,
-        int paramNorm = 2,
-        bool saveMatrices = false
-    );
+    double eikonalUpdate(int i, int j);
 };
 
 

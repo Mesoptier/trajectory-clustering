@@ -4,22 +4,20 @@
 
 using namespace arma;
 
-double
-FastMarchCDTW::compute(
-    const Curve<double>& curve1,
-    const Curve<double>& curve2,
-    double h,
-    int imageNorm,
-    int paramNorm,
-    bool saveMatrices
-) {
-    double hi = h;
-    double hj = h;
-    unsigned int n_rows = curve1.getLength() / hi;
-    unsigned int n_cols = curve2.getLength() / hj;
+FastMarchCDTW::FastMarchCDTW(double h, int imageNorm, int paramNorm)
+    : h(h), imageNorm(imageNorm), paramNorm(paramNorm) {}
 
-    // Mesh of the f-function
-    dmat f_mat(n_rows, n_cols);
+double FastMarchCDTW::compute(const Curve<double>& curve1, const Curve<double>& curve2, bool saveMatrices) {
+    // Compute size of matrices
+    n_rows = ceil(curve1.getLength() / h);
+    n_cols = ceil(curve2.getLength() / h);
+
+    // Compute adjusted uniform step sizes
+    hi = curve1.getLength() / n_rows;
+    hj = curve2.getLength() / n_cols;
+
+    // Initialize and fill f-matrix (local cost)
+    f_mat = mat(n_rows, n_cols);
 
     // TODO: calculate this in a more clever way, should be possible to do linear in grid size
     for (unsigned int i = 0; i < n_rows; ++i) {
@@ -31,10 +29,12 @@ FastMarchCDTW::compute(
         }
     }
 
+    // Initialize and fill tags-matrix
     Mat<short> tags(n_rows, n_cols);
     tags.fill(Far);
 
-    dmat u_mat(n_rows, n_cols);
+    // Initialize and fill u-matrix (total cost of shortest path)
+    u_mat = mat(n_rows, n_cols);
     u_mat.fill(INFINITY);
 
     // Fibonacci heap for efficient retrieval of considered point with lowest cost
@@ -48,7 +48,12 @@ FastMarchCDTW::compute(
     u_mat(start.first, start.second) = start_cost;
     handles.emplace(start, considered_points.emplace(start, start_cost));
 
-    const std::vector<Point> offsets = {{-1, 0}, {1, 0}, {0, -1}, {0, 1}};
+    const std::vector<Point> offsets = {
+        {-1, 0},
+        {1,  0},
+        {0,  -1},
+        {0,  1}
+    };
 
     do {
         auto trial_node = considered_points.top();
@@ -73,7 +78,7 @@ FastMarchCDTW::compute(
             }
 
             // Compute updated U value
-            double u = eikonalUpdate(u_mat, f_mat, i, j, hi, hj, paramNorm);
+            double u = eikonalUpdate(i, j);
 
             const double prev_u = u_mat(i, j);
             if (u < prev_u) {
@@ -138,9 +143,9 @@ FastMarchCDTW::compute(
 
             // Directions to check for potential next steps
             std::vector<rowvec> trial_offsets = {
-                {-1, 0},
+                {-1,       0},
                 {-dx_i[0], -dx_j[0]},
-                {0, -1},
+                {0,        -1},
             };
 
             // Add more directions with controllable precision
@@ -183,7 +188,7 @@ bool FastMarchCDTW::inBounds(Point point, unsigned int n_rows, unsigned int n_co
     return (point.first >= 0) && (point.first < n_rows) && (point.second >= 0) && (point.second < n_cols);
 }
 
-double FastMarchCDTW::eikonalUpdate(const mat& u_mat, const mat& f_mat, int i, int j, double hi, double hj, int norm) {
+double FastMarchCDTW::eikonalUpdate(int i, int j) {
     const double f = f_mat(i, j);
 
     if (f <= 0) {
@@ -209,13 +214,13 @@ double FastMarchCDTW::eikonalUpdate(const mat& u_mat, const mat& f_mat, int i, i
     }
 
     // L1 norm
-    if (norm == 1) {
+    if (paramNorm == 1) {
         return std::min(ui + f * hi, uj + f * hj);
     }
 
     // L2 norm
     // TODO: This does not take into account distance travelled along curve
-    if (norm == 2) {
+    if (paramNorm == 2) {
         // Lower-dimensional update
         if (f < (uj - ui) / (hi * hi) && ui < uj) {
             return f * hi * hi + f * hi * hj + ui;
