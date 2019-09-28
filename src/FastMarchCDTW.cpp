@@ -155,21 +155,16 @@ FastMarchCDTW::compute(
             }
         }
 
-        // Compute matching
-        mat matching_param(path_list.size(), 2);
-        mat matching_image(path_list.size(), 4);
-
+        // Create matching matrix from list of path vertices
+        mat matching(path_list.size(), 2);
         for (int i = 0; i < path_list.size(); ++i) {
-            matching_param.row(path_list.size() - i - 1) = path_list[i];
-            matching_image.row(path_list.size() - i - 1) = join_rows(curve1.interpLength(path_list[i](0)),
-                                              curve2.interpLength(path_list[i](1)));
+            matching.row(path_list.size() - i - 1) = path_list[i];
         }
 
         // Save the resulting matrices
-        f_mat.save("mesh.csv", csv_ascii);
-        u_mat.save("costs.csv", csv_ascii);
-        matching_param.save("matching_param.csv", csv_ascii);
-        matching_image.save("matching_image.csv", csv_ascii);
+        f_mat.save("f_mat.csv", csv_ascii);
+        u_mat.save("u_mat.csv", csv_ascii);
+        matching.save("matching.csv", csv_ascii);
 
         curve1.getVertices().save("curve1.csv", csv_ascii);
         curve2.getVertices().save("curve2.csv", csv_ascii);
