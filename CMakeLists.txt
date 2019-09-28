@@ -6,7 +6,7 @@ set(CMAKE_CXX_STANDARD 14)
 find_package(Armadillo REQUIRED)
 find_package(Boost REQUIRED)
 
-set(SOURCE_FILES src/main.cpp src/FastMarchCDTW.cpp src/FastMarchCDTW.h src/Curve.h)
+set(SOURCE_FILES src/main.cpp src/FastMarchIntegralFrechet.cpp src/FastMarchIntegralFrechet.h src/Curve.h)
 add_executable(code ${SOURCE_FILES})
 
 target_include_directories(

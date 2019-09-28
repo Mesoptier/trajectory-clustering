@@ -1,14 +1,14 @@
 #include "Curve.h"
-#include "FastMarchCDTW.h"
+#include "FastMarchIntegralFrechet.h"
 
 int main() {
     Curve<double> curve2({{0, 0}, {1, 0}, {1.5, 0.2}});
 
     Curve<double> curve1({{0, 1}, {2, 2}});
 
-    FastMarchCDTW solver(curve1, curve2, 0.01, 2, 1);
+    FastMarchIntegralFrechet solver(curve1, curve2, 0.01, 2, 1);
 
-    std::cout << solver.compute(true) << std::endl;
+    std::cout << solver.computeDistance(true) << std::endl;
 
     return 0;
 }

@@ -1,5 +1,5 @@
-#ifndef CODE_FASTMARCHCDTW_H
-#define CODE_FASTMARCHCDTW_H
+#ifndef CODE_FASTMARCHINTEGRALFRECHET_H
+#define CODE_FASTMARCHINTEGRALFRECHET_H
 
 #include <armadillo>
 #include <utility>
@@ -12,7 +12,7 @@ inline Point operator +(const Point& lhs, const Point& rhs) {
     return {lhs.first + rhs.first, lhs.second + rhs.second};
 }
 
-class FastMarchCDTW {
+class FastMarchIntegralFrechet {
 
     // User options
     const Curve<double>& curve1;
@@ -30,9 +30,9 @@ class FastMarchCDTW {
 
 
 public:
-    FastMarchCDTW(const Curve<double>& curve1, const Curve<double>& curve2, double h, int imageNorm, int paramNorm);
+    FastMarchIntegralFrechet(const Curve<double>& curve1, const Curve<double>& curve2, double h, int imageNorm, int paramNorm);
 
-    double compute(bool saveMatrices = false);
+    double computeDistance(bool saveMatrices = false);
 
 
 private:
@@ -61,4 +61,4 @@ private:
 };
 
 
-#endif //CODE_FASTMARCHCDTW_H
+#endif //CODE_FASTMARCHINTEGRALFRECHET_H

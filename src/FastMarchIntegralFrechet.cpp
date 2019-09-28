@@ -1,10 +1,10 @@
-#include "FastMarchCDTW.h"
+#include "FastMarchIntegralFrechet.h"
 #include <armadillo>
 #include <boost/heap/fibonacci_heap.hpp>
 
 using namespace arma;
 
-FastMarchCDTW::FastMarchCDTW(
+FastMarchIntegralFrechet::FastMarchIntegralFrechet(
     const Curve<double>& curve1, const Curve<double>& curve2, double h, int imageNorm, int paramNorm
 ) :
     curve1(curve1),
@@ -23,7 +23,7 @@ FastMarchCDTW::FastMarchCDTW(
     f_mat(n_rows, n_cols),
     u_mat(n_rows, n_cols) {}
 
-double FastMarchCDTW::compute(bool saveMatrices) {
+double FastMarchIntegralFrechet::computeDistance(bool saveMatrices) {
     // Fill f-matrix
     // TODO: calculate this in a more clever way, should be possible to do linear in grid size
     for (unsigned int i = 0; i < n_rows; ++i) {
@@ -189,11 +189,11 @@ double FastMarchCDTW::compute(bool saveMatrices) {
     return u_mat(n_rows - 1, n_cols - 1);
 }
 
-bool FastMarchCDTW::inBounds(Point point) {
+bool FastMarchIntegralFrechet::inBounds(Point point) {
     return (point.first >= 0) && (point.first < n_rows) && (point.second >= 0) && (point.second < n_cols);
 }
 
-double FastMarchCDTW::eikonalUpdate(int i, int j) {
+double FastMarchIntegralFrechet::eikonalUpdate(int i, int j) {
     const double f = f_mat(i, j);
 
     if (f <= 0) {
