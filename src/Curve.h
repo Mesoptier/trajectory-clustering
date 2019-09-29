@@ -28,9 +28,13 @@ public:
         arma::Row<V> prevRow;
         arma::Row<V> row = vertices.row(0);
 
+        length = 0;
+
         for (int i = 1; i < N; ++i) {
             prevRow = row;
             row = vertices.row(i);
+
+            // TODO: configure norm
             length += arma::norm(row - prevRow, 2);
             lengths[i] = length;
         }
