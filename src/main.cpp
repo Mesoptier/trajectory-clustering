@@ -27,6 +27,12 @@ int main() {
 
     arma::mat centerDistances(centers.size(), 2);
 
+    double minSum = INFINITY;
+    Curve<double> minSumCenter({});
+
+    double minDiff = INFINITY;
+    Curve<double> minDiffCenter({});
+
     for (int i = 0; i < centers.size(); ++i) {
         const auto& center = centers[i];
 
@@ -35,8 +41,22 @@ int main() {
 
         solver = FastMarchIntegralFrechet(curve2, center, h, imageNorm, paramNorm);
         centerDistances(i, 1) = solver.computeDistance();
+
+        double sum = centerDistances(i, 0) + centerDistances(i, 1);
+        if (sum < minSum) {
+            minSum = sum;
+            minSumCenter = center;
+        }
+
+        double diff = std::abs(centerDistances(i, 0) - centerDistances(i, 1));
+        if (diff < minDiff) {
+            minDiff = diff;
+            minDiffCenter = center;
+        }
     }
 
+    minSumCenter.getVertices().save("minSumCenter.csv", arma::csv_ascii);
+    minDiffCenter.getVertices().save("minDiffCenter.csv", arma::csv_ascii);
     centerDistances.save("centerDistances.csv", arma::csv_ascii);
 
     return 0;
