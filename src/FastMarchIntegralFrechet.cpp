@@ -261,3 +261,7 @@ double FastMarchIntegralFrechet::eikonalUpdate(int i, int j) {
 
     throw std::logic_error("unsupported norm");
 }
+
+const mat& FastMarchIntegralFrechet::getCenter() const {
+    return center;
+}

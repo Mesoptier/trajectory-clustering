@@ -15,8 +15,8 @@ inline Point operator +(const Point& lhs, const Point& rhs) {
 class FastMarchIntegralFrechet {
 
     // User options
-    const Curve<double>& curve1;
-    const Curve<double>& curve2;
+    Curve<double> curve1;
+    Curve<double> curve2;
     int imageNorm;
     int paramNorm;
 
@@ -31,7 +31,6 @@ class FastMarchIntegralFrechet {
     arma::mat matching;
     arma::mat center;
 
-
 public:
     FastMarchIntegralFrechet(const Curve<double>& curve1, const Curve<double>& curve2, double h, int imageNorm = 2, int paramNorm = 1);
 
@@ -42,6 +41,8 @@ public:
     void computeCenter();
 
     void save();
+
+    const arma::mat& getCenter() const;
 
 private:
     struct Node {
