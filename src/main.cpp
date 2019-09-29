@@ -2,8 +2,8 @@
 #include "FastMarchIntegralFrechet.h"
 
 int main() {
-    Curve<double> curve1({{0, 1}, {2, 3}});
-    Curve<double> curve2({{0, 0}, {1, 0}, {1.5, 0.2}});
+    const Curve<double> curve1({{0, 1}, {2, 3}});
+    const Curve<double> curve2({{0, 0}, {1, 0}, {1.5, 0.2}});
 
     double h = 0.01;
     int imageNorm = 2;
@@ -12,17 +12,32 @@ int main() {
     FastMarchIntegralFrechet solver(curve1, curve2, h, imageNorm, paramNorm);
 
     std::cout << "curve1 distance to curve2: " << solver.computeDistance() << std::endl;
-    solver.computeMatching();
-    solver.computeCenter();
+    std::cout << std::endl;
+    solver.computeMatching(0.1);
+    solver.computeCenter(0.5815); // Manually picked center with same distance to curve1 and curve2
     solver.save();
 
-    Curve<double> center(solver.getCenter());
+    const int numCenters = 21;
+    std::vector<Curve<double>> centers;
 
-    solver = FastMarchIntegralFrechet(curve1, center, h, imageNorm, paramNorm);
-    std::cout << "curve1 distance to center: " << solver.computeDistance() << std::endl;
+    for (int i = 0; i < numCenters; ++i) {
+        solver.computeCenter((double) i / (numCenters - 1));
+        centers.push_back(Curve<double>(solver.getCenter()));
+    }
 
-    solver = FastMarchIntegralFrechet(curve2, center, h, imageNorm, paramNorm);
-    std::cout << "curve2 distance to center: " << solver.computeDistance() << std::endl;
+    arma::mat centerDistances(centers.size(), 2);
+
+    for (int i = 0; i < centers.size(); ++i) {
+        const auto& center = centers[i];
+
+        solver = FastMarchIntegralFrechet(curve1, center, h, imageNorm, paramNorm);
+        centerDistances(i, 0) = solver.computeDistance();
+
+        solver = FastMarchIntegralFrechet(curve2, center, h, imageNorm, paramNorm);
+        centerDistances(i, 1) = solver.computeDistance();
+    }
+
+    centerDistances.save("centerDistances.csv", arma::csv_ascii);
 
     return 0;
 }

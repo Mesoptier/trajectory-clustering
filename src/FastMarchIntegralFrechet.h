@@ -38,7 +38,7 @@ public:
 
     void computeMatching(double stepSize = 0.01, int maxIterations = 10000);
 
-    void computeCenter();
+    void computeCenter(double ratio);
 
     void save();
 

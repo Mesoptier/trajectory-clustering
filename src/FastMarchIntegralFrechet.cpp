@@ -180,13 +180,13 @@ void FastMarchIntegralFrechet::computeMatching(double stepSize, int maxIteration
     }
 }
 
-void FastMarchIntegralFrechet::computeCenter() {
-    center = mat(matching.n_rows, matching.n_cols);
+void FastMarchIntegralFrechet::computeCenter(double ratio) {
+    center = mat(matching.n_rows, 2);
 
     for (int i = 0; i < matching.n_rows; ++i) {
         rowvec p1 = curve1.interpLength(matching(i, 0));
         rowvec p2 = curve2.interpLength(matching(i, 1));
-        center.row(i) = (p1 + p2) / 2;
+        center.row(i) = p1 * ratio + p2 * (1 - ratio);
     }
 }
 
@@ -206,11 +206,6 @@ bool FastMarchIntegralFrechet::inBounds(Point point) {
 
 double FastMarchIntegralFrechet::eikonalUpdate(int i, int j) {
     const double f = f_mat(i, j);
-
-    if (f <= 0) {
-        // TODO: Allow f = 0?
-        throw std::range_error("f must be positive at all mesh vertices");
-    }
 
     // Get u at neighbors
     double ui = INFINITY;
@@ -232,6 +227,11 @@ double FastMarchIntegralFrechet::eikonalUpdate(int i, int j) {
     // L1 norm
     if (paramNorm == 1) {
         return std::min(ui + f * hi, uj + f * hj);
+    }
+
+    if (f <= 0) {
+        // TODO: Allow f = 0?
+        throw std::range_error("f must be positive at all mesh vertices");
     }
 
     // L2 norm
