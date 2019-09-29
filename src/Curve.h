@@ -25,18 +25,20 @@ public:
     explicit Curve(const arma::Mat<V>& vertices)
         : vertices(vertices), D(vertices.n_cols), N(vertices.n_rows), lengths(N) {
         // Compute lengths
-        arma::Row<V> prevRow;
-        arma::Row<V> row = vertices.row(0);
-
         length = 0;
 
-        for (int i = 1; i < N; ++i) {
-            prevRow = row;
-            row = vertices.row(i);
+        if (N > 0) {
+            arma::Row<V> prevRow;
+            arma::Row<V> row = vertices.row(0);
 
-            // TODO: configure norm
-            length += arma::norm(row - prevRow, 2);
-            lengths[i] = length;
+            for (int i = 1; i < N; ++i) {
+                prevRow = row;
+                row = vertices.row(i);
+
+                // TODO: configure norm
+                length += arma::norm(row - prevRow, 2);
+                lengths[i] = length;
+            }
         }
     }
 
