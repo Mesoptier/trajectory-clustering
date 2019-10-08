@@ -107,7 +107,7 @@ double FastMarchIntegralFrechet::computeDistance() {
 
 void FastMarchIntegralFrechet::computeMatching(double stepSize, int maxIterations) {
     // TODO: Allow configuring precision
-    double precision = stepSize;
+    double precision = 0.00001;
 
     // Compute gradient in I and J directions
     mat grad_i(n_rows, n_cols);
@@ -141,7 +141,10 @@ void FastMarchIntegralFrechet::computeMatching(double stepSize, int maxIteration
         current_x = next_x;
         path_list.push_back(current_x);
 
-        if (norm(target_x - current_x, paramNorm) < precision) {
+        if (norm(target_x - current_x, paramNorm) < stepSize * 2) {
+            if (norm(target_x - current_x, paramNorm) > precision) {
+                path_list.push_back(target_x);
+            }
             break;
         }
 
