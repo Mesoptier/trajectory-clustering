@@ -2,6 +2,8 @@
 #define CODE_CURVE_H
 
 #include <armadillo>
+#include "Vertex.h"
+#include "Edge.h"
 
 template<class V>
 class Curve {
@@ -81,6 +83,14 @@ public:
 
     const arma::Mat<V>& getVertices() const {
         return vertices;
+    }
+
+    Vertex<V> getVertex(unsigned int i) const {
+        return vertices.row(i);
+    }
+
+    Edge<V> getEdge(unsigned int i) const {
+        return {getVertex(i), getVertex(i + 1)};
     }
 };
 
