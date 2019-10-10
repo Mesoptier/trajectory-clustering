@@ -35,11 +35,14 @@ public:
             << "----------" << std::endl
             << "Edge 1:\n" << cell.edge1
             << "N: " << cell.n1 << std::endl
-            << *cell.in1 << std::endl
             << std::endl
             << "Edge 2:\n" << cell.edge2
             << "N: " << cell.n2 << std::endl
-            << *cell.in2 << std::endl
+            << std::endl
+            << "In 1: " << cell.in1->t()
+            << "In 2: " << cell.in2->t()
+            << "Out 1:" << cell.out1->t()
+            << "Out 2:" << cell.out2->t()
             << std::endl;
     }
 
