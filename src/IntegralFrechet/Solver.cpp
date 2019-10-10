@@ -26,6 +26,7 @@ Solver<V>::Solver(const Curve<V>& curve1, const Curve<V>& curve2, double h)
 
             if (i1 == 0) {
                 in2 = std::make_shared<arma::Col<V>>(m2);
+                in2->fill(INFINITY);
             } else {
                 in2 = cells[(i1 - 1) * n2 + i2].out2;
             }

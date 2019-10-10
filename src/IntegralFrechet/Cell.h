@@ -32,11 +32,14 @@ public:
 
     friend std::ostream& operator<<(std::ostream& os, const Cell<V>& cell) {
         return os
+            << "----------" << std::endl
             << "Edge 1:\n" << cell.edge1
             << "N: " << cell.n1 << std::endl
+            << *cell.in1 << std::endl
             << std::endl
             << "Edge 2:\n" << cell.edge2
             << "N: " << cell.n2 << std::endl
+            << *cell.in2 << std::endl
             << std::endl;
     }
 
