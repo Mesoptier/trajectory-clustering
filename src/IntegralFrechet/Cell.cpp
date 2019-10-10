@@ -15,6 +15,29 @@ Cell<V>::Cell(
     // Default output values
     out1->fill(INFINITY);
     out2->fill(INFINITY);
+
+    // Compute output values
+    for (int i = 0; i < n1 + n2; ++i) {
+        for (int o = 0; o < n1 + n2; ++o) {
+            outValue(o) = std::min(outValue(o), inValue(i) + computeCost(i, o));
+            // TODO: Keep track of in-point with shortest path to this out-point
+        }
+    }
+}
+
+template<class V>
+const V& Cell<V>::inValue(int i) const {
+    return i < n1 ? (*in1)(i) : (*in2)(i - n1);
+}
+
+template<class V>
+V& Cell<V>::outValue(int i) const {
+    return i < n1 ? (*out1)(i) : (*out2)(i - n1);
+}
+
+template<class V>
+double Cell<V>::computeCost(int i, int o) const {
+    return 0;
 }
 
 template

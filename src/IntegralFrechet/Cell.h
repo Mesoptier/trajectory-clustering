@@ -47,7 +47,10 @@ public:
     }
 
 private:
-    double computeCost(int i_in, int i_out);
+    const V& inValue(int i) const;
+    V& outValue(int i) const;
+
+    double computeCost(int i, int o) const;
 };
 
 #endif //CODE_CELL_H
