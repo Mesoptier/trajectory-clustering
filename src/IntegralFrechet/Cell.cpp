@@ -37,6 +37,7 @@ V& Cell<V>::outValue(int i) const {
 
 template<class V>
 double Cell<V>::computeCost(int i, int o) const {
+    // TODO: Compute cost
     return 0;
 }
 
