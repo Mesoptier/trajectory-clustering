@@ -3,15 +3,35 @@
 
 #include <utility>
 #include <ostream>
+#include <armadillo>
 #include "Vertex.h"
+#include "util.h"
 
 template<class V>
-class Edge : public std::pair<Vertex<V>, Vertex<V>> {
-    using std::pair<Vertex<V>, Vertex<V>>::pair;
-
+class Edge {
 public:
+    const Vertex<V> first;
+    const Vertex<V> second;
+
+    arma::Row<V> diff;
+    V slope;
+    V intercept;
+
+    Edge(const Vertex<V>& first, const Vertex<V>& second) : first(first), second(second) {
+        diff = second - first;
+
+        if (approx_equal(first(0), second(0))) {
+            // Vertical line segment
+            slope = INFINITY;
+            intercept = first(0);
+        } else {
+            slope = (second(1) - first(1)) / (second(0) - first(0));
+            intercept = first(1) - slope * first(0);
+        }
+    }
+
     V getLength() const {
-        return arma::norm(this->first - this->second, 2);
+        return arma::norm(first - second, 2);
     }
 
     friend std::ostream& operator<<(std::ostream& os, const Edge& edge) {
