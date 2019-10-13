@@ -50,6 +50,9 @@ private:
     const V& inValue(int i) const;
     V& outValue(int i) const;
 
+    arma::Row<V> inPoint(int i) const;
+    arma::Row<V> outPoint(int i) const;
+
     V computeCost(int i, int o) const;
 
     V integrate(arma::Row<V> p1, arma::Row<V> b) const;

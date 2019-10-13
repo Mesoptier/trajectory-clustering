@@ -1,3 +1,4 @@
+#include <cassert>
 #include "Cell.h"
 
 template<class V>
@@ -57,11 +58,37 @@ V& Cell<V>::outValue(int i) const {
 }
 
 template<class V>
+arma::Row<V> Cell<V>::inPoint(int i) const {
+    if (i < n1) {
+        return {(V) i / (n1 - 1), 0};
+    } else {
+        return {0, (V) (i - n1) / (n2 - 1)};
+    }
+}
+
+template<class V>
+arma::Row<V> Cell<V>::outPoint(int i) const {
+    if (i < n1) {
+        return {(V) i / (n1 - 1), edge2.length};
+    } else {
+        return {edge1.length, (V) (i - n1) / (n2 - 1)};
+    }
+}
+
+template<class V>
 V Cell<V>::computeCost(int i, int o) const {
+    const auto a = inPoint(i);
+    const auto b = outPoint(o);
+
+    // TODO: Fix for loop so this case doesn't happen
+    if (!(a(0) <= b(0) && a(1) <= b(1))) {
+        return INFINITY;
+    }
+
     // 1. find shortest path (should be constant time, based on monotone ellipse axis)
     // 2. integrate over the 0-3 linear parts in the shortest path
 
-    return integrate({0, 0}, {edge1.getLength(), edge1.getLength()});
+    return integrate(a, b);
 }
 
 template<class V>

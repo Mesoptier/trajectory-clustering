@@ -13,7 +13,7 @@ Solver<V>::Solver(const Curve<V>& curve1, const Curve<V>& curve2, double h)
 
     for (int i1 = 0; i1 < n1; ++i1) {
         const auto edge1 = curve1.getEdge(i1);
-        unsigned int m1 = ceil(edge1.getLength() / h);
+        unsigned int m1 = ceil(edge1.length / h);
         in1 = std::make_shared<arma::Col<V>>(m1);
         in1->fill(INFINITY);
         if (i1 == 0) {
@@ -22,7 +22,7 @@ Solver<V>::Solver(const Curve<V>& curve1, const Curve<V>& curve2, double h)
 
         for (int i2 = 0; i2 < n2; ++i2) {
             const auto edge2 = curve2.getEdge(i2);
-            unsigned int m2 = ceil(edge2.getLength() / h);
+            unsigned int m2 = ceil(edge2.length / h);
 
             if (i1 == 0) {
                 in2 = std::make_shared<arma::Col<V>>(m2);

@@ -14,11 +14,13 @@ public:
     const Vertex<V> second;
 
     arma::Row<V> diff;
+    V length;
     V slope;
     V intercept;
 
     Edge(const Vertex<V>& first, const Vertex<V>& second) : first(first), second(second) {
         diff = second - first;
+        length = arma::norm(diff, 2);
 
         if (approx_equal(first(0), second(0))) {
             // Vertical line segment
@@ -30,12 +32,8 @@ public:
         }
     }
 
-    V getLength() const {
-        return arma::norm(first - second, 2);
-    }
-
     Vertex<V> interpLength(double t) const {
-        return interp(t / getLength());
+        return interp(t / length);
     }
 
     Vertex<V> interp(double t) const {
