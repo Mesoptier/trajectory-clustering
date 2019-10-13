@@ -50,7 +50,9 @@ private:
     const V& inValue(int i) const;
     V& outValue(int i) const;
 
-    double computeCost(int i, int o) const;
+    V computeCost(int i, int o) const;
+
+    V integrate(arma::Row<V> p1, arma::Row<V> b) const;
 };
 
 #endif //CODE_CELL_H

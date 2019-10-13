@@ -34,6 +34,14 @@ public:
         return arma::norm(first - second, 2);
     }
 
+    Vertex<V> interpLength(double t) const {
+        return interp(t / getLength());
+    }
+
+    Vertex<V> interp(double t) const {
+        return (1 - t) * first + t * second;
+    }
+
     friend std::ostream& operator<<(std::ostream& os, const Edge& edge) {
         os << "V1: ";
         edge.first.print(os);
