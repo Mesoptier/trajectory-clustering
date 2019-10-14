@@ -63,6 +63,43 @@ V Cell<V>::getResult() const {
 }
 
 template<class V>
+arma::Mat<V> Cell<V>::getPath(int i, int o) const {
+    const auto a = inPoint(i);
+    const auto b = outPoint(o);
+
+    arma::Row<V> c1, c2;
+
+    if (a(1) < a(0) * slope + intercept) {
+        // Vertical
+        c1 = {a(0), std::min(a(0) * slope + intercept, b(1))};
+    } else if (a(1) > a(0) * slope + intercept) {
+        // Horizontal
+        c1 = {std::min((a(1) - intercept) / slope, b(0)), a(1)};
+    } else {
+        // On monotone ellipse axis
+        c1 = a;
+    }
+
+    if (b(1) > b(0) * slope + intercept) {
+        // Vertical
+        c2 = {b(0), std::max(b(0) * slope + intercept, c1(1))};
+    } else if (b(1) < b(0) * slope + intercept) {
+        // Horizontal
+        c2 = {std::max((b(1) - intercept) / slope, c1(0)), b(1)};
+    } else {
+        // On monotone ellipse axis
+        c2 = b;
+    }
+
+    arma::Mat<V> path(4, 2);
+    path.row(0) = a;
+    path.row(1) = c1;
+    path.row(2) = c2;
+    path.row(3) = b;
+    return path;
+}
+
+template<class V>
 const V& Cell<V>::inValue(int i) const {
     return i < n1 ? (*in1)(i) : (*in2)(i - n1);
 }
@@ -100,35 +137,12 @@ V Cell<V>::computeCost(int i, int o) const {
         return INFINITY;
     }
 
-    // 1. find shortest path (should be constant time, based on monotone ellipse axis)
-    Vertex<V> c1, c2;
-
-    if (a(1) < a(0) * slope + intercept) {
-        // Vertical
-        c1 = {a(0), std::min(a(0) * slope + intercept, b(1))};
-    } else if (a(1) > a(0) * slope + intercept) {
-        // Horizontal
-        c1 = {std::min((a(1) - intercept) / slope, b(0)), a(1)};
-    } else {
-        // On monotone ellipse axis
-        c1 = a;
+    V cost = 0;
+    const auto path = getPath(i, o);
+    for (int j = 0; j < path.n_rows - 1; ++j) {
+        cost += integrate(path.row(j), path.row(j + 1));
     }
-
-    if (b(1) > b(0) * slope + intercept) {
-        // Vertical
-        c2 = {b(0), std::max(b(0) * slope + intercept, c1(1))};
-    } else if (b(1) < b(0) * slope + intercept) {
-        // Horizontal
-        c2 = {std::max((b(1) - intercept) / slope, c1(0)), b(1)};
-    } else {
-        // On monotone ellipse axis
-        c2 = b;
-    }
-
-    std::cout << std::endl << a << c1 << c2 << b;
-
-    // 2. integrate over the 0-3 linear parts in the shortest path
-    return integrate(a, c1) + integrate(c1, c2) + integrate(c2, b);
+    return cost;
 }
 
 template<class V>

@@ -36,6 +36,7 @@ public:
     );
 
     V getResult() const;
+    arma::Mat<V> getPath(int i, int o) const;
 
     friend std::ostream& operator<<(std::ostream& os, const Cell<V>& cell) {
         return os
