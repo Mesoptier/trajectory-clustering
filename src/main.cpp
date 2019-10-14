@@ -3,12 +3,14 @@
 //#include "FastMarchIntegralFrechet.h"
 
 int main() {
-    const Curve<double> curve1({{0, 0}, {0, 1}});
+    const Curve<double> curve1({{0, 1}, {0.5, 1}, {1, 1}});
     const Curve<double> curve2({{0, 0}, {1, 0}});
 
-    double h = 0.2;
+    double h = .05;
 
     Solver<double> solver(curve1, curve2, h);
+
+    std::cout << "Distance: " << solver.getDistance() << std::endl;
 
 //    double h = 0.01;
 //    int imageNorm = 2;

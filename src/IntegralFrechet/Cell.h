@@ -21,6 +21,11 @@ class Cell
     std::shared_ptr<arma::Col<V> const> in1;
     std::shared_ptr<arma::Col<V> const> in2;
 
+    // Ellipse
+    arma::Row<V> midPoint;
+    V slope;
+    V intercept;
+
 public:
     // Total costs of getting to an output point
     std::shared_ptr<arma::Col<V>> out1;
@@ -29,6 +34,8 @@ public:
     Cell(const Edge<V>& edge1, const Edge<V>& edge2, int n1, int n2, const std::shared_ptr<const arma::Col<V>>& in1,
          const std::shared_ptr<const arma::Col<V>>& in2
     );
+
+    V getResult() const;
 
     friend std::ostream& operator<<(std::ostream& os, const Cell<V>& cell) {
         return os

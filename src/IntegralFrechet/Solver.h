@@ -20,6 +20,10 @@ class Solver
 
 public:
     Solver(const Curve<V>& curve1, const Curve<V>& curve2, double h);
+
+    V getDistance() const {
+        return cells[n1 * n2 - 1].getResult();
+    }
 };
 
 #endif //CODE_SOLVER_H

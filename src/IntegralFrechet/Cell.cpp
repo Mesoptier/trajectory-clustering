@@ -1,4 +1,3 @@
-#include <cassert>
 #include "Cell.h"
 
 template<class V>
@@ -14,26 +13,31 @@ Cell<V>::Cell(
    in1(in1), in2(in2),
    out1(std::make_shared<arma::Col<V>>(n1)), out2(std::make_shared<arma::Col<V>>(n2)) {
 
-    // Analyze edges
+    // === ANALYZE EDGES ===
     bool parallel = approx_equal(edge1.slope, edge2.slope);
-
-    // Monotone ellipse axis
-    V slope = 1;
-    V in1_intercept;
+    slope = 1;
 
     if (!parallel) {
         // 1. find intersection between two lines
-        // 2. convert intersection point to point in parameter space
-        // 3. find intercept with in1/in2/out1/out2 axes
-    } else {
-        // 1. find closest point on edge2 to edge1.first
-        // 2. convert closest point to point in parameter space
-        // 3. -> automatically found intercept with in2 axis (because edge1.first equals 0 along in1 axis)
+        const auto imagePoint = intersectInfinite(edge1, edge2);
+//        std::cout << imagePoint << std::endl;
 
-//        const auto norm_diff = arma::normalise(edge2.diff, 2);
-//        in1_intercept = edge2.first + norm_diff * arma::dot(edge1.first - edge2.first, norm_diff);
+        // 2. convert intersection point to point in parameter space
+        midPoint = {edge1.param(imagePoint), edge2.param(imagePoint)};
+//        std::cout << midPoint << std::endl;
+    } else {
+        // 1. find point on edge2 closest to edge1.first
+        const auto norm_diff = arma::normalise(edge2.diff, 2);
+        const auto imagePoint = edge2.first + norm_diff * arma::dot(edge1.first - edge2.first, norm_diff);
+
+        // 2. convert closest point to point in parameter space
+        midPoint = {0, edge2.param(imagePoint)};
     }
 
+    // 3. find intercept
+    intercept = -slope * midPoint(0) + midPoint(1);
+
+    // === COMPUTE OUTPUT VALUES ===
     // Default output values
     out1->fill(INFINITY);
     out2->fill(INFINITY);
@@ -41,10 +45,21 @@ Cell<V>::Cell(
     // Compute output values
     for (int i = 0; i < n1 + n2; ++i) {
         for (int o = 0; o < n1 + n2; ++o) {
-            outValue(o) = std::min(outValue(o), inValue(i) + computeCost(i, o));
+            if (std::isinf(inValue(i))) {
+                continue;
+            }
+
+            const auto cost = computeCost(i, o);
+            outValue(o) = std::min(outValue(o), inValue(i) + cost);
+            std::cout << "inValue=" << inValue(i) << " cost=" << cost << " outValue=" << outValue(o) << std::endl;
             // TODO: Keep track of in-point with shortest path to this out-point
         }
     }
+}
+
+template<class V>
+V Cell<V>::getResult() const {
+    return (*out2)(n2 - 1);
 }
 
 template<class V>
@@ -60,18 +75,18 @@ V& Cell<V>::outValue(int i) const {
 template<class V>
 arma::Row<V> Cell<V>::inPoint(int i) const {
     if (i < n1) {
-        return {(V) i / (n1 - 1), 0};
+        return {(V) i / (n1 - 1) * edge1.length, 0};
     } else {
-        return {0, (V) (i - n1) / (n2 - 1)};
+        return {0, (V) (i - n1) / (n2 - 1) * edge2.length};
     }
 }
 
 template<class V>
 arma::Row<V> Cell<V>::outPoint(int i) const {
     if (i < n1) {
-        return {(V) i / (n1 - 1), edge2.length};
+        return {(V) i / (n1 - 1) * edge1.length, edge2.length};
     } else {
-        return {edge1.length, (V) (i - n1) / (n2 - 1)};
+        return {edge1.length, (V) (i - n1) / (n2 - 1) * edge2.length};
     }
 }
 
@@ -86,9 +101,34 @@ V Cell<V>::computeCost(int i, int o) const {
     }
 
     // 1. find shortest path (should be constant time, based on monotone ellipse axis)
-    // 2. integrate over the 0-3 linear parts in the shortest path
+    Vertex<V> c1, c2;
 
-    return integrate(a, b);
+    if (a(1) < a(0) * slope + intercept) {
+        // Vertical
+        c1 = {a(0), std::min(a(0) * slope + intercept, b(1))};
+    } else if (a(1) > a(0) * slope + intercept) {
+        // Horizontal
+        c1 = {std::min((a(1) - intercept) / slope, b(0)), a(1)};
+    } else {
+        // On monotone ellipse axis
+        c1 = a;
+    }
+
+    if (b(1) > b(0) * slope + intercept) {
+        // Vertical
+        c2 = {b(0), std::max(b(0) * slope + intercept, c1(1))};
+    } else if (b(1) < b(0) * slope + intercept) {
+        // Horizontal
+        c2 = {std::max((b(1) - intercept) / slope, c1(0)), b(1)};
+    } else {
+        // On monotone ellipse axis
+        c2 = b;
+    }
+
+    std::cout << std::endl << a << c1 << c2 << b;
+
+    // 2. integrate over the 0-3 linear parts in the shortest path
+    return integrate(a, c1) + integrate(c1, c2) + integrate(c2, b);
 }
 
 template<class V>
