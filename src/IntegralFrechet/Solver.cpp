@@ -41,4 +41,9 @@ Solver<V>::Solver(const Curve<V>& curve1, const Curve<V>& curve2, double h)
     }
 }
 
+template<class V>
+V Solver<V>::getDistance() const  {
+    return cells[n1 * n2 - 1].getResult();
+}
+
 template class Solver<double>;
