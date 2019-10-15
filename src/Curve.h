@@ -81,6 +81,10 @@ public:
         return length;
     }
 
+    V getLength(int i) const {
+        return lengths[i];
+    }
+
     const arma::Mat<V>& getVertices() const {
         return vertices;
     }

@@ -11,6 +11,7 @@ int main() {
     Solver<double> solver(curve1, curve2, h);
 
     std::cout << "Distance: " << solver.getDistance() << std::endl;
+    std::cout << solver.getMatching();
 
 //    double h = 0.01;
 //    int imageNorm = 2;

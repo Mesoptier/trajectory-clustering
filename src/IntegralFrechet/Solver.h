@@ -22,6 +22,7 @@ public:
     Solver(const Curve<V>& curve1, const Curve<V>& curve2, double h);
 
     V getDistance() const;
+    arma::Mat<V> getMatching() const;
 };
 
 #endif //CODE_SOLVER_H

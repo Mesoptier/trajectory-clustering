@@ -7,11 +7,14 @@ Cell<V>::Cell(
     int n1,
     int n2,
     const std::shared_ptr<const arma::Col<V>>& in1,
-    const std::shared_ptr<const arma::Col<V>>& in2
+    const std::shared_ptr<const arma::Col<V>>& in2,
+    arma::Row<V> offset
 ): edge1(edge1), edge2(edge2),
    n1(n1), n2(n2),
    in1(in1), in2(in2),
-   out1(std::make_shared<arma::Col<V>>(n1)), out2(std::make_shared<arma::Col<V>>(n2)) {
+   offset(offset),
+   out1(std::make_shared<arma::Col<V>>(n1)), out2(std::make_shared<arma::Col<V>>(n2)),
+   outOrigin(n1 + n2) {
 
     // === ANALYZE EDGES ===
     bool parallel = approx_equal(edge1.slope, edge2.slope);
@@ -50,8 +53,12 @@ Cell<V>::Cell(
             }
 
             const auto cost = computeCost(i, o);
-            outValue(o) = std::min(outValue(o), inValue(i) + cost);
-            std::cout << "inValue=" << inValue(i) << " cost=" << cost << " outValue=" << outValue(o) << std::endl;
+            if (inValue(i) + cost < outValue(o)) {
+                outValue(o) = inValue(i) + cost;
+                outOrigin(o) = i;
+            }
+
+//            std::cout << "inValue=" << inValue(i) << " cost=" << cost << " outValue=" << outValue(o) << std::endl;
             // TODO: Keep track of in-point with shortest path to this out-point
         }
     }
@@ -100,6 +107,12 @@ arma::Mat<V> Cell<V>::getPath(int i, int o) const {
 }
 
 template<class V>
+arma::Mat<V> Cell<V>::getMinPath(arma::Row<V> target) const {
+    int targetIndex = outIndex(target);
+    return getPath(outOrigin(targetIndex), targetIndex);
+}
+
+template<class V>
 const V& Cell<V>::inValue(int i) const {
     return i < n1 ? (*in1)(i) : (*in2)(i - n1);
 }
@@ -124,6 +137,22 @@ arma::Row<V> Cell<V>::outPoint(int i) const {
         return {(V) i / (n1 - 1) * edge1.length, edge2.length};
     } else {
         return {edge1.length, (V) (i - n1) / (n2 - 1) * edge2.length};
+    }
+}
+
+template<class V>
+int Cell<V>::inIndex(arma::Row<V> p) const {
+    return 0;
+}
+
+template<class V>
+int Cell<V>::outIndex(arma::Row<V> p) const {
+    if (approx_equal(p(1), edge2.length)) {
+        // on out1 edge
+        return round(p(0) * (n1 - 1) / edge1.length);
+    } else {
+        // on out2 edge
+        return round(p(1) * (n2 - 1) / edge2.length) + n1;
     }
 }
 
