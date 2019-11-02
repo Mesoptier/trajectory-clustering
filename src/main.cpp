@@ -8,7 +8,7 @@ int main() {
 
     double h = .2;
 
-    Solver<double> solver(curve1, curve2, h);
+    Solver<double> solver(curve1, curve2, h, L2, L1);
 
     std::cout << "Distance: " << solver.getDistance() << std::endl;
     std::cout << solver.getMatching();

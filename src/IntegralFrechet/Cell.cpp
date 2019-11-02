@@ -8,11 +8,15 @@ Cell<V>::Cell(
     int n2,
     const std::shared_ptr<const arma::Col<V>>& in1,
     const std::shared_ptr<const arma::Col<V>>& in2,
-    arma::Row<V> offset
+    arma::Row<V> offset,
+    ImageMetric imageMetric,
+    ParamMetric paramMetric
 ): edge1(edge1), edge2(edge2),
    n1(n1), n2(n2),
    in1(in1), in2(in2),
    offset(offset),
+   imageMetric(imageMetric),
+   paramMetric(paramMetric),
    out1(std::make_shared<arma::Col<V>>(n1)), out2(std::make_shared<arma::Col<V>>(n2)),
    outOrigin(n1 + n2) {
 
@@ -171,15 +175,26 @@ V Cell<V>::computeCost(int i, int o) const {
 
 template<class V>
 V Cell<V>::integrate(arma::Row<V> p1, arma::Row<V> p2) const {
+    // Get difference vectors between start- and endpoints of the two sub-edges.
     const Vertex<V> d1 = edge1.interpLength(p1(0)) - edge2.interpLength(p1(1));
     const Vertex<V> d2 = edge1.interpLength(p2(0)) - edge2.interpLength(p2(1));
 
+    // Coefficients are the same for both L2 and L2_Squared
     const V a = pow(d1(0) - d2(0), 2) + pow(d1(1) - d2(1), 2);
     const V b = 2 * (d1(0) * d2(0) - d1(0) * d1(0) + d1(1) * d2(1) - d1(1) * d1(1));
     const V c = d1(0) * d1(0) + d1(1) * d1(1);
 
+    // Length of the edge in parameter space
+    // TODO: Different norm for different ParamMetric
     const V dist = arma::norm(p2 - p1, 1);
 
+    // === Image Metric: L2 Squared ===
+    if (imageMetric == L2_Squared) {
+        return (a / 3 + b / 2 + c) * dist;
+    }
+
+    // else:
+    // === Image Metric: L2 ===
     if (!approx_equal(a, 0.0)) {
         if (b != 0) {
             const V sa = sqrt(a);

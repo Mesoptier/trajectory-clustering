@@ -2,8 +2,13 @@
 #include "Solver.h"
 
 template<class V>
-Solver<V>::Solver(const Curve<V>& curve1, const Curve<V>& curve2, double h)
-    : curve1(curve1), curve2(curve2), n1(curve1.getNoVertices() - 1), n2(curve2.getNoVertices() - 1) {
+Solver<V>::Solver(
+    const Curve<V>& curve1, const Curve<V>& curve2,
+    double h, ImageMetric imageMetric, ParamMetric paramMetric
+) : curve1(curve1), curve2(curve2),
+    n1(curve1.getNoVertices() - 1), n2(curve2.getNoVertices() - 1),
+    imageMetric(imageMetric), paramMetric(paramMetric)
+{
 
     // Create cell grid
     cells.reserve(n1 * n2);
@@ -32,7 +37,7 @@ Solver<V>::Solver(const Curve<V>& curve1, const Curve<V>& curve2, double h)
             }
 
             arma::Row<V> offset = {curve1.getLength(i1), curve2.getLength(i2)};
-            const Cell<V> cell(edge1, edge2, m1, m2, in1, in2, offset);
+            const Cell<V> cell(edge1, edge2, m1, m2, in1, in2, offset, imageMetric, paramMetric);
             cells.push_back(cell);
 
             in1 = cell.out1;
@@ -43,7 +48,7 @@ Solver<V>::Solver(const Curve<V>& curve1, const Curve<V>& curve2, double h)
 }
 
 template<class V>
-V Solver<V>::getDistance() const  {
+V Solver<V>::getDistance() const {
     return cells[n1 * n2 - 1].getResult();
 }
 
@@ -90,4 +95,5 @@ arma::Mat<V> Solver<V>::getMatching() const {
     return matching;
 }
 
-template class Solver<double>;
+template
+class Solver<double>;

@@ -6,6 +6,7 @@
 #include <memory>
 #include <ostream>
 #include "../Edge.h"
+#include "metrics.h"
 
 template<class V>
 class Cell
@@ -22,6 +23,8 @@ class Cell
     std::shared_ptr<arma::Col<V> const> in2;
 
     arma::Row<V> offset;
+    ImageMetric imageMetric;
+    ParamMetric paramMetric;
 
     // Ellipse
     arma::Row<V> midPoint;
@@ -36,7 +39,8 @@ public:
     std::shared_ptr<arma::Col<V>> out2;
 
     Cell(const Edge<V>& edge1, const Edge<V>& edge2, int n1, int n2, const std::shared_ptr<const arma::Col<V>>& in1,
-         const std::shared_ptr<const arma::Col<V>>& in2, arma::Row<V> offset
+         const std::shared_ptr<const arma::Col<V>>& in2, arma::Row<V> offset, ImageMetric imageMetric,
+         ParamMetric paramMetric
     );
 
     V getResult() const;
@@ -74,7 +78,14 @@ private:
 
     V computeCost(int i, int o) const;
 
-    V integrate(arma::Row<V> p1, arma::Row<V> b) const;
+    /**
+     * Compute the value of integration along the specified edge.
+     *
+     * @param p1 Startpoint
+     * @param p2 Endpoint
+     * @return
+     */
+    V integrate(arma::Row<V> p1, arma::Row<V> p2) const;
 };
 
 #endif //CODE_CELL_H
