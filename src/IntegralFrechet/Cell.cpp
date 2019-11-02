@@ -24,6 +24,8 @@ Cell<V>::Cell(
     bool parallel = approx_equal(edge1.slope, edge2.slope);
     slope = 1;
 
+    // TODO: Handle case where edges are in opposite directions
+
     if (!parallel) {
         // 1. find intersection between two lines
         const auto imagePoint = intersectInfinite(edge1, edge2);
