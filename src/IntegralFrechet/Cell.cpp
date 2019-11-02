@@ -70,6 +70,8 @@ V Cell<V>::getResult() const {
 
 template<class V>
 arma::Mat<V> Cell<V>::getPath(int i, int o) const {
+    // TODO: Compute path for LInfinity ParamMetric + some ImageMetric (probably L2_Squared?)
+
     const auto a = inPoint(i);
     const auto b = outPoint(o);
 
@@ -185,8 +187,15 @@ V Cell<V>::integrate(arma::Row<V> p1, arma::Row<V> p2) const {
     const V c = d1(0) * d1(0) + d1(1) * d1(1);
 
     // Length of the edge in parameter space
-    // TODO: Different norm for different ParamMetric
-    const V dist = arma::norm(p2 - p1, 1);
+    V dist;
+    switch (paramMetric) {
+        case L1:
+            dist = arma::norm(p2 - p1, 1);
+            break;
+        case LInfinity:
+            dist = arma::norm(p2 - p1, "inf");
+            break;
+    }
 
     // === Image Metric: L2 Squared ===
     if (imageMetric == L2_Squared) {
