@@ -23,11 +23,9 @@ Cell<V>::Cell(
     if (!parallel) {
         // 1. find intersection between two lines
         const auto imagePoint = intersectInfinite(edge1, edge2);
-//        std::cout << imagePoint << std::endl;
 
         // 2. convert intersection point to point in parameter space
         midPoint = {edge1.param(imagePoint), edge2.param(imagePoint)};
-//        std::cout << midPoint << std::endl;
     } else {
         // 1. find point on edge2 closest to edge1.first
         const auto norm_diff = arma::normalise(edge2.diff, 2);
@@ -57,9 +55,6 @@ Cell<V>::Cell(
                 outValue(o) = inValue(i) + cost;
                 outOrigin(o) = i;
             }
-
-//            std::cout << "inValue=" << inValue(i) << " cost=" << cost << " outValue=" << outValue(o) << std::endl;
-            // TODO: Keep track of in-point with shortest path to this out-point
         }
     }
 }
@@ -185,9 +180,7 @@ V Cell<V>::integrate(arma::Row<V> p1, arma::Row<V> p2) const {
 
     const V dist = arma::norm(p2 - p1, 1);
 
-//    std::cout << "a=" << a << " b=" << b << " c=" << c << " dist=" << dist << std::endl;
-
-    if (a != 0) {
+    if (!approx_equal(a, 0.0)) {
         if (b != 0) {
             const V sa = sqrt(a);
             const V sc = sqrt(c);
@@ -214,7 +207,6 @@ V Cell<V>::integrate(arma::Row<V> p1, arma::Row<V> p2) const {
 
     if (b != 0) {
         throw std::runtime_error("unhandled integration case");
-//        return 0 * dist;
     }
 
     return sqrt(c) * dist;
