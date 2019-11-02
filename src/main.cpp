@@ -3,15 +3,19 @@
 //#include "FastMarchIntegralFrechet.h"
 
 int main() {
-    const Curve<double> curve1({{0, 1}, {0.5, 1}, {1, 1}});
+    const Curve<double> curve1({{0, 1}, {0.345, 1}, {1, 1}});
     const Curve<double> curve2({{0, 0}, {1, 0}});
 
-    double h = .05;
+    double h = .2;
 
     Solver<double> solver(curve1, curve2, h);
 
     std::cout << "Distance: " << solver.getDistance() << std::endl;
     std::cout << solver.getMatching();
+
+    curve1.getVertices().save("curve1.csv", arma::csv_ascii);
+    curve2.getVertices().save("curve2.csv", arma::csv_ascii);
+    solver.getMatching().save("matching.csv", arma::csv_ascii);
 
 //    double h = 0.01;
 //    int imageNorm = 2;
