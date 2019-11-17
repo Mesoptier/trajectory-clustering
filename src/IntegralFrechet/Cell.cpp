@@ -206,33 +206,50 @@ V Cell<V>::integrate(arma::Row<V> p1, arma::Row<V> p2) const {
 
     // else:
     // === Image Metric: L2 ===
-    if (!approx_equal(a, 0.0)) {
-        if (b != 0) {
-            const V sa = sqrt(a);
-            const V sc = sqrt(c);
-            const V sabc = sqrt(a + b + c);
+    if (!approx_zero(a)) {
+        if (!approx_zero(b)) {
+            if (b > 0) {
+                const V sa = sqrt(a);
+                const V sc = sqrt(c);
+                const V sabc = sqrt(a + b + c);
 
-            return (
-                2 * sa * (2 * a * sabc + b * (-sc + sabc))
-                + (b * b - 4 * a * c) * (log(b + 2 * sa * sc) - log(2 * a + b + 2 * sa * sabc))
-            ) / (8 * pow(a, 1.5)) * dist;
+                return (
+                    2 * sa * (2 * a * sabc + b * (-sc + sabc))
+                        + (b * b - 4 * a * c) * (log(b + 2 * sa * sc) - log(2 * a + b + 2 * sa * sabc))
+                ) / (8 * pow(a, 1.5)) * dist;
+            } else {
+                if (approx_equal(b, -c)) {
+                    if (approx_equal(4 * a, c)) {
+                        return (sqrt(a) + sqrt(c)) / 2 * dist;
+                    }
+
+                    return (
+                        (4 * a * a)
+                            - (2 * a * c)
+                            + 2 * c * sqrt(a * c)
+                            + c * (-4 * a + c) * (-log(4 * a - c) + log(b + 2 * sqrt(a * c)))
+                    ) / (8 * pow(a, 1.5)) * dist;
+                }
+            }
         }
 
-        if (c != 0) {
+        if (!approx_zero(c)) {
             const V sa = sqrt(a);
             const V sac = sqrt(a + c);
 
             return (
                 (sac / 2)
-                - (c * (log(a) + log(c) - 2 * log(a + sa * sac))) / (4 * sa)
+                    - (c * (log(a) + log(c) - 2 * log(a + sa * sac))) / (4 * sa)
             ) * dist;
         }
 
         return sqrt(a) / 2 * dist;
     }
 
-    if (b != 0) {
-        throw std::runtime_error("unhandled integration case");
+    if (!approx_zero(b)) {
+        return (
+            2 * (-pow(c, 1.5) + pow(b + c, 1.5))
+        ) / (3 * b) * dist;
     }
 
     return sqrt(c) * dist;
