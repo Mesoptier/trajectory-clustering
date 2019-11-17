@@ -75,10 +75,10 @@ arma::Mat<V> Solver<V>::getMatching() const {
         auto cellMatching = cell.getMinPath(start - offset);
 
         // Find index of next cell
-        if (cellMatching(0, 0) == 0) {
+        if (cellMatching(0, 0) == 0 && i1 > 0) {
             i1--;
         }
-        if (cellMatching(0, 1) == 0) {
+        if (cellMatching(0, 1) == 0 && i2 > 0) {
             i2--;
         }
 
