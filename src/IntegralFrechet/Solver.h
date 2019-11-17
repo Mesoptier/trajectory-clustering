@@ -26,6 +26,7 @@ public:
 
     V getDistance() const;
     arma::Mat<V> getMatching() const;
+    arma::Mat<V> getBoundaryCosts() const;
 };
 
 #endif //CODE_SOLVER_H

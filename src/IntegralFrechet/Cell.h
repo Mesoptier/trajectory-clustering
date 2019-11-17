@@ -46,6 +46,7 @@ public:
     V getResult() const;
     arma::Mat<V> getPath(int i, int o) const;
     arma::Mat<V> getMinPath(arma::Row<V> target) const;
+    arma::Mat<V> getBoundaryCosts() const;
 
     arma::Row<V> getOffset() const {
         return offset;
