@@ -203,16 +203,16 @@ V Cell<V>::integrate(arma::Row<V> p1, arma::Row<V> p2) const {
     // Length of the edge in parameter space
     V dist;
     switch (paramMetric) {
-        case L1:
+        case ParamMetric::L1:
             dist = arma::norm(p2 - p1, 1);
             break;
-        case LInfinity:
+        case ParamMetric::LInfinity:
             dist = arma::norm(p2 - p1, "inf");
             break;
     }
 
     // === Image Metric: L2 Squared ===
-    if (imageMetric == L2_Squared) {
+    if (imageMetric == ImageMetric::L2_Squared) {
         return (a / 3 + b / 2 + c) * dist;
     }
 

@@ -1,12 +1,12 @@
 #ifndef CODE_METRICS_H
 #define CODE_METRICS_H
 
-enum ImageMetric {
+enum class ImageMetric {
     L2,
     L2_Squared,
 };
 
-enum ParamMetric {
+enum class ParamMetric {
     L1,
     LInfinity,
 };
