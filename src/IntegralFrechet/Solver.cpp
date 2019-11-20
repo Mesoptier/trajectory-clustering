@@ -97,8 +97,7 @@ arma::Mat<V> Solver<V>::getMatching() const {
 
 template<class V>
 arma::Mat<V> Solver<V>::getBoundaryCosts() const {
-    // TODO: Make this return over both boundaries again
-    arma::Mat<V> boundaryCosts(0, 2);
+    arma::Mat<V> boundaryCosts(0, 3);
     for (const auto& cell : cells) {
         boundaryCosts = arma::join_cols(boundaryCosts, cell.getBoundaryCosts());
     }

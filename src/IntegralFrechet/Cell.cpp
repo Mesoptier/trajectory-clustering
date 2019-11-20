@@ -117,13 +117,12 @@ arma::Mat<V> Cell<V>::getMinPath(arma::Row<V> target) const {
 
 template<class V>
 arma::Mat<V> Cell<V>::getBoundaryCosts() const {
-    // TODO: Make this return over both boundaries again
-    arma::Mat<V> boundaryCosts(n1 - 1, 2);
-    for (int i = 0; i < n1 - 1; ++i) {
+    arma::Mat<V> boundaryCosts(n1 + n2, 3);
+    for (int i = 0; i < n1 + n2; ++i) {
         const arma::Row<V> point = outPoint(i) + getOffset();
-//        boundaryCosts(i, 0) = point(0);
         boundaryCosts(i, 0) = point(0);
-        boundaryCosts(i, 1) = outValue(i);
+        boundaryCosts(i, 1) = point(1);
+        boundaryCosts(i, 2) = outValue(i);
     }
     return boundaryCosts;
 }
