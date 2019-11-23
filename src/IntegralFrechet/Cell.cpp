@@ -250,6 +250,15 @@ V Cell<V>::integrate(arma::Row<V> p1, arma::Row<V> p2, ImageMetric imageMetric) 
     // else:
     // === Image Metric: L2 ===
     if (!approx_zero(a)) {
+//        const V tmp1 = sqrt(a * (a + b + c));
+//        const V tmp2 = sqrt(a * c);
+//
+//        return (
+//            4 * a * tmp1 +
+//                2 * b * (tmp1 - tmp2) +
+//                (b * b - 4 * a * c) * (log(b + 2 * tmp2) - log(2 * a + b + 2 * tmp1))
+//        ) / (8 * pow(a, 1.5) * dist);
+
         if (!approx_zero(b)) {
             if (b > 0) {
                 const V sa = sqrt(a);
