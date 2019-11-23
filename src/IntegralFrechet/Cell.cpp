@@ -184,21 +184,21 @@ V Cell<V>::computeCost(int i, int o) const {
     V cost = 0;
     const auto path = getPath(i, o);
     for (int j = 0; j < path.n_rows - 1; ++j) {
-        cost += integrate(path.row(j), path.row(j + 1));
+        cost += integrate(path.row(j), path.row(j + 1), imageMetric);
     }
     return cost;
 }
 
 template<class V>
-V Cell<V>::integrate(arma::Row<V> p1, arma::Row<V> p2) const {
+V Cell<V>::integrate(arma::Row<V> p1, arma::Row<V> p2, ImageMetric imageMetric) const {
     // Get difference vectors between start- and endpoints of the two sub-edges.
     const Vertex<V> d1 = edge1.interpLength(p1(0)) - edge2.interpLength(p1(1));
     const Vertex<V> d2 = edge1.interpLength(p2(0)) - edge2.interpLength(p2(1));
 
-    // Coefficients are the same for both L2 and L2_Squared
-    const V a = pow(d1(0) - d2(0), 2) + pow(d1(1) - d2(1), 2);
-    const V b = 2 * (d1(0) * d2(0) - d1(0) * d1(0) + d1(1) * d2(1) - d1(1) * d1(1));
-    const V c = d1(0) * d1(0) + d1(1) * d1(1);
+    const V dx1 = d1(0);
+    const V dy1 = d1(1);
+    const V dx2 = d2(0);
+    const V dy2 = d2(1);
 
     // Length of the edge in parameter space
     V dist;
@@ -210,6 +210,37 @@ V Cell<V>::integrate(arma::Row<V> p1, arma::Row<V> p2) const {
             dist = arma::norm(p2 - p1, "inf");
             break;
     }
+
+    if (imageMetric == ImageMetric::L1) {
+        V cost = 0.0;
+
+        // Mathematica: Integrate[Abs[(1-t)dx1+t dx2],{t,0,1}] (and similar for dy1 & dy2)
+        if ((dx1 <= 0 && dx2 <= 0) || (dx1 >= 0 && dx2 >= 0)) {
+            cost += (std::abs(dx1) + std::abs(dx2)) / 2;
+        } else {
+            cost += (pow(dx1, 2) + pow(dx2, 2)) / (2 * (std::abs(dx1) + std::abs(dx2)));
+        }
+
+        if ((dy1 <= 0 && dy2 <= 0) || (dy1 >= 0 && dy2 >= 0)) {
+            cost += (std::abs(dy1) + std::abs(dy2)) / 2;
+        } else {
+            cost += (pow(dy1, 2) + pow(dy2, 2)) / (2 * (std::abs(dy1) + std::abs(dy2)));
+        }
+
+        return cost * dist;
+    }
+
+    if (imageMetric == ImageMetric::L2) {
+        if ((dx1 == 0 && dx2 == 0) || (dy1 == 0 && dy2 == 0)) {
+            return integrate(p1, p2, ImageMetric::L1);
+        }
+    }
+
+    // Coefficients are the same for both L2 and L2_Squared
+    const V a = pow(d1(0) - d2(0), 2) + pow(d1(1) - d2(1), 2);
+    const V b = 2 * (d1(0) * d2(0) - d1(0) * d1(0) + d1(1) * d2(1) - d1(1) * d1(1));
+    const V c = d1(0) * d1(0) + d1(1) * d1(1);
+
 
     // === Image Metric: L2 Squared ===
     if (imageMetric == ImageMetric::L2_Squared) {

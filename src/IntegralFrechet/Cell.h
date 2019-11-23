@@ -81,12 +81,8 @@ private:
 
     /**
      * Compute the value of integration along the specified edge.
-     *
-     * @param p1 Startpoint
-     * @param p2 Endpoint
-     * @return
      */
-    V integrate(arma::Row<V> p1, arma::Row<V> p2) const;
+    V integrate(arma::Row<V> p1, arma::Row<V> p2, ImageMetric imageMetric) const;
 };
 
 #endif //CODE_CELL_H
