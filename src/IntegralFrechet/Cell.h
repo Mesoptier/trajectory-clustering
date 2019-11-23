@@ -80,9 +80,15 @@ private:
     V computeCost(int i, int o) const;
 
     /**
-     * Compute the value of integration along the specified edge.
+     * Compute the value (cost * distance) of integration along the specified param-edge.
      */
     V integrate(arma::Row<V> p1, arma::Row<V> p2, ImageMetric imageMetric) const;
+
+    /**
+     * Compute the cost (without distance) of linear travel over two edges in image space parametrized by
+     * the x- and y- components of the difference vectors at the start/end of the edges.
+     */
+    V integrate(V dx1, V dy1, V dx2, V dy2, ImageMetric imageMetric) const;
 };
 
 #endif //CODE_CELL_H

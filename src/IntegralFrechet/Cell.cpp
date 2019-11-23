@@ -211,6 +211,11 @@ V Cell<V>::integrate(arma::Row<V> p1, arma::Row<V> p2, ImageMetric imageMetric) 
             break;
     }
 
+    return integrate(dx1, dy1, dx2, dy2, imageMetric) * dist;
+}
+
+template<class V>
+V Cell<V>::integrate(V dx1, V dy1, V dx2, V dy2, ImageMetric imageMetric) const {
     if (imageMetric == ImageMetric::L1) {
         V cost = 0.0;
 
@@ -227,24 +232,25 @@ V Cell<V>::integrate(arma::Row<V> p1, arma::Row<V> p2, ImageMetric imageMetric) 
             cost += (pow(dy1, 2) + pow(dy2, 2)) / (2 * (std::abs(dy1) + std::abs(dy2)));
         }
 
-        return cost * dist;
+        return cost;
     }
 
     if (imageMetric == ImageMetric::L2) {
         if ((dx1 == 0 && dx2 == 0) || (dy1 == 0 && dy2 == 0)) {
-            return integrate(p1, p2, ImageMetric::L1);
+            return integrate(dx1, dy1, dx2, dy2, ImageMetric::L1);
         }
     }
 
-    // Coefficients are the same for both L2 and L2_Squared
-    const V a = pow(d1(0) - d2(0), 2) + pow(d1(1) - d2(1), 2);
-    const V b = 2 * (d1(0) * d2(0) - d1(0) * d1(0) + d1(1) * d2(1) - d1(1) * d1(1));
-    const V c = d1(0) * d1(0) + d1(1) * d1(1);
+    // TODO: Clean up integration below this point
 
+    // Coefficients are the same for both L2 and L2_Squared
+    const V a = pow(dx1 - dx2, 2) + pow(dy1 - dy2, 2);
+    const V b = 2 * (dx1 * dx2 - dx1 * dx1 + dy1 * dy2 - dy1 * dy1);
+    const V c = dx1 * dx1 + dy1 * dy1;
 
     // === Image Metric: L2 Squared ===
     if (imageMetric == ImageMetric::L2_Squared) {
-        return (a / 3 + b / 2 + c) * dist;
+        return (a / 3 + b / 2 + c);
     }
 
     // else:
@@ -257,7 +263,7 @@ V Cell<V>::integrate(arma::Row<V> p1, arma::Row<V> p2, ImageMetric imageMetric) 
 //            4 * a * tmp1 +
 //                2 * b * (tmp1 - tmp2) +
 //                (b * b - 4 * a * c) * (log(b + 2 * tmp2) - log(2 * a + b + 2 * tmp1))
-//        ) / (8 * pow(a, 1.5) * dist);
+//        ) / (8 * pow(a, 1.5));
 
         if (!approx_zero(b)) {
             if (b > 0) {
@@ -268,11 +274,11 @@ V Cell<V>::integrate(arma::Row<V> p1, arma::Row<V> p2, ImageMetric imageMetric) 
                 return (
                     2 * sa * (2 * a * sabc + b * (-sc + sabc))
                         + (b * b - 4 * a * c) * (log(b + 2 * sa * sc) - log(2 * a + b + 2 * sa * sabc))
-                ) / (8 * pow(a, 1.5)) * dist;
+                ) / (8 * pow(a, 1.5));
             } else {
                 if (approx_equal(b, -c)) {
                     if (approx_equal(4 * a, c)) {
-                        return (sqrt(a) + sqrt(c)) / 2 * dist;
+                        return (sqrt(a) + sqrt(c)) / 2;
                     }
 
                     return (
@@ -280,7 +286,7 @@ V Cell<V>::integrate(arma::Row<V> p1, arma::Row<V> p2, ImageMetric imageMetric) 
                             - (2 * a * c)
                             + 2 * c * sqrt(a * c)
                             + c * (-4 * a + c) * (-log(4 * a - c) + log(b + 2 * sqrt(a * c)))
-                    ) / (8 * pow(a, 1.5)) * dist;
+                    ) / (8 * pow(a, 1.5));
                 }
             }
         }
@@ -292,19 +298,19 @@ V Cell<V>::integrate(arma::Row<V> p1, arma::Row<V> p2, ImageMetric imageMetric) 
             return (
                 (sac / 2)
                     - (c * (log(a) + log(c) - 2 * log(a + sa * sac))) / (4 * sa)
-            ) * dist;
+            );
         }
 
-        return sqrt(a) / 2 * dist;
+        return sqrt(a) / 2;
     }
 
     if (!approx_zero(b)) {
         return (
             2 * (-pow(c, 1.5) + pow(b + c, 1.5))
-        ) / (3 * b) * dist;
+        ) / (3 * b);
     }
 
-    return sqrt(c) * dist;
+    return sqrt(c);
 }
 
 template
