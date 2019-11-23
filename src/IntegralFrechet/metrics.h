@@ -2,6 +2,7 @@
 #define CODE_METRICS_H
 
 enum class ImageMetric {
+    L1,
     L2,
     L2_Squared,
 };
