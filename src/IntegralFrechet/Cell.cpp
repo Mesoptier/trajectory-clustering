@@ -77,36 +77,40 @@ arma::Mat<V> Cell<V>::getPath(int i, int o) const {
     const auto a = inPoint(i);
     const auto b = outPoint(o);
 
-    arma::Row<V> c1, c2;
+    if (paramMetric == ParamMetric::L1) {
+        arma::Row<V> c1, c2;
 
-    if (a(1) < a(0) * slope + intercept) {
-        // Vertical
-        c1 = {a(0), std::min(a(0) * slope + intercept, b(1))};
-    } else if (a(1) > a(0) * slope + intercept) {
-        // Horizontal
-        c1 = {std::min((a(1) - intercept) / slope, b(0)), a(1)};
-    } else {
-        // On monotone ellipse axis
-        c1 = a;
+        if (a(1) < a(0) * slope + intercept) {
+            // Vertical
+            c1 = {a(0), std::min(a(0) * slope + intercept, b(1))};
+        } else if (a(1) > a(0) * slope + intercept) {
+            // Horizontal
+            c1 = {std::min((a(1) - intercept) / slope, b(0)), a(1)};
+        } else {
+            // On monotone ellipse axis
+            c1 = a;
+        }
+
+        if (b(1) > b(0) * slope + intercept) {
+            // Vertical
+            c2 = {b(0), std::max(b(0) * slope + intercept, c1(1))};
+        } else if (b(1) < b(0) * slope + intercept) {
+            // Horizontal
+            c2 = {std::max((b(1) - intercept) / slope, c1(0)), b(1)};
+        } else {
+            // On monotone ellipse axis
+            c2 = b;
+        }
+
+        arma::Mat<V> path(4, 2);
+        path.row(0) = a;
+        path.row(1) = c1;
+        path.row(2) = c2;
+        path.row(3) = b;
+        return path;
     }
 
-    if (b(1) > b(0) * slope + intercept) {
-        // Vertical
-        c2 = {b(0), std::max(b(0) * slope + intercept, c1(1))};
-    } else if (b(1) < b(0) * slope + intercept) {
-        // Horizontal
-        c2 = {std::max((b(1) - intercept) / slope, c1(0)), b(1)};
-    } else {
-        // On monotone ellipse axis
-        c2 = b;
-    }
-
-    arma::Mat<V> path(4, 2);
-    path.row(0) = a;
-    path.row(1) = c1;
-    path.row(2) = c2;
-    path.row(3) = b;
-    return path;
+    throw std::logic_error("unsupported param metric");
 }
 
 template<class V>
@@ -206,7 +210,7 @@ V Cell<V>::integrate(arma::Row<V> p1, arma::Row<V> p2, ImageMetric imageMetric) 
         case ParamMetric::L1:
             dist = arma::norm(p2 - p1, 1);
             break;
-        case ParamMetric::LInfinity:
+        case ParamMetric::LInfinity_NoShortcuts:
             dist = arma::norm(p2 - p1, "inf");
             break;
     }
