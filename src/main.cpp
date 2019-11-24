@@ -3,10 +3,10 @@
 //#include "FastMarchIntegralFrechet.h"
 
 int main() {
-    const Curve<double> curve1({{0, 1}, {0.345, 1}, {1, 1}});
-    const Curve<double> curve2({{0, 0}, {1, 0}});
+    const Curve<double> curve1({{1, 0}, {0, 0}, {-1, 0}});
+    const Curve<double> curve2({{0, 0}, {1, 0}, {0, 0}});
 
-    double h = .2;
+    double h = .1;
 
     Solver<double> solver(curve1, curve2, h, ImageMetric::L2, ParamMetric::L1);
 
@@ -16,6 +16,7 @@ int main() {
     curve1.getVertices().save("curve1.csv", arma::csv_ascii);
     curve2.getVertices().save("curve2.csv", arma::csv_ascii);
     solver.getMatching().save("matching.csv", arma::csv_ascii);
+    solver.getBoundaryCosts().save("boundaryCosts.csv", arma::csv_ascii);
 
 //    double h = 0.01;
 //    int imageNorm = 2;
