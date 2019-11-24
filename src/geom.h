@@ -1,6 +1,8 @@
 #ifndef CODE_GEOM_H
 #define CODE_GEOM_H
 
+#include <assert.h>
+
 typedef double distance_t;
 
 typedef arma::Row<distance_t>::fixed<2> Point;
@@ -16,7 +18,7 @@ struct Line {
     Line() = default;
 
     Line(Point a, Point b) {
-        // ASSUMPTION: a != b
+        assert(!arma::approx_equal(a, b, "absdiff", ABS_TOL));
 
         if (approx_equal(a(0), b(0))) { // Vertical line
             slope = a(1) < b(1) ? INFINITY : -INFINITY;
