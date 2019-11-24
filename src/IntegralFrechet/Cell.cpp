@@ -78,26 +78,28 @@ arma::Mat<V> Cell<V>::getPath(int i, int o) const {
     if (paramMetric == ParamMetric::L1) {
         arma::Row<V> c1, c2;
 
-        if (a(1) < a(0) * ellipseAxis.slope + ellipseAxis.intercept) {
-            // Vertical
-            c1 = {a(0), std::min(a(0) * ellipseAxis.slope + ellipseAxis.intercept, b(1))};
-        } else if (a(1) > a(0) * ellipseAxis.slope + ellipseAxis.intercept) {
-            // Horizontal
-            c1 = {std::min((a(1) - ellipseAxis.intercept) / ellipseAxis.slope, b(0)), a(1)};
-        } else {
+        // NOTE: ellipseAxis is not vertical, so getY is always defined
+
+        if (ellipseAxis.includesPoint(a)) {
             // On monotone ellipse axis
             c1 = a;
+        } else if (a(1) < ellipseAxis.getY(a(0))) {
+            // Vertical
+            c1 = {a(0), std::min(ellipseAxis.getY(a(0)), b(1))};
+        } else {
+            // Horizontal
+            c1 = {std::min(ellipseAxis.getX(a(1)), b(0)), a(1)};
         }
 
-        if (b(1) > b(0) * ellipseAxis.slope + ellipseAxis.intercept) {
-            // Vertical
-            c2 = {b(0), std::max(b(0) * ellipseAxis.slope + ellipseAxis.intercept, c1(1))};
-        } else if (b(1) < b(0) * ellipseAxis.slope + ellipseAxis.intercept) {
-            // Horizontal
-            c2 = {std::max((b(1) - ellipseAxis.intercept) / ellipseAxis.slope, c1(0)), b(1)};
-        } else {
+        if (ellipseAxis.includesPoint(b)) {
             // On monotone ellipse axis
             c2 = b;
+        } else if (b(1) > ellipseAxis.getY(b(0))) {
+            // Vertical
+            c2 = {b(0), std::max(ellipseAxis.getY(b(0)), c1(1))};
+        } else {
+            // Horizontal
+            c2 = {std::max(ellipseAxis.getX(b(1)), c1(0)), b(1)};
         }
 
         arma::Mat<V> path(4, 2);
