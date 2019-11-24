@@ -7,6 +7,7 @@
 #include <ostream>
 #include "../Edge.h"
 #include "metrics.h"
+#include "../geom.h"
 
 template<class V>
 class Cell
@@ -28,8 +29,10 @@ class Cell
 
     // Ellipse
     arma::Row<V> midPoint;
-    V slope;
-    V intercept;
+
+    Line ellipseAxis; // Monotone ellipse axis
+    Line ellH; // Line through points where tangent to ellipse is horizontal
+    Line ellV; // Line through points where tangent to ellipse is vertical
 
     arma::Col<int> outOrigin;
 

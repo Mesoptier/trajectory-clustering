@@ -9,7 +9,7 @@ enum class ImageMetric {
 
 enum class ParamMetric {
     L1,
-    LInfinity,
+    LInfinity_NoShortcuts,
 };
 
 #endif //CODE_METRICS_H
