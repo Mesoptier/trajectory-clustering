@@ -22,7 +22,6 @@ Cell<V>::Cell(
 
     // === ANALYZE EDGES ===
     bool parallel = approx_equal(edge1.line.slope, edge2.line.slope);
-    ellipseAxis.slope = 1;
 
     // TODO: Handle case where edges are in opposite directions
 
@@ -41,8 +40,19 @@ Cell<V>::Cell(
         midPoint = {0, edge2.param(imagePoint)};
     }
 
-    // 3. find intercept
-    ellipseAxis.intercept = -ellipseAxis.slope * midPoint(0) + midPoint(1);
+    // Initialise axes
+    ellipseAxis = Line(midPoint, 1);
+
+    // TODO: Initialise ellH and ellV axes
+    if (isPerpendicular(edge1.line, edge2.line)) {
+        ellH = Line(midPoint, INFINITY);
+        ellV = Line(midPoint, 0);
+    } else {
+        // TODO: Deal with either line being vertical
+        const auto m1 = edge1.line.slope;
+        const auto m2 = edge2.line.slope;
+        distance_t m = (m2 - m1) / (1 + m1 * m2);
+    }
 
     // === COMPUTE OUTPUT VALUES ===
     // Default output values
@@ -119,7 +129,7 @@ arma::Mat<V> Cell<V>::getPath(int i, int o) const {
 }
 
 template<class V>
-arma::Mat<V> Cell<V>::getMinPath(arma::Row<V> target) const {
+Points Cell<V>::getMinPath(Point target) const {
     int targetIndex = outIndex(target);
     return getPath(outOrigin(targetIndex), targetIndex);
 }

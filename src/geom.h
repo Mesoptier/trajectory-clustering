@@ -1,23 +1,30 @@
-#ifndef CODE_GEOM_H
-#define CODE_GEOM_H
+#pragma once
 
 #include <assert.h>
 
 typedef double distance_t;
 
 typedef arma::Row<distance_t>::fixed<2> Point;
+typedef arma::Mat<distance_t> Points;
 
 struct Line {
+    [[deprecated]]
     distance_t slope;
 
     /**
      * y-intercept, or x-intercept if line is vertical
      */
+    [[deprecated]]
     distance_t intercept;
+
+
 
     Line() = default;
 
-    Line(Point a, Point b) {
+    /**
+     * Create line from two points that lie on the line.
+     */
+    Line(const Point& a, const Point& b) {
         assert(!arma::approx_equal(a, b, "absdiff", ABS_TOL));
 
         if (approx_equal(a(0), b(0))) { // Vertical line
@@ -26,6 +33,17 @@ struct Line {
         } else {
             slope = (b(1) - a(1)) / (b(0) - a(0));
             intercept = a(1) - slope * a(0);
+        }
+    }
+
+    /**
+     * Create line from a point that lies on the line and its slope.
+     */
+    Line(const Point& p, distance_t slope) : slope(slope) {
+        if (isVertical()) {
+            intercept = p(0);
+        } else {
+            intercept = -slope * p(0) + p(1);
         }
     }
 
@@ -64,7 +82,7 @@ struct Line {
     }
 
     /**
-     * Tests whether the given point lies on this line.
+     * Test whether the given point lies on this line.
      */
     bool includesPoint(const Point& point) const {
         if (isVertical()) {
@@ -74,9 +92,11 @@ struct Line {
         }
     }
 
+    /**
+     * Find point at which the two given lines intersect.
+     * ASSUMPTION: line1 and line2 are not parallel
+     */
     friend Point intersect(const Line& line1, const Line& line2) {
-        // ASSUMPTION: line1 and line2 are not parallel
-
         if (line2.isVertical()) {
             return intersect(line2, line1);
         }
@@ -90,6 +110,17 @@ struct Line {
 
         return {x, line2.slope * x + line2.intercept};
     }
-};
 
-#endif //CODE_GEOM_H
+    /**
+     * Test whether the two given lines are perpendicular to each other.
+     */
+    friend bool isPerpendicular(const Line& line1, const Line& line2) {
+        if (line2.isVertical()) {
+            return isPerpendicular(line2, line1);
+        }
+        if (line1.isVertical()) {
+            return line2.isHorizontal();
+        }
+        return approx_equal(line1.slope * line2.slope, -1.0);
+    }
+};

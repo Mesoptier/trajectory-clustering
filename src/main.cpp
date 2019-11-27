@@ -3,7 +3,7 @@
 //#include "FastMarchIntegralFrechet.h"
 
 int main() {
-    const Curve<double> curve1({{1, 0}, {0, 0}, {-1, 0}});
+    const Curve<double> curve1({{0, 2}, {0, 0}, {-1, 0}});
     const Curve<double> curve2({{0, 0}, {1, 0}, {0, 0}});
 
     double h = .1;
@@ -17,6 +17,21 @@ int main() {
     curve2.getVertices().save("curve2.csv", arma::csv_ascii);
     solver.getMatching().save("matching.csv", arma::csv_ascii);
     solver.getBoundaryCosts().save("boundaryCosts.csv", arma::csv_ascii);
+
+    // TODO: Instead of saving boundaryCosts as one matrix, save some data (edges, ellipse axes,
+    //  image-/param-metrics, boundary costs, etc.) for each cell and visualize it in a grid in
+    //  Mathematica.
+
+    std::ofstream solverFile;
+    solverFile.open("solver.xml");
+
+    ExpressionML::Writer writer(solverFile);
+    writer.open();
+    solver.writeExpressionML(writer);
+    writer.close();
+
+    solverFile.close();
+
 
 //    double h = 0.01;
 //    int imageNorm = 2;

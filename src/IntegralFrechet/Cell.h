@@ -48,11 +48,52 @@ public:
 
     V getResult() const;
     arma::Mat<V> getPath(int i, int o) const;
-    arma::Mat<V> getMinPath(arma::Row<V> target) const;
+    Points getMinPath(Point target) const;
     arma::Mat<V> getBoundaryCosts() const;
 
-    arma::Row<V> getOffset() const {
+    Point getOffset() const {
         return offset;
+    }
+
+    void writeExpressionML(ExpressionML::Writer& writer) const {
+        writer.openFunction("Association");
+
+        // Offset
+        writer.openRule("Offset");
+        writer.writePoint(getOffset());
+        writer.closeRule();
+
+        // Ellipse midpoint
+        writer.openRule("EllipseMidpoint");
+        writer.writePoint(midPoint);
+        writer.closeRule();
+
+        // Edges
+        writer.openRule("Edges");
+        writer.openFunction("List");
+        edge1.writeExpressionML(writer);
+        edge2.writeExpressionML(writer);
+        writer.closeFunction();
+        writer.closeRule();
+
+        // Optimal paths (to each sampled point on out-boundary)
+        writer.openRule("Paths");
+        writer.openFunction("List");
+        for (int i = 0; i < n1 + n2; ++i) {
+            writer.writePoints(getMinPath(outPoint(i)));
+        }
+        writer.closeFunction();
+        writer.closeRule();
+
+        // Ellipse axes
+        writer.openRule("MonotoneEllipseAxis");
+        writer.closeRule();
+
+        // Boundary costs
+
+
+
+        writer.closeFunction();
     }
 
     friend std::ostream& operator<<(std::ostream& os, const Cell<V>& cell) {
