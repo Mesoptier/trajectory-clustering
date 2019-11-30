@@ -39,6 +39,8 @@ Cell<V>::Cell(
     }
 
     // Initialise axes
+    // TODO: Ellipse Axis might not have slope 1 if ImageMetric == L1...
+    //       (Might be fixed by using L1 for all image-related distances?)
     ellipseAxis = Line::fromPointAndSlope(midPoint, 1);
 
     // TODO: Initialise ellH and ellV axes
