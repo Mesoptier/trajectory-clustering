@@ -10,7 +10,8 @@
 #include "expressionml.h"
 
 template<class V>
-class Edge {
+class Edge
+{
 public:
     const Point first;
     const Point second;
@@ -20,10 +21,9 @@ public:
 
     Line line;
 
-    Edge(const Point& first, const Point& second) : first(first), second(second), line(first, second) {
-        diff = second - first;
-        length = arma::norm(diff, 2);
-    }
+    Edge(const Point& first, const Point& second):
+        first(first), second(second), line(Line::fromTwoPoints(first, second)),
+        diff(second - first), length(arma::norm(diff, 2)) {}
 
     Point interpLength(V t) const {
         return interp(t / length);
