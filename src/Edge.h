@@ -57,11 +57,6 @@ public:
         edge.second.print(os);
         return os;
     }
-
-    [[deprecated("Use intersect on the edge's lines directly instead")]]
-    friend Point intersectInfinite(const Edge& edge1, const Edge& edge2) {
-        return intersect(edge1.line, edge2.line);
-    }
 };
 
 #endif //CODE_EDGE_H
