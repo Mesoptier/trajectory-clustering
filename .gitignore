@@ -5,3 +5,5 @@ cmake-build-*/
 
 # IntelliJ
 out/
+
+Google_tests/lib/

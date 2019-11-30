@@ -69,7 +69,7 @@ arma::Mat<V> Solver<V>::getMatching() const {
         auto cell = cells[i1 * n2 + i2];
 
         // Get cell offset
-        arma::Row<V> offset = cell.getOffset();
+        Point offset = cell.getOffset();
 
         // Get minimal path to the target point
         auto cellMatching = cell.getMinPath(start - offset);

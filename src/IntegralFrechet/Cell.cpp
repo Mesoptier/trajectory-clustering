@@ -8,7 +8,7 @@ Cell<V>::Cell(
     int n2,
     const std::shared_ptr<const arma::Col<V>>& in1,
     const std::shared_ptr<const arma::Col<V>>& in2,
-    arma::Row<V> offset,
+    Point offset,
     ImageMetric imageMetric,
     ParamMetric paramMetric
 ): edge1(edge1), edge2(edge2),
@@ -21,37 +21,32 @@ Cell<V>::Cell(
    outOrigin(n1 + n2) {
 
     // === ANALYZE EDGES ===
-    bool parallel = approx_equal(edge1.line.slope, edge2.line.slope);
-
-    // TODO: Handle case where edges are in opposite directions
-
-    if (!parallel) {
+    if (!isParallel(edge1.line, edge2.line)) { // -> Infinite lines intersect somewhere
         // 1. find intersection between two lines
         const auto imagePoint = intersect(edge1.line, edge2.line);
 
         // 2. convert intersection point to point in parameter space
         midPoint = {edge1.param(imagePoint), edge2.param(imagePoint)};
-    } else {
+    } else { // -> Infinite lines are parallel
+        // TODO: Handle case where edges are in opposite directions
+
         // 1. find point on edge2 closest to edge1.first
-        const auto norm_diff = arma::normalise(edge2.diff, 2);
-        const auto imagePoint = edge2.first + norm_diff * arma::dot(edge1.first - edge2.first, norm_diff);
+        const Point imagePoint =
+            edge2.first + edge2.line.direction * arma::dot(edge1.first - edge2.first, edge2.line.direction);
 
         // 2. convert closest point to point in parameter space
         midPoint = {0, edge2.param(imagePoint)};
     }
 
     // Initialise axes
-    ellipseAxis = Line(midPoint, 1);
+    ellipseAxis = Line::fromPointAndSlope(midPoint, 1);
 
     // TODO: Initialise ellH and ellV axes
     if (isPerpendicular(edge1.line, edge2.line)) {
-        ellH = Line(midPoint, INFINITY);
-        ellV = Line(midPoint, 0);
+        ellH = Line::fromPointAndSlope(midPoint, INFINITY);
+        ellV = Line::fromPointAndSlope(midPoint, 0);
     } else {
         // TODO: Deal with either line being vertical
-        const auto m1 = edge1.line.slope;
-        const auto m2 = edge2.line.slope;
-        distance_t m = (m2 - m1) / (1 + m1 * m2);
     }
 
     // === COMPUTE OUTPUT VALUES ===
@@ -88,7 +83,7 @@ arma::Mat<V> Cell<V>::getPath(int i, int o) const {
     if (paramMetric == ParamMetric::L1) {
         arma::Row<V> c1, c2;
 
-        // NOTE: ellipseAxis is not vertical, so getY is always defined
+        // NOTE: ellipseAxis is not vertical, so getY and getX are always defined
 
         if (ellipseAxis.includesPoint(a)) {
             // On monotone ellipse axis

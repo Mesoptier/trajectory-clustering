@@ -23,12 +23,12 @@ class Cell
     std::shared_ptr<arma::Col<V> const> in1;
     std::shared_ptr<arma::Col<V> const> in2;
 
-    arma::Row<V> offset;
+    Point offset;
     ImageMetric imageMetric;
     ParamMetric paramMetric;
 
     // Ellipse
-    arma::Row<V> midPoint;
+    Point midPoint;
 
     Line ellipseAxis; // Monotone ellipse axis
     Line ellH; // Line through points where tangent to ellipse is horizontal
@@ -42,7 +42,7 @@ public:
     std::shared_ptr<arma::Col<V>> out2;
 
     Cell(const Edge<V>& edge1, const Edge<V>& edge2, int n1, int n2, const std::shared_ptr<const arma::Col<V>>& in1,
-         const std::shared_ptr<const arma::Col<V>>& in2, arma::Row<V> offset, ImageMetric imageMetric,
+         const std::shared_ptr<const arma::Col<V>>& in2, Point offset, ImageMetric imageMetric,
          ParamMetric paramMetric
     );
 

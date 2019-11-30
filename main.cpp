@@ -1,10 +1,10 @@
-#include "Curve.h"
-#include "IntegralFrechet/Solver.h"
+#include "src/Curve.h"
+#include "src/IntegralFrechet/Solver.h"
 //#include "FastMarchIntegralFrechet.h"
 
 int main() {
-    const Curve<double> curve1({{0, 2}, {0, 0}, {-1, 0}});
-    const Curve<double> curve2({{0, 0}, {1, 0}, {0, 0}});
+    const Curve<double> curve1({{0, 0}, {1, 0}});
+    const Curve<double> curve2({{0, 1}, {1, 1}});
 
     double h = .1;
 

@@ -3,19 +3,23 @@ project(code)
 
 set(CMAKE_CXX_STANDARD 14)
 
-find_package(Armadillo REQUIRED)
-find_package(Boost REQUIRED)
-
-set(SOURCE_FILES src/main.cpp src/Curve.h src/IntegralFrechet/Cell.cpp src/IntegralFrechet/Cell.h src/IntegralFrechet/Solver.cpp src/IntegralFrechet/Solver.h src/Vertex.h src/Edge.h src/util.h src/IntegralFrechet/metrics.h src/geom.h src/expressionml.h)
-add_executable(code ${SOURCE_FILES})
-
-target_include_directories(
-        code PRIVATE
-        ${ARMADILLO_INCLUDE_DIRS}
-        ${BOOST_INCLUDE_DIRS}
+# TODO: clean-up these external libraries
+include_directories(
+        "C:/lib/armadillo-9.800.2/include"
 )
-target_link_libraries(
-        code
-        ${ARMADILLO_LIBRARIES}
-        ${BOOST_LIBRARIES}
+
+link_libraries(
+        "C:/lib/armadillo-9.800.2/examples/lib_win64/blas_win64_MT.lib"
+        "C:/lib/armadillo-9.800.2/examples/lib_win64/lapack_win64_MT.lib"
 )
+
+set(SOURCE_FILES main.cpp)
+add_executable(ProjectName_run ${SOURCE_FILES})
+
+# TODO: Rename directory to ProjectName_lib?
+include_directories(src)
+add_subdirectory(src)
+
+target_link_libraries(ProjectName_run ProjectName_lib)
+
+add_subdirectory(Google_tests)

@@ -15,7 +15,7 @@ public:
     const Point first;
     const Point second;
 
-    arma::Row<V> diff;
+    Point diff;
     V length;
 
     Line line;
