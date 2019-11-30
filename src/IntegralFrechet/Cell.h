@@ -87,6 +87,7 @@ public:
 
         // Ellipse axes
         writer.openRule("MonotoneEllipseAxis");
+        writer.writeLine(ellipseAxis);
         writer.closeRule();
 
         // Boundary costs

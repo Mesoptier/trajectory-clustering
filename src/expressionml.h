@@ -59,7 +59,10 @@ namespace ExpressionML {
             closeFunction();
         }
         void writeLine(const Line& line) {
-
+            openFunction("List");
+            writePoint(line.origin);
+            writePoint(line.direction);
+            closeFunction();
         }
     };
 }
