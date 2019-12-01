@@ -9,6 +9,12 @@ typedef double distance_t;
 typedef arma::Row<distance_t>::fixed<2> Point;
 typedef arma::Mat<distance_t> Points;
 
+/**
+ * Computes perp dot product between two vectors.
+ * See: http://mathworld.wolfram.com/PerpDotProduct.html
+ */
+distance_t perp(const Point& a, const Point& b);
+
 struct Line
 {
     Point origin;
@@ -76,10 +82,7 @@ struct Line
      * Test whether the given point lies on this line.
      */
     bool includesPoint(const Point& point) const {
-        return approx_zero(
-            (origin(0) - point(0)) * direction(1)
-                - (origin(1) - point(1)) * direction(0)
-        );
+        return approx_zero(perp(origin - point, direction));
     }
 
     /**

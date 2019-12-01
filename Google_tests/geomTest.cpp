@@ -1,6 +1,17 @@
 #include <geom.h>
 #include "gtest/gtest.h"
 
+TEST(PointTest, Perp) {
+    // Collinear:
+    ASSERT_DOUBLE_EQ(perp({1, 1}, {5, 5}), 0.0);
+
+    // Second vector to the left of first:
+    ASSERT_GT(perp({1, 1}, {0, 2}), 0);
+
+    // Second vector to the right of first:
+    ASSERT_LT(perp({1, 1}, {2, 0}), 0);
+}
+
 TEST(LineTest, IncludesPoint) {
     // Includes direction:
     ASSERT_TRUE(Line({2, 3}, {1, 0}).includesPoint({3, 3}));

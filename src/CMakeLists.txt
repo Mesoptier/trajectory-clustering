@@ -15,6 +15,7 @@ set(HEADER_FILES
 set(SOURCE_FILES
         IntegralFrechet/Cell.cpp
         IntegralFrechet/Solver.cpp
+        geom.cpp
         )
 
 add_library(ProjectName_lib STATIC ${SOURCE_FILES} ${HEADER_FILES})
