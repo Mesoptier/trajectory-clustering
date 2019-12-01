@@ -43,12 +43,13 @@ Cell<V>::Cell(
     //       (Might be fixed by using L1 for all image-related distances?)
     ellipseAxis = Line::fromPointAndSlope(midPoint, 1);
 
-    // TODO: Initialise ellH and ellV axes
     if (isPerpendicular(edge1.line, edge2.line)) {
         ellH = Line::fromPointAndSlope(midPoint, INFINITY);
         ellV = Line::fromPointAndSlope(midPoint, 0);
     } else {
-        // TODO: Deal with either line being vertical
+        const auto dot = arma::dot(edge2.line.direction, edge1.line.direction);
+        ellH = Line(midPoint, {dot, 1});
+        ellV = Line(midPoint, {1, dot});
     }
 
     // === COMPUTE OUTPUT VALUES ===
