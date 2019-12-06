@@ -51,10 +51,10 @@ namespace ExpressionML {
             writeNumber(point(1));
             closeFunction();
         }
-        void writePoints(const Points& points) {
+        void writePointsList(const PointsList& points) {
             openFunction("List");
-            for (int i = 0; i < points.n_rows; ++i) {
-                writePoint(points.row(i));
+            for (const auto& point : points) {
+                writePoint(point);
             }
             closeFunction();
         }

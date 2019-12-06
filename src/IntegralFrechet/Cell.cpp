@@ -17,7 +17,8 @@ Cell<V>::Cell(
    offset(offset),
    imageMetric(imageMetric),
    paramMetric(paramMetric),
-   out1(std::make_shared<arma::Col<V>>(n1)), out2(std::make_shared<arma::Col<V>>(n2)),
+   out1(std::make_shared<arma::Col<V>>(n1)),
+   out2(std::make_shared<arma::Col<V>>(n2)),
    outOrigin(n1 + n2) {
 
     // === ANALYZE EDGES ===
@@ -185,6 +186,77 @@ int Cell<V>::outIndex(arma::Row<V> p) const {
     } else {
         // on out2 edge
         return round(p(1) * (n2 - 1) / edge2.length) + n1;
+    }
+}
+
+template<class V>
+void Cell<V>::steepestDescent(PointsList& list, Point s, Point t) const {
+    list.push_back(s);
+
+    // TODO: Currently supports LInfinity_NoShortcuts only
+
+    // Boundaries of the subcell
+    Line top(t, {1, 0});
+    Line right(t, {0, 1});
+    Line bottom(s, {1, 0});
+    Line left(s, {0, 1});
+
+    if (ellV.includesPoint(s) || ellH.includesPoint(s) || ellipseAxis.includesPoint(s)) {
+        // On one of the steepest-descent diagonals
+        if (lessThanMonotone(s, midPoint)) {
+            // Which diagonal are we on again?
+            Line line = ellV.includesPoint(s) ? ellV :
+                        ellH.includesPoint(s) ? ellH :
+                        ellipseAxis;
+
+            list.push_back(minMonotone(midPoint, minMonotone(intersect(line, top), intersect(line, right))));
+            return;
+        } else {
+            // No steepest descent is possible
+            return;
+        }
+    }
+
+    // Above (left of) ellV
+    if (perp(s - ellV.origin, ellV.direction) < 0) {
+        if (right.includesPoint(s)) {
+            return;
+        } else if (lessThanMonotone(s, midPoint)) {
+            steepestDescent(list, minMonotone(intersect(ellV, bottom), intersect(right, bottom)), t);
+            return;
+        } else if (perp(s - ellH.origin, ellH.direction) < 0) {
+            steepestDescent(list, minMonotone(intersect(ellH, bottom), intersect(right, bottom)), t);
+            return;
+        } else {
+            return;
+        }
+    }
+
+    // Right of ellH
+    if (perp(s - ellH.origin, ellH.direction) > 0) {
+        if (top.includesPoint(s)) {
+            return;
+        } else if (lessThanMonotone(s, midPoint)) {
+            steepestDescent(list, minMonotone(intersect(ellH, left), intersect(top, left)), t);
+            return;
+        } else if (perp(s - ellV.origin, ellV.direction) > 0) {
+            steepestDescent(list, minMonotone(intersect(ellV, left), intersect(top, left)), t);
+            return;
+        } else {
+            return;
+        }
+    }
+
+    // Move parallel to ellipseAxis
+    Line diag(s, ellipseAxis.direction);
+
+    // Left of diagonal
+    if (perp(s - ellipseAxis.origin, ellipseAxis.direction) < 0) {
+        steepestDescent(list, minMonotone(intersect(ellV, diag), minMonotone(intersect(top, diag), intersect(right, diag))), t);
+        return;
+    } else {
+        steepestDescent(list, minMonotone(intersect(ellH, diag), minMonotone(intersect(top, diag), intersect(right, diag))), t);
+        return;
     }
 }
 

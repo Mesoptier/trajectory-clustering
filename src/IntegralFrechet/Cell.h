@@ -80,7 +80,10 @@ public:
         writer.openRule("Paths");
         writer.openFunction("List");
         for (int i = 0; i < n1 + n2; ++i) {
-            writer.writePoints(getMinPath(outPoint(i)));
+//            writer.writePoints(getMinPath(outPoint(i)));
+            PointsList list;
+            steepestDescent(list, inPoint(i), outPoint(n1 - 1));
+            writer.writePointsList(list);
         }
         writer.closeFunction();
         writer.closeRule();
@@ -130,6 +133,7 @@ private:
     int inIndex(arma::Row<V> p) const;
     int outIndex(arma::Row<V> p) const;
 
+    void steepestDescent(PointsList& list, Point s, Point t) const;
     V computeCost(int i, int o) const;
 
     /**

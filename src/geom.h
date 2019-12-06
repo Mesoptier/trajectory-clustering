@@ -8,12 +8,18 @@ typedef double distance_t;
 
 typedef arma::Row<distance_t>::fixed<2> Point;
 typedef arma::Mat<distance_t> Points;
+typedef std::vector<Point> PointsList;
 
 /**
  * Computes perp dot product between two vectors.
  * See: http://mathworld.wolfram.com/PerpDotProduct.html
  */
 distance_t perp(const Point& a, const Point& b);
+
+bool lessThanMonotone(const Point& a, const Point& b);
+const Point& minMonotone(const Point& a, const Point& b);
+
+Points makePoints(std::initializer_list<Point> pointsList);
 
 struct Line
 {
