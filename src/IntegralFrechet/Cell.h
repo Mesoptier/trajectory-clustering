@@ -83,6 +83,7 @@ public:
 //            writer.writePoints(getMinPath(outPoint(i)));
             PointsList list;
             steepestDescent(list, inPoint(i), outPoint(n1 - 1));
+//            steepestDescent(list, outPoint(i), inPoint(0));
             writer.writePointsList(list);
         }
         writer.closeFunction();

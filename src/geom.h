@@ -16,10 +16,41 @@ typedef std::vector<Point> PointsList;
  */
 distance_t perp(const Point& a, const Point& b);
 
-bool lessThanMonotone(const Point& a, const Point& b);
-const Point& minMonotone(const Point& a, const Point& b);
+struct MonotoneComparator {
+    enum Direction {
+        LowerFirst,
+        HigherFirst,
+    };
 
-Points makePoints(std::initializer_list<Point> pointsList);
+    Direction direction;
+
+    explicit MonotoneComparator(Direction direction): direction(direction) {}
+
+    bool operator()(const Point& a, const Point& b) {
+        return (direction == LowerFirst)
+               ? a(0) < b(0) + ABS_TOL && a(1) < b(1) + ABS_TOL
+               : a(0) + ABS_TOL > b(0) && a(1) + ABS_TOL > b(1);
+    }
+
+    static Direction getDirection(const Point& a, const Point& b) {
+        #ifndef NDEBUG
+        if (arma::approx_equal(a, b, "absdiff", ABS_TOL)) {
+            throw std::logic_error("Points are equal, and therefore not monotone");
+        }
+        #endif
+
+        if (MonotoneComparator(LowerFirst)(a, b)) {
+            return LowerFirst;
+        }
+        if (MonotoneComparator(HigherFirst)(a, b)) {
+            return HigherFirst;
+        }
+
+        std::stringstream error;
+        error << "Points (" << a(0) << "," << a(1) << ") and (" << b(0) << "," << b(1) << ") are not monotone";
+        throw std::logic_error(error.str());
+    }
+};
 
 struct Line
 {

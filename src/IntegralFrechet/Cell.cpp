@@ -191,56 +191,77 @@ int Cell<V>::outIndex(arma::Row<V> p) const {
 
 template<class V>
 void Cell<V>::steepestDescent(PointsList& list, Point s, Point t) const {
+    // TODO: Currently supports LInfinity_NoShortcuts only
+    // TODO: Support degenerate cells (parallel edges)
+
     list.push_back(s);
 
-    // TODO: Currently supports LInfinity_NoShortcuts only
+    // Easy shortest path when the source and target are equal
+    if (arma::approx_equal(s, t, "absdiff", ABS_TOL)) {
+        return;
+    }
+
+    // If source is monotone greater than target, we need to do steepest
+    // descent in reverse monotone direction.
+    auto dir = MonotoneComparator::getDirection(s, t);
+    MonotoneComparator compare(dir);
+
+    // Multiply with line direction when checking on which side of the line a point lies
+    int lineDir = (dir == MonotoneComparator::LowerFirst ? 1 : -1);
 
     // Boundaries of the subcell
-    Line top(t, {1, 0});
-    Line right(t, {0, 1});
-    Line bottom(s, {1, 0});
-    Line left(s, {0, 1});
+    Line tHor(t, {1, 0});
+    Line tVer(t, {0, 1});
+    Line sHor(s, {1, 0});
+    Line sVer(s, {0, 1});
 
     if (ellV.includesPoint(s) || ellH.includesPoint(s) || ellipseAxis.includesPoint(s)) {
-        // On one of the steepest-descent diagonals
-        if (lessThanMonotone(s, midPoint)) {
+        // -> On one of the steepest-descent diagonals
+        if (compare(s, midPoint)) {
+            // -> "Below" midPoint (= lowest point)
+
             // Which diagonal are we on again?
             Line line = ellV.includesPoint(s) ? ellV :
                         ellH.includesPoint(s) ? ellH :
                         ellipseAxis;
 
-            list.push_back(minMonotone(midPoint, minMonotone(intersect(line, top), intersect(line, right))));
+            list.push_back(std::min(
+                {midPoint, intersect(line, tHor), intersect(line, tVer)},
+                compare
+            ));
+
             return;
         } else {
-            // No steepest descent is possible
+            // -> No steepest descent is possible
             return;
         }
     }
 
     // Above (left of) ellV
-    if (perp(s - ellV.origin, ellV.direction) < 0) {
-        if (right.includesPoint(s)) {
+    if (perp(s - ellV.origin, lineDir * ellV.direction) < 0) {
+        if (tVer.includesPoint(s)) {
             return;
-        } else if (lessThanMonotone(s, midPoint)) {
-            steepestDescent(list, minMonotone(intersect(ellV, bottom), intersect(right, bottom)), t);
+        } else if (compare(s, midPoint)) {
+            steepestDescent(list, std::min(intersect(ellV, sHor), intersect(tVer, sHor), compare), t);
             return;
-        } else if (perp(s - ellH.origin, ellH.direction) < 0) {
-            steepestDescent(list, minMonotone(intersect(ellH, bottom), intersect(right, bottom)), t);
+        } else if (perp(s - ellH.origin, lineDir * ellH.direction) < 0) {
+            steepestDescent(list, std::min(intersect(ellH, sHor), intersect(tVer, sHor), compare), t);
             return;
         } else {
             return;
         }
     }
 
+
     // Right of ellH
-    if (perp(s - ellH.origin, ellH.direction) > 0) {
-        if (top.includesPoint(s)) {
+    if (perp(s - ellH.origin, lineDir * ellH.direction) > 0) {
+        if (tHor.includesPoint(s)) {
             return;
-        } else if (lessThanMonotone(s, midPoint)) {
-            steepestDescent(list, minMonotone(intersect(ellH, left), intersect(top, left)), t);
+        } else if (compare(s, midPoint)) {
+            steepestDescent(list, std::min(intersect(ellH, sVer), intersect(tHor, sVer), compare), t);
             return;
-        } else if (perp(s - ellV.origin, ellV.direction) > 0) {
-            steepestDescent(list, minMonotone(intersect(ellV, left), intersect(top, left)), t);
+        } else if (perp(s - ellV.origin, lineDir * ellV.direction) > 0) {
+            steepestDescent(list, std::min(intersect(ellV, sVer), intersect(tHor, sVer), compare), t);
             return;
         } else {
             return;
@@ -251,11 +272,17 @@ void Cell<V>::steepestDescent(PointsList& list, Point s, Point t) const {
     Line diag(s, ellipseAxis.direction);
 
     // Left of diagonal
-    if (perp(s - ellipseAxis.origin, ellipseAxis.direction) < 0) {
-        steepestDescent(list, minMonotone(intersect(ellV, diag), minMonotone(intersect(top, diag), intersect(right, diag))), t);
+    if (perp(s - ellipseAxis.origin, lineDir *ellipseAxis.direction) < 0) {
+        steepestDescent(list, std::min(
+            {intersect(ellV, diag), intersect(tHor, diag), intersect(tVer, diag)},
+            compare
+        ), t);
         return;
     } else {
-        steepestDescent(list, minMonotone(intersect(ellH, diag), minMonotone(intersect(top, diag), intersect(right, diag))), t);
+        steepestDescent(list, std::min(
+            {intersect(ellH, diag), intersect(tHor, diag), intersect(tVer, diag)},
+            compare
+        ), t);
         return;
     }
 }
