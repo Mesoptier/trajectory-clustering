@@ -132,7 +132,7 @@ private:
     int inIndex(const Point& p) const;
     int outIndex(const Point& p) const;
 
-    void steepestDescent(Points& points, Point s, Point t) const;
+    void steepestDescent(Points& path, Point s, Point t) const;
     distance_t computeCost(int i, int o) const;
 
     /**

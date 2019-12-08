@@ -52,7 +52,7 @@ distance_t Solver::getDistance() const {
 
 Points Solver::getMatching() const {
     Point start = {curve1.getLength(), curve2.getLength()};
-    Points matching;
+    Points matching = {start};
 
     int i1 = n1 - 1;
     int i2 = n2 - 1;
@@ -88,9 +88,10 @@ Points Solver::getMatching() const {
         start = cellMatching.front();
 
         // Prepend minimal path to matching
-        matching.insert(matching.begin(), cellMatching.begin(), cellMatching.end());
+        matching.insert(matching.end(), cellMatching.rbegin() + 1, cellMatching.rend());
     }
 
+    std::reverse(matching.begin(), matching.end());
     return matching;
 }
 

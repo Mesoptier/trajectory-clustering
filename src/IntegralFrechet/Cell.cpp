@@ -182,11 +182,14 @@ int Cell::outIndex(const Point& p) const {
     }
 }
 
-void Cell::steepestDescent(Points& points, Point s, Point t) const {
+void Cell::steepestDescent(Points& path, Point s, Point t) const {
     // TODO: Currently supports LInfinity_NoShortcuts only
     // TODO: Support degenerate cells (parallel edges)
 
-    points.push_back(s);
+    // Only add point to the path if it isn't already in there
+    if (path.empty() || !approx_equal(s, path.back())) {
+        path.push_back(s);
+    }
 
     // Easy shortest path when the source and target are equal
     if (approx_equal(s, t)) {
@@ -215,7 +218,7 @@ void Cell::steepestDescent(Points& points, Point s, Point t) const {
     if (tVer.includesPoint(s)) {
         if (perp(s - ellV.origin, ellV.direction) * dirMult > ABS_TOL) {
             // -> "Below" ellV
-            steepestDescent(points, std::min(t, intersect(ellV, tVer), compare), t);
+            steepestDescent(path, std::min(t, intersect(ellV, tVer), compare), t);
         }
         return;
     }
@@ -223,7 +226,7 @@ void Cell::steepestDescent(Points& points, Point s, Point t) const {
     if (tHor.includesPoint(s)) {
         if (perp(s - ellH.origin, ellH.direction) * -dirMult > ABS_TOL) {
             // -> "Above" ellH
-            steepestDescent(points, std::min(t, intersect(ellH, tHor), compare), t);
+            steepestDescent(path, std::min(t, intersect(ellH, tHor), compare), t);
         }
         return;
     }
@@ -238,7 +241,7 @@ void Cell::steepestDescent(Points& points, Point s, Point t) const {
                         ellH.includesPoint(s) ? ellH :
                         ellipseAxis;
 
-            steepestDescent(points, std::min(
+            steepestDescent(path, std::min(
                 {midPoint, intersect(line, tHor), intersect(line, tVer)},
                 compare
             ), t);
@@ -255,10 +258,10 @@ void Cell::steepestDescent(Points& points, Point s, Point t) const {
         if (tVer.includesPoint(s)) {
             return;
         } else if (compare(s, midPoint)) {
-            steepestDescent(points, std::min(intersect(ellV, sHor), intersect(tVer, sHor), compare), t);
+            steepestDescent(path, std::min(intersect(ellV, sHor), intersect(tVer, sHor), compare), t);
             return;
         } else if (perp(s - ellH.origin, ellH.direction * dirMult) < 0) {
-            steepestDescent(points, std::min(intersect(ellH, sHor), intersect(tVer, sHor), compare), t);
+            steepestDescent(path, std::min(intersect(ellH, sHor), intersect(tVer, sHor), compare), t);
             return;
         } else {
             return;
@@ -270,10 +273,10 @@ void Cell::steepestDescent(Points& points, Point s, Point t) const {
         if (tHor.includesPoint(s)) {
             return;
         } else if (compare(s, midPoint)) {
-            steepestDescent(points, std::min(intersect(ellH, sVer), intersect(tHor, sVer), compare), t);
+            steepestDescent(path, std::min(intersect(ellH, sVer), intersect(tHor, sVer), compare), t);
             return;
         } else if (perp(s - ellV.origin, ellV.direction * dirMult) > 0) {
-            steepestDescent(points, std::min(intersect(ellV, sVer), intersect(tHor, sVer), compare), t);
+            steepestDescent(path, std::min(intersect(ellV, sVer), intersect(tHor, sVer), compare), t);
             return;
         } else {
             return;
@@ -285,13 +288,13 @@ void Cell::steepestDescent(Points& points, Point s, Point t) const {
 
     // Left of diagonal
     if (perp(s - ellipseAxis.origin, ellipseAxis.direction * dirMult) < 0) {
-        steepestDescent(points, std::min(
+        steepestDescent(path, std::min(
             {intersect(ellV, diag), intersect(tHor, diag), intersect(tVer, diag)},
             compare
         ), t);
         return;
     } else {
-        steepestDescent(points, std::min(
+        steepestDescent(path, std::min(
             {intersect(ellH, diag), intersect(tHor, diag), intersect(tVer, diag)},
             compare
         ), t);
