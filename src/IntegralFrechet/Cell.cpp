@@ -252,7 +252,6 @@ void Cell<V>::steepestDescent(PointsList& list, Point s, Point t) const {
         }
     }
 
-
     // Right of ellH
     if (perp(s - ellH.origin, lineDir * ellH.direction) > 0) {
         if (tHor.includesPoint(s)) {
