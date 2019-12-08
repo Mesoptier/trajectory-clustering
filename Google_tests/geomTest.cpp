@@ -13,28 +13,26 @@ TEST(PointTest, Perp) {
 }
 
 TEST(MonotoneComparatorTest, GetDirection) {
-    using MC = MonotoneComparator;
-
     // Lower first:
-    ASSERT_EQ(MC::getDirection({0, 0}, {1, 1}), MC::LowerFirst);
+    ASSERT_EQ(getMonotoneDirection({0, 0}, {1, 1}), BFDirection::Forward);
     // Higher first:
-    ASSERT_EQ(MC::getDirection({1, 1}, {0, 0}), MC::HigherFirst);
+    ASSERT_EQ(getMonotoneDirection({1, 1}, {0, 0}), BFDirection::Backward);
     // Not monotone:
-    ASSERT_ANY_THROW(MC::getDirection({1, 0}, {0, 1}));
+    ASSERT_ANY_THROW(getMonotoneDirection({1, 0}, {0, 1}));
     // Equal:
-    ASSERT_ANY_THROW(MC::getDirection({0, 0}, {0, 0}));
+    ASSERT_ANY_THROW(getMonotoneDirection({0, 0}, {0, 0}));
 }
 
 TEST(MonotoneComparatorTest, Compare) {
     using MC = MonotoneComparator;
 
-    ASSERT_TRUE(MC(MC::LowerFirst)({0, 0}, {1, 1}));
-    ASSERT_FALSE(MC(MC::LowerFirst)({1, 1}, {0, 0}));
+    ASSERT_TRUE(MC(BFDirection::Forward)({0, 0}, {1, 1}));
+    ASSERT_FALSE(MC(BFDirection::Forward)({1, 1}, {0, 0}));
 
     // TODO: This is a perhaps unexpected case: equal points are both lower and higher.
     //  Especially odd since getDirection throws an error for equal points.
-    ASSERT_TRUE(MC(MC::LowerFirst)({0, 0}, {0, 0}));
-    ASSERT_TRUE(MC(MC::HigherFirst)({0, 0}, {0, 0}));
+    ASSERT_TRUE(MC(BFDirection::Forward)({0, 0}, {0, 0}));
+    ASSERT_TRUE(MC(BFDirection::Backward)({0, 0}, {0, 0}));
 }
 
 TEST(LineTest, IncludesPoint) {

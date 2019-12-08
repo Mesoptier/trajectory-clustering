@@ -186,11 +186,11 @@ void Cell::steepestDescent(Points& points, Point s, Point t) const {
 
     // If source is monotone greater than target, we need to do steepest
     // descent in reverse monotone direction.
-    auto dir = MonotoneComparator::getDirection(s, t);
+    auto dir = getMonotoneDirection(s, t);
     MonotoneComparator compare(dir);
 
     // Multiply with line direction when checking on which side of the line a point lies
-    distance_t dirMult = (dir == MonotoneComparator::LowerFirst ? 1 : -1);
+    distance_t dirMult = (dir == BFDirection::Forward ? 1 : -1);
 
     // Boundaries of the subcell
     Line tHor(t, {1, 0});

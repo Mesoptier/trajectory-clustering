@@ -55,40 +55,21 @@ Point normalise(const Point& point, Norm p = Norm::L2);
 
 using Points = std::vector<Point>;
 
+//
+// Directions
+//
+
+// short for: backward-forward direction
+enum class BFDirection {
+    Backward = 0,
+    Forward = 1,
+};
+BFDirection getMonotoneDirection(const Point& a, const Point &b);
+
 struct MonotoneComparator {
-    enum Direction {
-        LowerFirst,
-        HigherFirst,
-    };
-
-    Direction direction;
-
-    explicit MonotoneComparator(Direction direction): direction(direction) {}
-
-    bool operator()(const Point& a, const Point& b) {
-        return (direction == LowerFirst)
-               ? a.x < b.x + ABS_TOL && a.y < b.y + ABS_TOL
-               : a.x + ABS_TOL > b.x && a.y + ABS_TOL > b.y;
-    }
-
-    static Direction getDirection(const Point& a, const Point& b) {
-        #ifndef NDEBUG
-        if (approx_equal(a, b)) {
-            throw std::logic_error("Points are equal, and therefore not monotone");
-        }
-        #endif
-
-        if (MonotoneComparator(LowerFirst)(a, b)) {
-            return LowerFirst;
-        }
-        if (MonotoneComparator(HigherFirst)(a, b)) {
-            return HigherFirst;
-        }
-
-        std::stringstream error;
-        error << "Points (" << a.x << "," << a.y << ") and (" << b.x << "," << b.y << ") are not monotone";
-        throw std::logic_error(error.str());
-    }
+    BFDirection direction;
+    explicit MonotoneComparator(BFDirection direction): direction(direction) {}
+    bool operator()(const Point& a, const Point& b);
 };
 
 struct Line

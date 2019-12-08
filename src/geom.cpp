@@ -104,3 +104,30 @@ std::ostream& operator<<(std::ostream& out, const Point& p) {
         << "(" << p.x << ", " << p.y << ")";
     return out;
 }
+
+//
+// Directions
+//
+
+BFDirection getMonotoneDirection(const Point& a, const Point& b) {
+#ifndef NDEBUG
+    if (approx_equal(a, b)) {
+        throw std::logic_error("Points are equal, and therefore not monotone");
+    }
+#endif
+
+    if (MonotoneComparator(BFDirection::Forward)(a, b)) {
+        return BFDirection::Forward;
+    }
+    if (MonotoneComparator(BFDirection::Backward)(a, b)) {
+        return BFDirection::Backward;
+    }
+
+    throw std::logic_error("Points are not monotone");
+}
+
+bool MonotoneComparator::operator()(const Point& a, const Point& b) {
+    return (direction == BFDirection::Forward)
+           ? a.x < b.x + ABS_TOL && a.y < b.y + ABS_TOL
+           : a.x + ABS_TOL > b.x && a.y + ABS_TOL > b.y;
+}
