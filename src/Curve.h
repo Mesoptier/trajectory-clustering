@@ -31,7 +31,7 @@ public:
                 prevPoint = point;
                 point = points[i];
 
-                length += norm(point - prevPoint, L2);
+                length += norm(point - prevPoint);
                 prefix_length[i] = length;
             }
         }

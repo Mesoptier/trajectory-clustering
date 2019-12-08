@@ -6,11 +6,15 @@
 
 using distance_t = double;
 
-enum Norm {
+enum class Norm {
     L1,
     L2,
     LInf,
 };
+
+//
+// Point
+//
 
 struct Point {
     distance_t x;
@@ -46,8 +50,8 @@ bool approx_equal(const Point& a, const Point& b);
 distance_t perp(const Point& a, const Point& b);
 distance_t dot(const Point& a, const Point& b);
 
-distance_t norm(const Point& point, Norm p = L2);
-Point normalise(const Point& point, Norm p = L2);
+distance_t norm(const Point& point, Norm p = Norm::L2);
+Point normalise(const Point& point, Norm p = Norm::L2);
 
 using Points = std::vector<Point>;
 

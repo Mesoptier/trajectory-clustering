@@ -72,11 +72,11 @@ distance_t Point::dist(const Point& point) const {
 
 distance_t norm(const Point& point, Norm p) {
     switch (p) {
-        case L1:
+        case Norm::L1:
             return std::abs(point.x) + std::abs(point.y);
-        case L2:
+        case Norm::L2:
             return sqrt(pow2(point.x) + pow2(point.y));
-        case LInf:
+        case Norm::LInf:
             return std::max(std::abs(point.x), std::abs(point.y));
         default:
             throw std::invalid_argument("Unsupported norm");

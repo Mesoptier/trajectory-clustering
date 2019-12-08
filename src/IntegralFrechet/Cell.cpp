@@ -300,10 +300,10 @@ distance_t Cell::integrate(const Point& p1, const Point& p2, ImageMetric imageMe
     distance_t dist;
     switch (paramMetric) {
         case ParamMetric::L1:
-            dist = norm(p2 - p1, L1);
+            dist = norm(p2 - p1, Norm::L1);
             break;
         case ParamMetric::LInfinity_NoShortcuts:
-            dist = norm(p2 - p1, LInf);
+            dist = norm(p2 - p1, Norm::LInf);
             break;
     }
 
