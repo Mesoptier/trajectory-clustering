@@ -265,10 +265,6 @@ void Cell::steepestDescent(Points& points, Point s, Point t) const {
         }
     }
 
-//    std::cout << s << ' ' << t << std::endl;
-//    std::cout << (s - ellH.origin) << std::endl;
-//    std::cout << perp(s - ellH.origin, ellH.direction) * dirMult << std::endl;
-
     // Right of ellH
     if (perp(s - ellH.origin, ellH.direction * dirMult) > 0) {
         if (tHor.includesPoint(s)) {
