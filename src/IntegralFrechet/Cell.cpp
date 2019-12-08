@@ -112,8 +112,17 @@ Points Cell::getPath(int i, int o) const {
     }
 
     if (paramMetric == ParamMetric::LInfinity_NoShortcuts) {
-        // TODO: Follow steepest descent from a and b in monotone/reverse-monotone direction
+        Points pathA;
+        Points pathB;
+        steepestDescent(pathA, a, b);
+        steepestDescent(pathB, b, a);
 
+        // Steepest descent from both ends should find the same minimum
+        assert(approx_equal(pathA.back(), pathB.back()));
+
+        // Combine the two steepest descent paths into one, skipping the duplicated minimum
+        pathA.insert(pathA.end(), pathB.rbegin() + 1, pathB.rend());
+        return pathA;
     }
 
     throw std::logic_error("unsupported param metric");
@@ -184,6 +193,11 @@ void Cell::steepestDescent(Points& points, Point s, Point t) const {
         return;
     }
 
+    // Midpoint is lowest point
+    if (approx_equal(s, midPoint)) {
+        return;
+    }
+
     // If source is monotone greater than target, we need to do steepest
     // descent in reverse monotone direction.
     auto dir = getMonotoneDirection(s, t);
@@ -198,6 +212,22 @@ void Cell::steepestDescent(Points& points, Point s, Point t) const {
     Line sHor(s, {1, 0});
     Line sVer(s, {0, 1});
 
+    if (tVer.includesPoint(s)) {
+        if (perp(s - ellV.origin, ellV.direction) * dirMult > ABS_TOL) {
+            // -> "Below" ellV
+            steepestDescent(points, std::min(t, intersect(ellV, tVer), compare), t);
+        }
+        return;
+    }
+
+    if (tHor.includesPoint(s)) {
+        if (perp(s - ellH.origin, ellH.direction) * -dirMult > ABS_TOL) {
+            // -> "Above" ellH
+            steepestDescent(points, std::min(t, intersect(ellH, tHor), compare), t);
+        }
+        return;
+    }
+
     if (ellV.includesPoint(s) || ellH.includesPoint(s) || ellipseAxis.includesPoint(s)) {
         // -> On one of the steepest-descent diagonals
         if (compare(s, midPoint)) {
@@ -208,10 +238,10 @@ void Cell::steepestDescent(Points& points, Point s, Point t) const {
                         ellH.includesPoint(s) ? ellH :
                         ellipseAxis;
 
-            points.push_back(std::min(
+            steepestDescent(points, std::min(
                 {midPoint, intersect(line, tHor), intersect(line, tVer)},
                 compare
-            ));
+            ), t);
 
             return;
         } else {
@@ -234,6 +264,10 @@ void Cell::steepestDescent(Points& points, Point s, Point t) const {
             return;
         }
     }
+
+//    std::cout << s << ' ' << t << std::endl;
+//    std::cout << (s - ellH.origin) << std::endl;
+//    std::cout << perp(s - ellH.origin, ellH.direction) * dirMult << std::endl;
 
     // Right of ellH
     if (perp(s - ellH.origin, ellH.direction * dirMult) > 0) {

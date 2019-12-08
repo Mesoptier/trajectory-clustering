@@ -79,11 +79,10 @@ public:
         writer.openRule("Paths");
         writer.openFunction("List");
         for (int i = 0; i < n1 + n2; ++i) {
-//            writer.writePoints(getMinPath(outPoint(i)));
-            Points points;
-            steepestDescent(points, inPoint(i), outPoint(n1 - 1));
-//            steepestDescent(list, outPoint(i), inPoint(0));
-            writer.writePoints(points);
+            writer.writePoints(getMinPath(outPoint(i)));
+//            Points points;
+//            steepestDescent(points, outPoint(i), inPoint(0));
+//            writer.writePoints(points);
         }
         writer.closeFunction();
         writer.closeRule();
