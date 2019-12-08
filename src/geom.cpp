@@ -108,7 +108,13 @@ std::ostream& operator<<(std::ostream& out, const Point& p) {
 
 std::ostream& operator<<(std::ostream& out, const Points& points) {
     out << "[";
-    std::copy(points.begin(), points.end(), std::ostream_iterator<Point>(out, ", "));
+    auto it = points.begin();
+    while (it != points.end()) {
+        out << (*it++);
+        if (it != points.end()) {
+            out << ", ";
+        }
+    }
     out << "]";
     return out;
 }
