@@ -1,0 +1,1595 @@
+(* Content-type: application/vnd.wolfram.mathematica *)
+
+(*** Wolfram Notebook File ***)
+(* http://www.wolfram.com/nb *)
+
+(* CreatedBy='Mathematica 12.0' *)
+
+(*CacheID: 234*)
+(* Internal cache information:
+NotebookFileLineBreakTest
+NotebookFileLineBreakTest
+NotebookDataPosition[       158,          7]
+NotebookDataLength[     78410,       1587]
+NotebookOptionsPosition[     77180,       1561]
+NotebookOutlinePosition[     77523,       1576]
+CellTagsIndexPosition[     77480,       1573]
+WindowFrame->Normal*)
+
+(* Beginning of Notebook Content *)
+Notebook[{
+Cell[BoxData[{
+ RowBox[{
+  RowBox[{"SetDirectory", "[", 
+   RowBox[{"NotebookDirectory", "[", "]"}], "]"}], 
+  ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"curve1", "=", 
+   RowBox[{
+   "Import", "[", "\"\<../cmake-build-debug-mingw/curve1.csv\>\"", "]"}]}], 
+  ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"curve2", "=", 
+   RowBox[{
+   "Import", "[", "\"\<../cmake-build-debug-mingw/curve2.csv\>\"", "]"}]}], 
+  ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"matching", "=", 
+   RowBox[{
+   "Import", "[", "\"\<../cmake-build-debug-mingw/matching.csv\>\"", "]"}]}], 
+  ";"}]}], "Input",
+ CellChangeTimes->{{3.784827826269601*^9, 3.7848278477406287`*^9}, {
+  3.7848313402892337`*^9, 3.784831366145402*^9}},
+ CellLabel->"In[63]:=",ExpressionUUID->"32c17ea0-fcbd-479f-aac1-4a63d5f585fc"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"(*", " ", 
+   RowBox[{"Interpolating", " ", "Line", " ", 
+    RowBox[{"objects", ":"}]}], " ", "*)"}], "\[IndentingNewLine]", 
+  RowBox[{
+   RowBox[{
+    RowBox[{"ClearAll", "[", 
+     RowBox[{"LineInterpolation", ",", "LineBreakPoints"}], "]"}], ";"}], 
+   "\[IndentingNewLine]", "\[IndentingNewLine]", 
+   RowBox[{
+    RowBox[{
+     RowBox[{"Options", "[", "LineBreakPoints", "]"}], "=", 
+     RowBox[{"{", 
+      RowBox[{"Normalize", "\[Rule]", "False"}], "}"}]}], ";"}], 
+   "\[IndentingNewLine]", 
+   RowBox[{
+    RowBox[{
+     RowBox[{"LineBreakPoints", "[", 
+      RowBox[{"line_", ",", 
+       RowBox[{"opts", ":", 
+        RowBox[{"OptionsPattern", "[", "]"}]}]}], "]"}], ":=", 
+     RowBox[{"(", "\[IndentingNewLine]", 
+      RowBox[{
+       RowBox[{"accum", "=", 
+        RowBox[{
+         RowBox[{
+          RowBox[{"Accumulate", "[", "#", "]"}], "&"}], "@", 
+         RowBox[{"Prepend", "[", 
+          RowBox[{
+           RowBox[{
+            RowBox[{
+             RowBox[{"Norm", "[", 
+              RowBox[{"Subtract", "@@", "#"}], "]"}], "&"}], "/@", 
+            RowBox[{"Partition", "[", 
+             RowBox[{
+              RowBox[{"line", "[", 
+               RowBox[{"[", "1", "]"}], "]"}], ",", "2", ",", "1"}], "]"}]}], 
+           ",", "0"}], "]"}]}]}], ";", "\[IndentingNewLine]", 
+       RowBox[{"If", "[", 
+        RowBox[{
+         RowBox[{"OptionValue", "[", "Normalize", "]"}], ",", 
+         RowBox[{"accum", "/", 
+          RowBox[{"ArcLength", "[", "line", "]"}]}], ",", "accum"}], "]"}]}], 
+      ")"}]}], ";"}], "\[IndentingNewLine]", "\[IndentingNewLine]", 
+   RowBox[{
+    RowBox[{
+     RowBox[{"LineInterpolation", "[", 
+      RowBox[{"line_", ",", 
+       RowBox[{"opts", ":", 
+        RowBox[{"OptionsPattern", "[", 
+         RowBox[{"{", 
+          RowBox[{"LineBreakPoints", ",", "Interpolation"}], "}"}], "]"}]}]}],
+       "]"}], ":=", 
+     RowBox[{"(", "\[IndentingNewLine]", 
+      RowBox[{
+       RowBox[{"breakpoints", "=", 
+        RowBox[{"LineBreakPoints", "[", 
+         RowBox[{"line", ",", 
+          RowBox[{"Sequence", "@@", 
+           RowBox[{"FilterRules", "[", 
+            RowBox[{
+             RowBox[{"{", "opts", "}"}], ",", 
+             RowBox[{"Options", "[", "LineBreakPoints", "]"}]}], "]"}]}]}], 
+         "]"}]}], ";", "\[IndentingNewLine]", 
+       RowBox[{"Interpolation", "[", 
+        RowBox[{
+         RowBox[{"Transpose", "[", 
+          RowBox[{"{", 
+           RowBox[{"breakpoints", ",", 
+            RowBox[{"line", "[", 
+             RowBox[{"[", "1", "]"}], "]"}]}], "}"}], "]"}], ",", 
+         RowBox[{"InterpolationOrder", "\[Rule]", "1"}], ",", 
+         RowBox[{"Sequence", "@@", 
+          RowBox[{"FilterRules", "[", 
+           RowBox[{
+            RowBox[{"{", "opts", "}"}], ",", 
+            RowBox[{"Options", "[", "Interpolation", "]"}]}], "]"}]}]}], 
+        "]"}]}], ")"}]}], ";"}]}]}]], "Input",
+ CellLabel->"In[67]:=",ExpressionUUID->"f4229e8d-f237-4dd2-9379-eee63dcce894"],
+
+Cell[BoxData[{
+ RowBox[{
+  RowBox[{"c1", "=", 
+   RowBox[{"LineInterpolation", "[", 
+    RowBox[{"Line", "[", "curve1", "]"}], "]"}]}], 
+  ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"c2", "=", 
+   RowBox[{"LineInterpolation", "[", 
+    RowBox[{"Line", "[", "curve2", "]"}], "]"}]}], 
+  ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"m", "=", 
+   RowBox[{"LineInterpolation", "[", 
+    RowBox[{
+     RowBox[{"Line", "[", "matching", "]"}], ",", 
+     RowBox[{"Normalize", "\[Rule]", "True"}]}], "]"}]}], ";"}]}], "Input",
+ CellChangeTimes->{{3.784828072864189*^9, 3.7848281143895693`*^9}, {
+  3.784828669719005*^9, 3.7848286742523155`*^9}},
+ CellLabel->"In[71]:=",ExpressionUUID->"58c44045-9a8a-47b8-97c7-fc21ca2bac77"],
+
+Cell[BoxData[{
+ RowBox[{
+  RowBox[{"len1", "=", 
+   RowBox[{"ArcLength", "@", 
+    RowBox[{"Line", "[", "curve1", "]"}]}]}], ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"len2", "=", 
+   RowBox[{"ArcLength", "@", 
+    RowBox[{"Line", "[", "curve2", "]"}]}]}], ";"}]}], "Input",
+ CellChangeTimes->{{3.784828159515148*^9, 3.784828183583656*^9}, {
+  3.7848282264687223`*^9, 3.7848282456664934`*^9}},
+ CellLabel->"In[74]:=",ExpressionUUID->"721220a7-296f-414d-9606-738b417a9a7a"],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{"Show", "[", "\[IndentingNewLine]", 
+  RowBox[{
+   RowBox[{"ListLinePlot", "[", "\[IndentingNewLine]", 
+    RowBox[{
+     RowBox[{"Table", "[", 
+      RowBox[{
+       RowBox[{"Quiet", "@", 
+        RowBox[{"(", 
+         RowBox[{
+          RowBox[{
+           RowBox[{"{", 
+            RowBox[{
+             RowBox[{"c1", "[", "#1", "]"}], ",", 
+             RowBox[{"c2", "[", "#2", "]"}]}], "}"}], "&"}], "@@", 
+          RowBox[{"m", "[", "t", "]"}]}], ")"}]}], ",", 
+       RowBox[{"{", 
+        RowBox[{"t", ",", "0", ",", "1", ",", 
+         RowBox[{"1", "/", 
+          RowBox[{"Ceiling", "[", 
+           RowBox[{"20", " ", 
+            RowBox[{"Max", "[", 
+             RowBox[{"len1", ",", "len2"}], "]"}]}], "]"}]}]}], "}"}]}], 
+      "]"}], ",", "\[IndentingNewLine]", 
+     RowBox[{"PlotStyle", "\[Rule]", 
+      RowBox[{"Directive", "[", 
+       RowBox[{"Gray", ",", "Thin"}], "]"}]}]}], "\[IndentingNewLine]", "]"}],
+    ",", "\[IndentingNewLine]", 
+   RowBox[{"ParametricPlot", "[", 
+    RowBox[{
+     RowBox[{"{", 
+      RowBox[{
+       RowBox[{"c1", "[", 
+        RowBox[{"t", " ", "len1"}], "]"}], ",", 
+       RowBox[{"c2", "[", 
+        RowBox[{"t", " ", "len2"}], "]"}]}], "}"}], ",", 
+     RowBox[{"{", 
+      RowBox[{"t", ",", "0", ",", "1"}], "}"}]}], "]"}], ",", 
+   "\[IndentingNewLine]", 
+   RowBox[{"AspectRatio", "->", "Automatic"}]}], "\[IndentingNewLine]", 
+  "]"}]], "Input",
+ CellChangeTimes->{{3.7848282507868023`*^9, 3.7848282822447205`*^9}, {
+  3.784828333395842*^9, 3.784828468687546*^9}, {3.7848285148497214`*^9, 
+  3.7848285614666705`*^9}, {3.7848286367577353`*^9, 3.784828648222582*^9}, {
+  3.7848286841433325`*^9, 3.784828717148878*^9}, {3.7848288264881067`*^9, 
+  3.784828828505067*^9}, {3.784828951208001*^9, 3.784829024351413*^9}, {
+  3.784829957756832*^9, 3.7848299615788703`*^9}},
+ CellLabel->"In[76]:=",ExpressionUUID->"debadab5-4876-4ad9-8648-5427783b3508"],
+
+Cell[BoxData[
+ GraphicsBox[{{{}, {{{}, {}, 
+      {GrayLevel[0.5], PointSize[
+        NCache[
+         Rational[1, 72], 0.013888888888888888`]], Thickness[Tiny], 
+       LineBox[{{0., 0.}, {0., 1.}}]}, 
+      {GrayLevel[0.5], PointSize[
+        NCache[
+         Rational[1, 72], 0.013888888888888888`]], Thickness[Tiny], 
+       LineBox[{{0.03508771929725918, 0.03508771929725918}, {
+        0.035087719306515885`, 1.}}]}, 
+      {GrayLevel[0.5], PointSize[
+        NCache[
+         Rational[1, 72], 0.013888888888888888`]], Thickness[Tiny], 
+       LineBox[{{0.07017543859451825, 0.07017543859451825}, {
+        0.07017543861303177, 1.}}]}, 
+      {GrayLevel[0.5], PointSize[
+        NCache[
+         Rational[1, 72], 0.013888888888888888`]], Thickness[Tiny], 
+       LineBox[{{0.10526315789177731`, 0.10526315789177731`}, {
+        0.10526315791954766`, 1.}}]}, 
+      {GrayLevel[0.5], PointSize[
+        NCache[
+         Rational[1, 72], 0.013888888888888888`]], Thickness[Tiny], 
+       LineBox[{{0.1403508771890365, 0.1403508771890365}, {
+        0.14035087722606343`, 1.}}]}, 
+      {GrayLevel[0.5], PointSize[
+        NCache[
+         Rational[1, 72], 0.013888888888888888`]], Thickness[Tiny], 
+       LineBox[{{0.17543859648629556`, 0.17543859648629556`}, {
+        0.17543859653257932`, 1.}}]}, 
+      {GrayLevel[0.5], PointSize[
+        NCache[
+         Rational[1, 72], 0.013888888888888888`]], Thickness[Tiny], 
+       LineBox[{{0.21052631578355474`, 0.21052631578355474`}, {
+        0.2105263158390952, 1.}}]}, 
+      {GrayLevel[0.5], PointSize[
+        NCache[
+         Rational[1, 72], 0.013888888888888888`]], Thickness[Tiny], 
+       LineBox[{{0.2456140350808137, 0.2456140350808137}, {0.2456140351456111,
+         1.}}]}, 
+      {GrayLevel[0.5], PointSize[
+        NCache[
+         Rational[1, 72], 0.013888888888888888`]], Thickness[Tiny], 
+       LineBox[{{0.28070175437807277`, 0.28070175437807277`}, {
+        0.280701754452127, 1.}}]}, 
+      {GrayLevel[0.5], PointSize[
+        NCache[
+         Rational[1, 72], 0.013888888888888888`]], Thickness[Tiny], 
+       LineBox[{{0.31578947367533183`, 0.31578947367533183`}, {
+        0.31578947375864286`, 1.}}]}, 
+      {GrayLevel[0.5], PointSize[
+        NCache[
+         Rational[1, 72], 0.013888888888888888`]], Thickness[Tiny], 
+       LineBox[{{0.350877192972591, 0.350877192972591}, {0.35087719306515874`,
+         1.}}]}, 
+      {GrayLevel[0.5], PointSize[
+        NCache[
+         Rational[1, 72], 0.013888888888888888`]], Thickness[Tiny], 
+       LineBox[{{0.3859649122698501, 0.3859649122698501}, {0.3859649123716745,
+         1.}}]}, 
+      {GrayLevel[0.5], PointSize[
+        NCache[
+         Rational[1, 72], 0.013888888888888888`]], Thickness[Tiny], 
+       LineBox[{{0.42105263156710926`, 0.42105263156710926`}, {
+        0.4210526316781904, 1.}}]}, 
+      {GrayLevel[0.5], PointSize[
+        NCache[
+         Rational[1, 72], 0.013888888888888888`]], Thickness[Tiny], 
+       LineBox[{{0.4561403508643682, 0.4561403508643682}, {0.4561403509847063,
+         1.}}]}, 
+      {GrayLevel[0.5], PointSize[
+        NCache[
+         Rational[1, 72], 0.013888888888888888`]], Thickness[Tiny], 
+       LineBox[{{0.4912280701616274, 0.4912280701616274}, {0.4912280702912222,
+         1.}}]}, 
+      {GrayLevel[0.5], PointSize[
+        NCache[
+         Rational[1, 72], 0.013888888888888888`]], Thickness[Tiny], 
+       LineBox[{{0.5263157894588865, 0.5263157894588865}, {0.5263157895977381,
+         1.}}]}, 
+      {GrayLevel[0.5], PointSize[
+        NCache[
+         Rational[1, 72], 0.013888888888888888`]], Thickness[Tiny], 
+       LineBox[{{0.5614035087561455, 0.5614035087561455}, {0.561403508904254, 
+        1.}}]}, 
+      {GrayLevel[0.5], PointSize[
+        NCache[
+         Rational[1, 72], 0.013888888888888888`]], Thickness[Tiny], 
+       LineBox[{{0.5964912280534047, 0.5964912280534047}, {0.5964912282107697,
+         1.}}]}, 
+      {GrayLevel[0.5], PointSize[
+        NCache[
+         Rational[1, 72], 0.013888888888888888`]], Thickness[Tiny], 
+       LineBox[{{0.6315789473506637, 0.6315789473506637}, {0.6315789475172857,
+         1.}}]}, 
+      {GrayLevel[0.5], PointSize[
+        NCache[
+         Rational[1, 72], 0.013888888888888888`]], Thickness[Tiny], 
+       LineBox[{{0.6666666666479228, 0.6666666666479228}, {0.6666666668238015,
+         1.}}]}, 
+      {GrayLevel[0.5], PointSize[
+        NCache[
+         Rational[1, 72], 0.013888888888888888`]], Thickness[Tiny], 
+       LineBox[{{0.701754385945182, 0.701754385945182}, {0.7017543861303174, 
+        1.}}]}, 
+      {GrayLevel[0.5], PointSize[
+        NCache[
+         Rational[1, 72], 0.013888888888888888`]], Thickness[Tiny], 
+       LineBox[{{0.736842105242441, 0.736842105242441}, {0.7368421054368333, 
+        1.}}]}, 
+      {GrayLevel[0.5], PointSize[
+        NCache[
+         Rational[1, 72], 0.013888888888888888`]], Thickness[Tiny], 
+       LineBox[{{0.7719298245397002, 0.7719298245397002}, {0.7719298247433491,
+         1.}}]}, 
+      {GrayLevel[0.5], PointSize[
+        NCache[
+         Rational[1, 72], 0.013888888888888888`]], Thickness[Tiny], 
+       LineBox[{{0.8070175438369591, 0.8070175438369591}, {0.807017544049865, 
+        1.}}]}, 
+      {GrayLevel[0.5], PointSize[
+        NCache[
+         Rational[1, 72], 0.013888888888888888`]], Thickness[Tiny], 
+       LineBox[{{0.8421052631342183, 0.8421052631342183}, {0.8421052633563809,
+         1.}}]}, 
+      {GrayLevel[0.5], PointSize[
+        NCache[
+         Rational[1, 72], 0.013888888888888888`]], Thickness[Tiny], 
+       LineBox[{{0.8771929824314774, 0.8771929824314774}, {0.8771929826628968,
+         1.}}]}, 
+      {GrayLevel[0.5], PointSize[
+        NCache[
+         Rational[1, 72], 0.013888888888888888`]], Thickness[Tiny], 
+       LineBox[{{0.9122807017287364, 0.9122807017287364}, {0.9122807019694126,
+         1.}}]}, 
+      {GrayLevel[0.5], PointSize[
+        NCache[
+         Rational[1, 72], 0.013888888888888888`]], Thickness[Tiny], 
+       LineBox[{{0.9473684210259956, 0.9473684210259956}, {0.9473684212759285,
+         1.}}]}, 
+      {GrayLevel[0.5], PointSize[
+        NCache[
+         Rational[1, 72], 0.013888888888888888`]], Thickness[Tiny], 
+       LineBox[{{0.9824561403232547, 0.9824561403232547}, {0.9824561405824443,
+         1.}}]}, 
+      {GrayLevel[0.5], PointSize[
+        NCache[
+         Rational[1, 72], 0.013888888888888888`]], Thickness[Tiny], 
+       LineBox[{{1.017543859624649, 1.017543859624649}, {1.01754385988069, 
+        1.}}]}, 
+      {GrayLevel[0.5], PointSize[
+        NCache[
+         Rational[1, 72], 0.013888888888888888`]], Thickness[Tiny], 
+       LineBox[{{1.0526315789301781`, 1.0526315789301781`}, {
+        1.0526315791706653`, 1.}}]}, 
+      {GrayLevel[0.5], PointSize[
+        NCache[
+         Rational[1, 72], 0.013888888888888888`]], Thickness[Tiny], 
+       LineBox[{{1.0877192982357076`, 1.0877192982357076`}, {
+        1.0877192984606407`, 1.}}]}, 
+      {GrayLevel[0.5], PointSize[
+        NCache[
+         Rational[1, 72], 0.013888888888888888`]], Thickness[Tiny], 
+       LineBox[{{1.1228070175412368`, 1.1228070175412368`}, {
+        1.122807017750616, 1.}}]}, 
+      {GrayLevel[0.5], PointSize[
+        NCache[
+         Rational[1, 72], 0.013888888888888888`]], Thickness[Tiny], 
+       LineBox[{{1.1578947368467665`, 1.1578947368467665`}, {
+        1.1578947370405914`, 1.}}]}, 
+      {GrayLevel[0.5], PointSize[
+        NCache[
+         Rational[1, 72], 0.013888888888888888`]], Thickness[Tiny], 
+       LineBox[{{1.1929824561522957`, 1.1929824561522957`}, {
+        1.1929824563305669`, 1.}}]}, 
+      {GrayLevel[0.5], PointSize[
+        NCache[
+         Rational[1, 72], 0.013888888888888888`]], Thickness[Tiny], 
+       LineBox[{{1.228070175457825, 1.228070175457825}, {1.2280701756205423`, 
+        1.}}]}, 
+      {GrayLevel[0.5], PointSize[
+        NCache[
+         Rational[1, 72], 0.013888888888888888`]], Thickness[Tiny], 
+       LineBox[{{1.2631578947633542`, 1.2631578947633542`}, {
+        1.2631578949105173`, 1.}}]}, 
+      {GrayLevel[0.5], PointSize[
+        NCache[
+         Rational[1, 72], 0.013888888888888888`]], Thickness[Tiny], 
+       LineBox[{{1.2982456140688838`, 1.2982456140688838`}, {
+        1.2982456142004928`, 1.}}]}, 
+      {GrayLevel[0.5], PointSize[
+        NCache[
+         Rational[1, 72], 0.013888888888888888`]], Thickness[Tiny], 
+       LineBox[{{1.333333333374413, 1.333333333374413}, {1.3333333334904682`, 
+        1.}}]}, 
+      {GrayLevel[0.5], PointSize[
+        NCache[
+         Rational[1, 72], 0.013888888888888888`]], Thickness[Tiny], 
+       LineBox[{{1.3684210526799423`, 1.3684210526799423`}, {
+        1.3684210527804437`, 1.}}]}, 
+      {GrayLevel[0.5], PointSize[
+        NCache[
+         Rational[1, 72], 0.013888888888888888`]], Thickness[Tiny], 
+       LineBox[{{1.4035087719854715`, 1.4035087719854715`}, {
+        1.403508772070419, 1.}}]}, 
+      {GrayLevel[0.5], PointSize[
+        NCache[
+         Rational[1, 72], 0.013888888888888888`]], Thickness[Tiny], 
+       LineBox[{{1.4385964912910012`, 1.4385964912910012`}, {
+        1.4385964913603944`, 1.}}]}, 
+      {GrayLevel[0.5], PointSize[
+        NCache[
+         Rational[1, 72], 0.013888888888888888`]], Thickness[Tiny], 
+       LineBox[{{1.4736842105965304`, 1.4736842105965304`}, {
+        1.4736842106503696`, 1.}}]}, 
+      {GrayLevel[0.5], PointSize[
+        NCache[
+         Rational[1, 72], 0.013888888888888888`]], Thickness[Tiny], 
+       LineBox[{{1.5087719299020597`, 1.5087719299020597`}, {
+        1.508771929940345, 1.}}]}, 
+      {GrayLevel[0.5], PointSize[
+        NCache[
+         Rational[1, 72], 0.013888888888888888`]], Thickness[Tiny], 
+       LineBox[{{1.543859649207589, 1.543859649207589}, {1.5438596492303203`, 
+        1.}}]}, 
+      {GrayLevel[0.5], PointSize[
+        NCache[
+         Rational[1, 72], 0.013888888888888888`]], Thickness[Tiny], 
+       LineBox[{{1.5789473685131186`, 1.5789473685131186`}, {
+        1.5789473685202957`, 1.}}]}, 
+      {GrayLevel[0.5], PointSize[
+        NCache[
+         Rational[1, 72], 0.013888888888888888`]], Thickness[Tiny], 
+       LineBox[{{1.6140350878186478`, 1.6140350878186478`}, {
+        1.614035087810271, 1.}}]}, 
+      {GrayLevel[0.5], PointSize[
+        NCache[
+         Rational[1, 72], 0.013888888888888888`]], Thickness[Tiny], 
+       LineBox[{{1.649122807124177, 1.649122807124177}, {1.6491228071002464`, 
+        1.}}]}, 
+      {GrayLevel[0.5], PointSize[
+        NCache[
+         Rational[1, 72], 0.013888888888888888`]], Thickness[Tiny], 
+       LineBox[{{1.6842105264297063`, 1.6842105264297063`}, {
+        1.6842105263902216`, 1.}}]}, 
+      {GrayLevel[0.5], PointSize[
+        NCache[
+         Rational[1, 72], 0.013888888888888888`]], Thickness[Tiny], 
+       LineBox[{{1.719298245735236, 1.719298245735236}, {1.7192982456801973`, 
+        1.}}]}, 
+      {GrayLevel[0.5], PointSize[
+        NCache[
+         Rational[1, 72], 0.013888888888888888`]], Thickness[Tiny], 
+       LineBox[{{1.7543859650407652`, 1.7543859650407652`}, {
+        1.7543859649701723`, 1.}}]}, 
+      {GrayLevel[0.5], PointSize[
+        NCache[
+         Rational[1, 72], 0.013888888888888888`]], Thickness[Tiny], 
+       LineBox[{{1.7894736843462944`, 1.7894736843462944`}, {
+        1.789473684260148, 1.}}]}, 
+      {GrayLevel[0.5], PointSize[
+        NCache[
+         Rational[1, 72], 0.013888888888888888`]], Thickness[Tiny], 
+       LineBox[{{1.8245614036518236`, 1.8245614036518236`}, {
+        1.8245614035501232`, 1.}}]}, 
+      {GrayLevel[0.5], PointSize[
+        NCache[
+         Rational[1, 72], 0.013888888888888888`]], Thickness[Tiny], 
+       LineBox[{{1.8596491229573533`, 1.8596491229573533`}, {
+        1.8596491228400986`, 1.}}]}, 
+      {GrayLevel[0.5], PointSize[
+        NCache[
+         Rational[1, 72], 0.013888888888888888`]], Thickness[Tiny], 
+       LineBox[{{1.8947368422628825`, 1.8947368422628825`}, {
+        1.8947368421300739`, 1.}}]}, 
+      {GrayLevel[0.5], PointSize[
+        NCache[
+         Rational[1, 72], 0.013888888888888888`]], Thickness[Tiny], 
+       LineBox[{{1.9298245615684118`, 1.9298245615684118`}, {
+        1.9298245614200493`, 1.}}]}, 
+      {GrayLevel[0.5], PointSize[
+        NCache[
+         Rational[1, 72], 0.013888888888888888`]], Thickness[Tiny], 
+       LineBox[{{1.964912280873941, 1.964912280873941}, {1.9649122807100246`, 
+        1.}}]}, 
+      {GrayLevel[0.5], PointSize[
+        NCache[
+         Rational[1, 72], 0.013888888888888888`]], Thickness[Tiny], 
+       LineBox[{{2.0000000001794707`, 2.0000000001794707`}, {2., 1.}}]}}, {
+      {GrayLevel[0.5], PointSize[
+        NCache[
+         Rational[1, 72], 0.013888888888888888`]], Thickness[Tiny]}, 
+      {GrayLevel[0.5], PointSize[
+        NCache[
+         Rational[1, 72], 0.013888888888888888`]], Thickness[Tiny]}, 
+      {GrayLevel[0.5], PointSize[
+        NCache[
+         Rational[1, 72], 0.013888888888888888`]], Thickness[Tiny]}, 
+      {GrayLevel[0.5], PointSize[
+        NCache[
+         Rational[1, 72], 0.013888888888888888`]], Thickness[Tiny]}, 
+      {GrayLevel[0.5], PointSize[
+        NCache[
+         Rational[1, 72], 0.013888888888888888`]], Thickness[Tiny]}, 
+      {GrayLevel[0.5], PointSize[
+        NCache[
+         Rational[1, 72], 0.013888888888888888`]], Thickness[Tiny]}, 
+      {GrayLevel[0.5], PointSize[
+        NCache[
+         Rational[1, 72], 0.013888888888888888`]], Thickness[Tiny]}, 
+      {GrayLevel[0.5], PointSize[
+        NCache[
+         Rational[1, 72], 0.013888888888888888`]], Thickness[Tiny]}, 
+      {GrayLevel[0.5], PointSize[
+        NCache[
+         Rational[1, 72], 0.013888888888888888`]], Thickness[Tiny]}, 
+      {GrayLevel[0.5], PointSize[
+        NCache[
+         Rational[1, 72], 0.013888888888888888`]], Thickness[Tiny]}, 
+      {GrayLevel[0.5], PointSize[
+        NCache[
+         Rational[1, 72], 0.013888888888888888`]], Thickness[Tiny]}, 
+      {GrayLevel[0.5], PointSize[
+        NCache[
+         Rational[1, 72], 0.013888888888888888`]], Thickness[Tiny]}, 
+      {GrayLevel[0.5], PointSize[
+        NCache[
+         Rational[1, 72], 0.013888888888888888`]], Thickness[Tiny]}, 
+      {GrayLevel[0.5], PointSize[
+        NCache[
+         Rational[1, 72], 0.013888888888888888`]], Thickness[Tiny]}, 
+      {GrayLevel[0.5], PointSize[
+        NCache[
+         Rational[1, 72], 0.013888888888888888`]], Thickness[Tiny]}, 
+      {GrayLevel[0.5], PointSize[
+        NCache[
+         Rational[1, 72], 0.013888888888888888`]], Thickness[Tiny]}, 
+      {GrayLevel[0.5], PointSize[
+        NCache[
+         Rational[1, 72], 0.013888888888888888`]], Thickness[Tiny]}, 
+      {GrayLevel[0.5], PointSize[
+        NCache[
+         Rational[1, 72], 0.013888888888888888`]], Thickness[Tiny]}, 
+      {GrayLevel[0.5], PointSize[
+        NCache[
+         Rational[1, 72], 0.013888888888888888`]], Thickness[Tiny]}, 
+      {GrayLevel[0.5], PointSize[
+        NCache[
+         Rational[1, 72], 0.013888888888888888`]], Thickness[Tiny]}, 
+      {GrayLevel[0.5], PointSize[
+        NCache[
+         Rational[1, 72], 0.013888888888888888`]], Thickness[Tiny]}, 
+      {GrayLevel[0.5], PointSize[
+        NCache[
+         Rational[1, 72], 0.013888888888888888`]], Thickness[Tiny]}, 
+      {GrayLevel[0.5], PointSize[
+        NCache[
+         Rational[1, 72], 0.013888888888888888`]], Thickness[Tiny]}, 
+      {GrayLevel[0.5], PointSize[
+        NCache[
+         Rational[1, 72], 0.013888888888888888`]], Thickness[Tiny]}, 
+      {GrayLevel[0.5], PointSize[
+        NCache[
+         Rational[1, 72], 0.013888888888888888`]], Thickness[Tiny]}, 
+      {GrayLevel[0.5], PointSize[
+        NCache[
+         Rational[1, 72], 0.013888888888888888`]], Thickness[Tiny]}, 
+      {GrayLevel[0.5], PointSize[
+        NCache[
+         Rational[1, 72], 0.013888888888888888`]], Thickness[Tiny]}, 
+      {GrayLevel[0.5], PointSize[
+        NCache[
+         Rational[1, 72], 0.013888888888888888`]], Thickness[Tiny]}, 
+      {GrayLevel[0.5], PointSize[
+        NCache[
+         Rational[1, 72], 0.013888888888888888`]], Thickness[Tiny]}, 
+      {GrayLevel[0.5], PointSize[
+        NCache[
+         Rational[1, 72], 0.013888888888888888`]], Thickness[Tiny]}, 
+      {GrayLevel[0.5], PointSize[
+        NCache[
+         Rational[1, 72], 0.013888888888888888`]], Thickness[Tiny]}, 
+      {GrayLevel[0.5], PointSize[
+        NCache[
+         Rational[1, 72], 0.013888888888888888`]], Thickness[Tiny]}, 
+      {GrayLevel[0.5], PointSize[
+        NCache[
+         Rational[1, 72], 0.013888888888888888`]], Thickness[Tiny]}, 
+      {GrayLevel[0.5], PointSize[
+        NCache[
+         Rational[1, 72], 0.013888888888888888`]], Thickness[Tiny]}, 
+      {GrayLevel[0.5], PointSize[
+        NCache[
+         Rational[1, 72], 0.013888888888888888`]], Thickness[Tiny]}, 
+      {GrayLevel[0.5], PointSize[
+        NCache[
+         Rational[1, 72], 0.013888888888888888`]], Thickness[Tiny]}, 
+      {GrayLevel[0.5], PointSize[
+        NCache[
+         Rational[1, 72], 0.013888888888888888`]], Thickness[Tiny]}, 
+      {GrayLevel[0.5], PointSize[
+        NCache[
+         Rational[1, 72], 0.013888888888888888`]], Thickness[Tiny]}, 
+      {GrayLevel[0.5], PointSize[
+        NCache[
+         Rational[1, 72], 0.013888888888888888`]], Thickness[Tiny]}, 
+      {GrayLevel[0.5], PointSize[
+        NCache[
+         Rational[1, 72], 0.013888888888888888`]], Thickness[Tiny]}, 
+      {GrayLevel[0.5], PointSize[
+        NCache[
+         Rational[1, 72], 0.013888888888888888`]], Thickness[Tiny]}, 
+      {GrayLevel[0.5], PointSize[
+        NCache[
+         Rational[1, 72], 0.013888888888888888`]], Thickness[Tiny]}, 
+      {GrayLevel[0.5], PointSize[
+        NCache[
+         Rational[1, 72], 0.013888888888888888`]], Thickness[Tiny]}, 
+      {GrayLevel[0.5], PointSize[
+        NCache[
+         Rational[1, 72], 0.013888888888888888`]], Thickness[Tiny]}, 
+      {GrayLevel[0.5], PointSize[
+        NCache[
+         Rational[1, 72], 0.013888888888888888`]], Thickness[Tiny]}, 
+      {GrayLevel[0.5], PointSize[
+        NCache[
+         Rational[1, 72], 0.013888888888888888`]], Thickness[Tiny]}, 
+      {GrayLevel[0.5], PointSize[
+        NCache[
+         Rational[1, 72], 0.013888888888888888`]], Thickness[Tiny]}, 
+      {GrayLevel[0.5], PointSize[
+        NCache[
+         Rational[1, 72], 0.013888888888888888`]], Thickness[Tiny]}, 
+      {GrayLevel[0.5], PointSize[
+        NCache[
+         Rational[1, 72], 0.013888888888888888`]], Thickness[Tiny]}, 
+      {GrayLevel[0.5], PointSize[
+        NCache[
+         Rational[1, 72], 0.013888888888888888`]], Thickness[Tiny]}, 
+      {GrayLevel[0.5], PointSize[
+        NCache[
+         Rational[1, 72], 0.013888888888888888`]], Thickness[Tiny]}, 
+      {GrayLevel[0.5], PointSize[
+        NCache[
+         Rational[1, 72], 0.013888888888888888`]], Thickness[Tiny]}, 
+      {GrayLevel[0.5], PointSize[
+        NCache[
+         Rational[1, 72], 0.013888888888888888`]], Thickness[Tiny]}, 
+      {GrayLevel[0.5], PointSize[
+        NCache[
+         Rational[1, 72], 0.013888888888888888`]], Thickness[Tiny]}, 
+      {GrayLevel[0.5], PointSize[
+        NCache[
+         Rational[1, 72], 0.013888888888888888`]], Thickness[Tiny]}, 
+      {GrayLevel[0.5], PointSize[
+        NCache[
+         Rational[1, 72], 0.013888888888888888`]], Thickness[Tiny]}, 
+      {GrayLevel[0.5], PointSize[
+        NCache[
+         Rational[1, 72], 0.013888888888888888`]], Thickness[Tiny]}, 
+      {GrayLevel[0.5], PointSize[
+        NCache[
+         Rational[1, 72], 0.013888888888888888`]], Thickness[Tiny]}}, {
+      {GrayLevel[0.5], PointSize[
+        NCache[
+         Rational[1, 72], 0.013888888888888888`]], Thickness[Tiny]}, 
+      {GrayLevel[0.5], PointSize[
+        NCache[
+         Rational[1, 72], 0.013888888888888888`]], Thickness[Tiny]}, 
+      {GrayLevel[0.5], PointSize[
+        NCache[
+         Rational[1, 72], 0.013888888888888888`]], Thickness[Tiny]}, 
+      {GrayLevel[0.5], PointSize[
+        NCache[
+         Rational[1, 72], 0.013888888888888888`]], Thickness[Tiny]}, 
+      {GrayLevel[0.5], PointSize[
+        NCache[
+         Rational[1, 72], 0.013888888888888888`]], Thickness[Tiny]}, 
+      {GrayLevel[0.5], PointSize[
+        NCache[
+         Rational[1, 72], 0.013888888888888888`]], Thickness[Tiny]}, 
+      {GrayLevel[0.5], PointSize[
+        NCache[
+         Rational[1, 72], 0.013888888888888888`]], Thickness[Tiny]}, 
+      {GrayLevel[0.5], PointSize[
+        NCache[
+         Rational[1, 72], 0.013888888888888888`]], Thickness[Tiny]}, 
+      {GrayLevel[0.5], PointSize[
+        NCache[
+         Rational[1, 72], 0.013888888888888888`]], Thickness[Tiny]}, 
+      {GrayLevel[0.5], PointSize[
+        NCache[
+         Rational[1, 72], 0.013888888888888888`]], Thickness[Tiny]}, 
+      {GrayLevel[0.5], PointSize[
+        NCache[
+         Rational[1, 72], 0.013888888888888888`]], Thickness[Tiny]}, 
+      {GrayLevel[0.5], PointSize[
+        NCache[
+         Rational[1, 72], 0.013888888888888888`]], Thickness[Tiny]}, 
+      {GrayLevel[0.5], PointSize[
+        NCache[
+         Rational[1, 72], 0.013888888888888888`]], Thickness[Tiny]}, 
+      {GrayLevel[0.5], PointSize[
+        NCache[
+         Rational[1, 72], 0.013888888888888888`]], Thickness[Tiny]}, 
+      {GrayLevel[0.5], PointSize[
+        NCache[
+         Rational[1, 72], 0.013888888888888888`]], Thickness[Tiny]}, 
+      {GrayLevel[0.5], PointSize[
+        NCache[
+         Rational[1, 72], 0.013888888888888888`]], Thickness[Tiny]}, 
+      {GrayLevel[0.5], PointSize[
+        NCache[
+         Rational[1, 72], 0.013888888888888888`]], Thickness[Tiny]}, 
+      {GrayLevel[0.5], PointSize[
+        NCache[
+         Rational[1, 72], 0.013888888888888888`]], Thickness[Tiny]}, 
+      {GrayLevel[0.5], PointSize[
+        NCache[
+         Rational[1, 72], 0.013888888888888888`]], Thickness[Tiny]}, 
+      {GrayLevel[0.5], PointSize[
+        NCache[
+         Rational[1, 72], 0.013888888888888888`]], Thickness[Tiny]}, 
+      {GrayLevel[0.5], PointSize[
+        NCache[
+         Rational[1, 72], 0.013888888888888888`]], Thickness[Tiny]}, 
+      {GrayLevel[0.5], PointSize[
+        NCache[
+         Rational[1, 72], 0.013888888888888888`]], Thickness[Tiny]}, 
+      {GrayLevel[0.5], PointSize[
+        NCache[
+         Rational[1, 72], 0.013888888888888888`]], Thickness[Tiny]}, 
+      {GrayLevel[0.5], PointSize[
+        NCache[
+         Rational[1, 72], 0.013888888888888888`]], Thickness[Tiny]}, 
+      {GrayLevel[0.5], PointSize[
+        NCache[
+         Rational[1, 72], 0.013888888888888888`]], Thickness[Tiny]}, 
+      {GrayLevel[0.5], PointSize[
+        NCache[
+         Rational[1, 72], 0.013888888888888888`]], Thickness[Tiny]}, 
+      {GrayLevel[0.5], PointSize[
+        NCache[
+         Rational[1, 72], 0.013888888888888888`]], Thickness[Tiny]}, 
+      {GrayLevel[0.5], PointSize[
+        NCache[
+         Rational[1, 72], 0.013888888888888888`]], Thickness[Tiny]}, 
+      {GrayLevel[0.5], PointSize[
+        NCache[
+         Rational[1, 72], 0.013888888888888888`]], Thickness[Tiny]}, 
+      {GrayLevel[0.5], PointSize[
+        NCache[
+         Rational[1, 72], 0.013888888888888888`]], Thickness[Tiny]}, 
+      {GrayLevel[0.5], PointSize[
+        NCache[
+         Rational[1, 72], 0.013888888888888888`]], Thickness[Tiny]}, 
+      {GrayLevel[0.5], PointSize[
+        NCache[
+         Rational[1, 72], 0.013888888888888888`]], Thickness[Tiny]}, 
+      {GrayLevel[0.5], PointSize[
+        NCache[
+         Rational[1, 72], 0.013888888888888888`]], Thickness[Tiny]}, 
+      {GrayLevel[0.5], PointSize[
+        NCache[
+         Rational[1, 72], 0.013888888888888888`]], Thickness[Tiny]}, 
+      {GrayLevel[0.5], PointSize[
+        NCache[
+         Rational[1, 72], 0.013888888888888888`]], Thickness[Tiny]}, 
+      {GrayLevel[0.5], PointSize[
+        NCache[
+         Rational[1, 72], 0.013888888888888888`]], Thickness[Tiny]}, 
+      {GrayLevel[0.5], PointSize[
+        NCache[
+         Rational[1, 72], 0.013888888888888888`]], Thickness[Tiny]}, 
+      {GrayLevel[0.5], PointSize[
+        NCache[
+         Rational[1, 72], 0.013888888888888888`]], Thickness[Tiny]}, 
+      {GrayLevel[0.5], PointSize[
+        NCache[
+         Rational[1, 72], 0.013888888888888888`]], Thickness[Tiny]}, 
+      {GrayLevel[0.5], PointSize[
+        NCache[
+         Rational[1, 72], 0.013888888888888888`]], Thickness[Tiny]}, 
+      {GrayLevel[0.5], PointSize[
+        NCache[
+         Rational[1, 72], 0.013888888888888888`]], Thickness[Tiny]}, 
+      {GrayLevel[0.5], PointSize[
+        NCache[
+         Rational[1, 72], 0.013888888888888888`]], Thickness[Tiny]}, 
+      {GrayLevel[0.5], PointSize[
+        NCache[
+         Rational[1, 72], 0.013888888888888888`]], Thickness[Tiny]}, 
+      {GrayLevel[0.5], PointSize[
+        NCache[
+         Rational[1, 72], 0.013888888888888888`]], Thickness[Tiny]}, 
+      {GrayLevel[0.5], PointSize[
+        NCache[
+         Rational[1, 72], 0.013888888888888888`]], Thickness[Tiny]}, 
+      {GrayLevel[0.5], PointSize[
+        NCache[
+         Rational[1, 72], 0.013888888888888888`]], Thickness[Tiny]}, 
+      {GrayLevel[0.5], PointSize[
+        NCache[
+         Rational[1, 72], 0.013888888888888888`]], Thickness[Tiny]}, 
+      {GrayLevel[0.5], PointSize[
+        NCache[
+         Rational[1, 72], 0.013888888888888888`]], Thickness[Tiny]}, 
+      {GrayLevel[0.5], PointSize[
+        NCache[
+         Rational[1, 72], 0.013888888888888888`]], Thickness[Tiny]}, 
+      {GrayLevel[0.5], PointSize[
+        NCache[
+         Rational[1, 72], 0.013888888888888888`]], Thickness[Tiny]}, 
+      {GrayLevel[0.5], PointSize[
+        NCache[
+         Rational[1, 72], 0.013888888888888888`]], Thickness[Tiny]}, 
+      {GrayLevel[0.5], PointSize[
+        NCache[
+         Rational[1, 72], 0.013888888888888888`]], Thickness[Tiny]}, 
+      {GrayLevel[0.5], PointSize[
+        NCache[
+         Rational[1, 72], 0.013888888888888888`]], Thickness[Tiny]}, 
+      {GrayLevel[0.5], PointSize[
+        NCache[
+         Rational[1, 72], 0.013888888888888888`]], Thickness[Tiny]}, 
+      {GrayLevel[0.5], PointSize[
+        NCache[
+         Rational[1, 72], 0.013888888888888888`]], Thickness[Tiny]}, 
+      {GrayLevel[0.5], PointSize[
+        NCache[
+         Rational[1, 72], 0.013888888888888888`]], Thickness[Tiny]}, 
+      {GrayLevel[0.5], PointSize[
+        NCache[
+         Rational[1, 72], 0.013888888888888888`]], Thickness[Tiny]}, 
+      {GrayLevel[0.5], PointSize[
+        NCache[
+         Rational[1, 72], 0.013888888888888888`]], Thickness[
+       Tiny]}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}}, {
+      {GrayLevel[0.5], PointSize[
+        NCache[
+         Rational[1, 72], 0.013888888888888888`]], Thickness[Tiny]}, 
+      {GrayLevel[0.5], PointSize[
+        NCache[
+         Rational[1, 72], 0.013888888888888888`]], Thickness[Tiny]}, 
+      {GrayLevel[0.5], PointSize[
+        NCache[
+         Rational[1, 72], 0.013888888888888888`]], Thickness[Tiny]}, 
+      {GrayLevel[0.5], PointSize[
+        NCache[
+         Rational[1, 72], 0.013888888888888888`]], Thickness[Tiny]}, 
+      {GrayLevel[0.5], PointSize[
+        NCache[
+         Rational[1, 72], 0.013888888888888888`]], Thickness[Tiny]}, 
+      {GrayLevel[0.5], PointSize[
+        NCache[
+         Rational[1, 72], 0.013888888888888888`]], Thickness[Tiny]}, 
+      {GrayLevel[0.5], PointSize[
+        NCache[
+         Rational[1, 72], 0.013888888888888888`]], Thickness[Tiny]}, 
+      {GrayLevel[0.5], PointSize[
+        NCache[
+         Rational[1, 72], 0.013888888888888888`]], Thickness[Tiny]}, 
+      {GrayLevel[0.5], PointSize[
+        NCache[
+         Rational[1, 72], 0.013888888888888888`]], Thickness[Tiny]}, 
+      {GrayLevel[0.5], PointSize[
+        NCache[
+         Rational[1, 72], 0.013888888888888888`]], Thickness[Tiny]}, 
+      {GrayLevel[0.5], PointSize[
+        NCache[
+         Rational[1, 72], 0.013888888888888888`]], Thickness[Tiny]}, 
+      {GrayLevel[0.5], PointSize[
+        NCache[
+         Rational[1, 72], 0.013888888888888888`]], Thickness[Tiny]}, 
+      {GrayLevel[0.5], PointSize[
+        NCache[
+         Rational[1, 72], 0.013888888888888888`]], Thickness[Tiny]}, 
+      {GrayLevel[0.5], PointSize[
+        NCache[
+         Rational[1, 72], 0.013888888888888888`]], Thickness[Tiny]}, 
+      {GrayLevel[0.5], PointSize[
+        NCache[
+         Rational[1, 72], 0.013888888888888888`]], Thickness[Tiny]}, 
+      {GrayLevel[0.5], PointSize[
+        NCache[
+         Rational[1, 72], 0.013888888888888888`]], Thickness[Tiny]}, 
+      {GrayLevel[0.5], PointSize[
+        NCache[
+         Rational[1, 72], 0.013888888888888888`]], Thickness[Tiny]}, 
+      {GrayLevel[0.5], PointSize[
+        NCache[
+         Rational[1, 72], 0.013888888888888888`]], Thickness[Tiny]}, 
+      {GrayLevel[0.5], PointSize[
+        NCache[
+         Rational[1, 72], 0.013888888888888888`]], Thickness[Tiny]}, 
+      {GrayLevel[0.5], PointSize[
+        NCache[
+         Rational[1, 72], 0.013888888888888888`]], Thickness[Tiny]}, 
+      {GrayLevel[0.5], PointSize[
+        NCache[
+         Rational[1, 72], 0.013888888888888888`]], Thickness[Tiny]}, 
+      {GrayLevel[0.5], PointSize[
+        NCache[
+         Rational[1, 72], 0.013888888888888888`]], Thickness[Tiny]}, 
+      {GrayLevel[0.5], PointSize[
+        NCache[
+         Rational[1, 72], 0.013888888888888888`]], Thickness[Tiny]}, 
+      {GrayLevel[0.5], PointSize[
+        NCache[
+         Rational[1, 72], 0.013888888888888888`]], Thickness[Tiny]}, 
+      {GrayLevel[0.5], PointSize[
+        NCache[
+         Rational[1, 72], 0.013888888888888888`]], Thickness[Tiny]}, 
+      {GrayLevel[0.5], PointSize[
+        NCache[
+         Rational[1, 72], 0.013888888888888888`]], Thickness[Tiny]}, 
+      {GrayLevel[0.5], PointSize[
+        NCache[
+         Rational[1, 72], 0.013888888888888888`]], Thickness[Tiny]}, 
+      {GrayLevel[0.5], PointSize[
+        NCache[
+         Rational[1, 72], 0.013888888888888888`]], Thickness[Tiny]}, 
+      {GrayLevel[0.5], PointSize[
+        NCache[
+         Rational[1, 72], 0.013888888888888888`]], Thickness[Tiny]}, 
+      {GrayLevel[0.5], PointSize[
+        NCache[
+         Rational[1, 72], 0.013888888888888888`]], Thickness[Tiny]}, 
+      {GrayLevel[0.5], PointSize[
+        NCache[
+         Rational[1, 72], 0.013888888888888888`]], Thickness[Tiny]}, 
+      {GrayLevel[0.5], PointSize[
+        NCache[
+         Rational[1, 72], 0.013888888888888888`]], Thickness[Tiny]}, 
+      {GrayLevel[0.5], PointSize[
+        NCache[
+         Rational[1, 72], 0.013888888888888888`]], Thickness[Tiny]}, 
+      {GrayLevel[0.5], PointSize[
+        NCache[
+         Rational[1, 72], 0.013888888888888888`]], Thickness[Tiny]}, 
+      {GrayLevel[0.5], PointSize[
+        NCache[
+         Rational[1, 72], 0.013888888888888888`]], Thickness[Tiny]}, 
+      {GrayLevel[0.5], PointSize[
+        NCache[
+         Rational[1, 72], 0.013888888888888888`]], Thickness[Tiny]}, 
+      {GrayLevel[0.5], PointSize[
+        NCache[
+         Rational[1, 72], 0.013888888888888888`]], Thickness[Tiny]}, 
+      {GrayLevel[0.5], PointSize[
+        NCache[
+         Rational[1, 72], 0.013888888888888888`]], Thickness[Tiny]}, 
+      {GrayLevel[0.5], PointSize[
+        NCache[
+         Rational[1, 72], 0.013888888888888888`]], Thickness[Tiny]}, 
+      {GrayLevel[0.5], PointSize[
+        NCache[
+         Rational[1, 72], 0.013888888888888888`]], Thickness[Tiny]}, 
+      {GrayLevel[0.5], PointSize[
+        NCache[
+         Rational[1, 72], 0.013888888888888888`]], Thickness[Tiny]}, 
+      {GrayLevel[0.5], PointSize[
+        NCache[
+         Rational[1, 72], 0.013888888888888888`]], Thickness[Tiny]}, 
+      {GrayLevel[0.5], PointSize[
+        NCache[
+         Rational[1, 72], 0.013888888888888888`]], Thickness[Tiny]}, 
+      {GrayLevel[0.5], PointSize[
+        NCache[
+         Rational[1, 72], 0.013888888888888888`]], Thickness[Tiny]}, 
+      {GrayLevel[0.5], PointSize[
+        NCache[
+         Rational[1, 72], 0.013888888888888888`]], Thickness[Tiny]}, 
+      {GrayLevel[0.5], PointSize[
+        NCache[
+         Rational[1, 72], 0.013888888888888888`]], Thickness[Tiny]}, 
+      {GrayLevel[0.5], PointSize[
+        NCache[
+         Rational[1, 72], 0.013888888888888888`]], Thickness[Tiny]}, 
+      {GrayLevel[0.5], PointSize[
+        NCache[
+         Rational[1, 72], 0.013888888888888888`]], Thickness[Tiny]}, 
+      {GrayLevel[0.5], PointSize[
+        NCache[
+         Rational[1, 72], 0.013888888888888888`]], Thickness[Tiny]}, 
+      {GrayLevel[0.5], PointSize[
+        NCache[
+         Rational[1, 72], 0.013888888888888888`]], Thickness[Tiny]}, 
+      {GrayLevel[0.5], PointSize[
+        NCache[
+         Rational[1, 72], 0.013888888888888888`]], Thickness[Tiny]}, 
+      {GrayLevel[0.5], PointSize[
+        NCache[
+         Rational[1, 72], 0.013888888888888888`]], Thickness[Tiny]}, 
+      {GrayLevel[0.5], PointSize[
+        NCache[
+         Rational[1, 72], 0.013888888888888888`]], Thickness[Tiny]}, 
+      {GrayLevel[0.5], PointSize[
+        NCache[
+         Rational[1, 72], 0.013888888888888888`]], Thickness[Tiny]}, 
+      {GrayLevel[0.5], PointSize[
+        NCache[
+         Rational[1, 72], 0.013888888888888888`]], Thickness[Tiny]}, 
+      {GrayLevel[0.5], PointSize[
+        NCache[
+         Rational[1, 72], 0.013888888888888888`]], Thickness[Tiny]}, 
+      {GrayLevel[0.5], PointSize[
+        NCache[
+         Rational[1, 72], 0.013888888888888888`]], Thickness[Tiny]}, 
+      {GrayLevel[0.5], PointSize[
+        NCache[
+         Rational[1, 72], 0.013888888888888888`]], Thickness[
+       Tiny]}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}}}, {{}, {}}}, {{{}, {}, 
+     TagBox[
+      {RGBColor[0.368417, 0.506779, 0.709798], AbsoluteThickness[1.6], 
+       Opacity[1.], FaceForm[Opacity[0.3]], LineBox[CompressedData["
+1:eJxl1NtL0wEcBfBtYqampcRihsJ0SfMhJR+kMrIhaunCTS0fljm18BdYik4x
+kqZp11VLzQWtlJyXlkmCD6HmpcnYkLbcktmSNXU4tTE1l7c5K62+X6IDhw+c
+P+DQsy5zz1NIJBL7Vzf9L+tU9U1a7LF/TUWdm+aAwi2LwJgtK8Hfey2YuaUM
+VHFTSPMLnaBwJfJVXFAfaGbHP1TcHQQjhqqtEoca/PD64g0yWQv68/MbtNE6
+MGhGPZdu+wgmNxGTbXkGMKNk1BKwzwhWl927k9I+Bu534z9Xhn0B2Vqy5YXd
+DNKillQjEROgjqnr9L0/CUbz3n6yWCxgV+tQcgNjCmQIBzS516xgY4HxGVUx
+DfrYjYJh+iwYJp+tYl75CqYLA6cvdNtAwXgUp2OPHWziCXaM8+ZAhTefZGDP
+g/IDTpdiDX1iapaFSBdASqpS45n4DWQReY96l1CRd6j7VN0imFTIXamJdYDU
+XHFt5xT6Zj3tfWPVd3D49IPbtINLoOOo0U7Wo6LZx4b88mUwnEEQXMYKKHf1
+SyiDqFQqOnGoYBWsUxGyCf810Kurq8L/HZqaWOPadckJthJl9ArfdbCQ/VlV
+2oPG956kWTJcoENzfFvgBkptaisek2+AsduZYt+kH2BwznSa6RRK6W/Z285B
++0pCW9hn0GhrSK8oC41UBtm8StHgyt0JHs0oxaz3MbSi5iM1+uaXaP2i37m4
+DjQge2dxVQ/qx/KSuenRhadqQj+CaldvhTeOoqIOj26WCfWku+vKZ1Dr1UEJ
+x4YqR6+fpc+hlWLKTL8DzbYNtIuXUVZCeVHmGkqXxRyOcKF/Xivmrz8BSSFz
+EQ==
+        "]]},
+      Annotation[#, "Charting`Private`Tag$8154#1"]& ], 
+     TagBox[
+      {RGBColor[0.880722, 0.611041, 0.142051], AbsoluteThickness[1.6], 
+       Opacity[1.], FaceForm[Opacity[0.3]], LineBox[CompressedData["
+1:eJxTTMoPSmViYGAwAWIQjQo+2Cf8FjvZLjnFHpW/BM4/ERTM8OHjFji/4Yfx
+Wje5/XD+A1/3iYe7j8D5BqcnPZ/+5SScf2FDVhsj43k4XyixYMF5m0twvtzL
+k+8j3lyB8wOWZj5ek3sdzo8rv/FESvUWnD+ptrcreN0dOF+DOXHRMa37cL7v
+ecYnK989gPMlzb+duGrwCM6/pHlpC1/fYzjfJmbvzSdPnsD5u1acDlig8gzO
+V2k4eC6j/jmcv6jw1jyxwy/gfN53t0ovKr6C8zVXvWrVrHoN50c2yL5I2/0G
+zi99aB64UfwdnL80ppTnYcx7OP8wdyLDdd8PcP4qvd9/D/9C8GffW7ZEec5H
+OJ8p5Ng5Tu9PcL5TZu7Ufd8Q/B5uNdZn0z7D+T7FQT8mu3yB88UyJkzZ8gzB
+3/En9Ozi1q9w/sWw/k5Jo29w/mfbW+8YLyP4Pa9mXC9o/A7n66tkZgap/EC4
+/++B6UxHEPw5c3o8LQt/wvnTT2QueST0C87n3LWrSegQgh/iPfmvQN5vOH9F
+Zq1iE98fOL/Y9/aJyj0Ivvs+L8kncX/h/C/nHNlk/yH44kvXlN1Z9Q/Od+HQ
+nMDn8x/OV2oR8WBfhuBDaAYHGB8AomcQRA==
+        "]]},
+      Annotation[#, "Charting`Private`Tag$8154#2"]& ]}, {}}},
+  AspectRatio->Automatic,
+  Axes->{True, True},
+  AxesLabel->{None, None},
+  AxesOrigin->{0, 0},
+  DisplayFunction->Identity,
+  Frame->{{False, False}, {False, False}},
+  FrameLabel->{{None, None}, {None, None}},
+  FrameTicks->{{Automatic, Automatic}, {Automatic, Automatic}},
+  GridLines->{None, None},
+  GridLinesStyle->Directive[
+    GrayLevel[0.5, 0.4]],
+  Method->{
+   "OptimizePlotMarkers" -> True, 
+    "CoordinatesToolOptions" -> {"DisplayFunction" -> ({
+        (Identity[#]& )[
+         Part[#, 1]], 
+        (Identity[#]& )[
+         Part[#, 2]]}& ), "CopiedValueFunction" -> ({
+        (Identity[#]& )[
+         Part[#, 1]], 
+        (Identity[#]& )[
+         Part[#, 2]]}& )}},
+  PlotRange->{{0, 2.0000000001794707`}, {0, 2.0000000001794707`}},
+  PlotRangeClipping->True,
+  PlotRangePadding->{{
+     Scaled[0.02], 
+     Scaled[0.02]}, {
+     Scaled[0.02], 
+     Scaled[0.05]}},
+  Ticks->{Automatic, Automatic}]], "Output",
+ CellChangeTimes->{
+  3.7848282828743544`*^9, {3.784828402058014*^9, 3.7848284694471035`*^9}, {
+   3.7848285323568664`*^9, 3.7848285626259775`*^9}, {3.7848286500535173`*^9, 
+   3.784828685911316*^9}, 3.784828718492132*^9, {3.784828963066531*^9, 
+   3.7848289825688562`*^9}, {3.784829015625305*^9, 3.7848290253028603`*^9}, 
+   3.7848294245267515`*^9, 3.784829962671253*^9, {3.784830121285438*^9, 
+   3.784830144883191*^9}, 3.78483106743337*^9, 3.7848313678734045`*^9},
+ CellLabel->"Out[76]=",ExpressionUUID->"cfd789c1-f76d-4700-88f6-a90b7ba405f5"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[{
+ RowBox[{
+  RowBox[{"Clear", "[", "Dist", "]"}], ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{
+   RowBox[{"Dist", "[", 
+    RowBox[{"t1_", ",", "t2_"}], "]"}], "=", 
+   RowBox[{"Norm", "[", 
+    RowBox[{
+     RowBox[{
+      RowBox[{"c1", "[", "t1", "]"}], "-", 
+      RowBox[{"c2", "[", "t2", "]"}]}], ",", "2"}], "]"}]}], 
+  ";"}], "\[IndentingNewLine]", 
+ RowBox[{"NIntegrate", "[", 
+  RowBox[{
+   RowBox[{
+    RowBox[{"(", 
+     RowBox[{"Dist", "[", 
+      RowBox[{
+       RowBox[{
+        RowBox[{"m", "[", "t", "]"}], "[", 
+        RowBox[{"[", "1", "]"}], "]"}], ",", 
+       RowBox[{
+        RowBox[{"m", "[", "t", "]"}], "[", 
+        RowBox[{"[", "2", "]"}], "]"}]}], "]"}], ")"}], "*", 
+    RowBox[{"Norm", "[", 
+     RowBox[{
+      RowBox[{
+       RowBox[{"m", "'"}], "[", "t", "]"}], ",", "Infinity"}], "]"}]}], ",", 
+   RowBox[{"{", 
+    RowBox[{"t", ",", "0", ",", "1"}], "}"}]}], "]"}]}], "Input",
+ CellChangeTimes->{{3.7848290897212505`*^9, 3.784829149516258*^9}, {
+   3.78482923558349*^9, 3.784829313000911*^9}, {3.784829367858039*^9, 
+   3.7848294042117596`*^9}, {3.7848294518292184`*^9, 
+   3.7848295138689137`*^9}, {3.7848296284563475`*^9, 3.7848296447504654`*^9}, 
+   3.7848297510948935`*^9, {3.7848298086719065`*^9, 3.7848298188994613`*^9}, {
+   3.784829895082301*^9, 3.7848299247577395`*^9}, {3.784830093902398*^9, 
+   3.784830116370282*^9}, {3.7848301650183463`*^9, 3.784830175515686*^9}},
+ CellLabel->"In[77]:=",ExpressionUUID->"693107c9-2a03-4dc3-986d-138bab068e33"],
+
+Cell[BoxData[
+ TemplateBox[{
+  "Part","partw",
+   "\"Part \\!\\(\\*RowBox[{\\\"2\\\"}]\\) of \
+\\!\\(\\*RowBox[{RowBox[{\\\"InterpolatingFunction\\\", \\\"[\\\", \
+RowBox[{RowBox[{\\\"{\\\", RowBox[{\\\"{\\\", RowBox[{\\\"0.`\\\", \\\",\\\", \
+\\\"1.`\\\"}], \\\"}\\\"}], \\\"}\\\"}], \\\",\\\", RowBox[{\\\"{\\\", \
+RowBox[{\\\"5\\\", \\\",\\\", \\\"3\\\", \\\",\\\", \\\"0\\\", \\\",\\\", \
+RowBox[{\\\"{\\\", \\\"3\\\", \\\"}\\\"}], \\\",\\\", RowBox[{\\\"{\\\", \
+\\\"2\\\", \\\"}\\\"}], \\\",\\\", \\\"0\\\", \\\",\\\", \\\"0\\\", \
+\\\",\\\", \\\"0\\\", \\\",\\\", \\\"0\\\", \\\",\\\", \\\"Automatic\\\", \
+\\\",\\\", RowBox[{\\\"{\\\", \\\"}\\\"}], \\\",\\\", RowBox[{\\\"{\\\", \
+\\\"}\\\"}], \\\",\\\", \\\"False\\\"}], \\\"}\\\"}], \\\",\\\", \
+RowBox[{\\\"{\\\", RowBox[{\\\"{\\\", RowBox[{\\\"0.`\\\", \\\",\\\", \
+\\\"0.4999999998821488`\\\", \\\",\\\", \\\"1.`\\\"}], \\\"}\\\"}], \
+\\\"}\\\"}], \\\",\\\", RowBox[{\\\"{\\\", RowBox[{RowBox[{\\\"{\\\", \
+RowBox[{\\\"{\\\", RowBox[{\\\"0.`\\\", \\\",\\\", \\\"0.`\\\"}], \
+\\\"}\\\"}], \\\"}\\\"}], \\\",\\\", RowBox[{\\\"{\\\", RowBox[{\\\"{\\\", \
+RowBox[{\\\"1.414213562`\\\", \\\",\\\", \\\"1.`\\\"}], \\\"}\\\"}], \
+\\\"}\\\"}], \\\",\\\", RowBox[{\\\"{\\\", RowBox[{\\\"{\\\", \
+RowBox[{\\\"2.828427125`\\\", \\\",\\\", \\\"2.`\\\"}], \\\"}\\\"}], \
+\\\"}\\\"}]}], \\\"}\\\"}], \\\",\\\", RowBox[{\\\"{\\\", \\\"Automatic\\\", \
+\\\"}\\\"}]}], \\\"]\\\"}], \\\"[\\\", \\\"t\\\", \\\"]\\\"}]\\) does not \
+exist.\"",2,79,11,16291428247715483194,"Local"},
+  "MessageTemplate"]], "Message", "MSG",
+ CellChangeTimes->{
+  3.7848298195064507`*^9, 3.78482992513853*^9, {3.784830069666424*^9, 
+   3.784830176034384*^9}, 3.7848310675053577`*^9, 3.7848313679493604`*^9},
+ CellLabel->
+  "During evaluation of \
+In[77]:=",ExpressionUUID->"6477043c-483a-43cf-a69c-cd0e6be06914"],
+
+Cell[BoxData[
+ TemplateBox[{
+  "Part","partw",
+   "\"Part \\!\\(\\*RowBox[{\\\"2\\\"}]\\) of \
+\\!\\(\\*RowBox[{RowBox[{\\\"InterpolatingFunction\\\", \\\"[\\\", \
+RowBox[{RowBox[{\\\"{\\\", RowBox[{\\\"{\\\", RowBox[{\\\"0.`\\\", \\\",\\\", \
+\\\"1.`\\\"}], \\\"}\\\"}], \\\"}\\\"}], \\\",\\\", RowBox[{\\\"{\\\", \
+RowBox[{\\\"5\\\", \\\",\\\", \\\"3\\\", \\\",\\\", \\\"0\\\", \\\",\\\", \
+RowBox[{\\\"{\\\", \\\"3\\\", \\\"}\\\"}], \\\",\\\", RowBox[{\\\"{\\\", \
+\\\"2\\\", \\\"}\\\"}], \\\",\\\", \\\"0\\\", \\\",\\\", \\\"0\\\", \
+\\\",\\\", \\\"0\\\", \\\",\\\", \\\"0\\\", \\\",\\\", \\\"Automatic\\\", \
+\\\",\\\", RowBox[{\\\"{\\\", \\\"}\\\"}], \\\",\\\", RowBox[{\\\"{\\\", \
+\\\"}\\\"}], \\\",\\\", \\\"False\\\"}], \\\"}\\\"}], \\\",\\\", \
+RowBox[{\\\"{\\\", RowBox[{\\\"{\\\", RowBox[{\\\"0.`\\\", \\\",\\\", \
+\\\"0.4999999998821488`\\\", \\\",\\\", \\\"1.`\\\"}], \\\"}\\\"}], \
+\\\"}\\\"}], \\\",\\\", RowBox[{\\\"{\\\", RowBox[{RowBox[{\\\"{\\\", \
+RowBox[{\\\"{\\\", RowBox[{\\\"0.`\\\", \\\",\\\", \\\"0.`\\\"}], \
+\\\"}\\\"}], \\\"}\\\"}], \\\",\\\", RowBox[{\\\"{\\\", RowBox[{\\\"{\\\", \
+RowBox[{\\\"1.414213562`\\\", \\\",\\\", \\\"1.`\\\"}], \\\"}\\\"}], \
+\\\"}\\\"}], \\\",\\\", RowBox[{\\\"{\\\", RowBox[{\\\"{\\\", \
+RowBox[{\\\"2.828427125`\\\", \\\",\\\", \\\"2.`\\\"}], \\\"}\\\"}], \
+\\\"}\\\"}]}], \\\"}\\\"}], \\\",\\\", RowBox[{\\\"{\\\", \\\"Automatic\\\", \
+\\\"}\\\"}]}], \\\"]\\\"}], \\\"[\\\", \\\"t\\\", \\\"]\\\"}]\\) does not \
+exist.\"",2,79,12,16291428247715483194,"Local"},
+  "MessageTemplate"]], "Message", "MSG",
+ CellChangeTimes->{
+  3.7848298195064507`*^9, 3.78482992513853*^9, {3.784830069666424*^9, 
+   3.784830176034384*^9}, 3.7848310675053577`*^9, 3.7848313679643517`*^9},
+ CellLabel->
+  "During evaluation of \
+In[77]:=",ExpressionUUID->"d089afaf-e6e3-4223-908d-45d4ec1aa892"],
+
+Cell[BoxData["2.8291400712904053`"], "Output",
+ CellChangeTimes->{
+  3.7848298195294485`*^9, 3.7848299251675124`*^9, {3.7848300696903243`*^9, 
+   3.78483017605837*^9}, 3.784831067530348*^9, 3.7848313679733524`*^9},
+ CellLabel->"Out[79]=",ExpressionUUID->"11ac558d-dcbb-4fa3-975d-0c95fb53f580"]
+}, Open  ]]
+},
+WindowSize->{1718, 1348},
+WindowMargins->{{-7, Automatic}, {Automatic, 0}},
+FrontEndVersion->"12.0 for Microsoft Windows (64-bit) (April 8, 2019)",
+StyleDefinitions->"Default.nb"
+]
+(* End of Notebook Content *)
+
+(* Internal cache information *)
+(*CellTagsOutline
+CellTagsIndex->{}
+*)
+(*CellTagsIndex
+CellTagsIndex->{}
+*)
+(*NotebookFileOutline
+Notebook[{
+Cell[558, 20, 804, 22, 86, "Input",ExpressionUUID->"32c17ea0-fcbd-479f-aac1-4a63d5f585fc"],
+Cell[1365, 44, 3009, 79, 219, "Input",ExpressionUUID->"f4229e8d-f237-4dd2-9379-eee63dcce894"],
+Cell[4377, 125, 731, 19, 67, "Input",ExpressionUUID->"58c44045-9a8a-47b8-97c7-fc21ca2bac77"],
+Cell[5111, 146, 481, 11, 48, "Input",ExpressionUUID->"721220a7-296f-414d-9606-738b417a9a7a"],
+Cell[CellGroupData[{
+Cell[5617, 161, 1929, 47, 162, "Input",ExpressionUUID->"debadab5-4876-4ad9-8648-5427783b3508"],
+Cell[7549, 210, 64091, 1235, 386, "Output",ExpressionUUID->"cfd789c1-f76d-4700-88f6-a90b7ba405f5"]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[71677, 1450, 1513, 38, 67, "Input",ExpressionUUID->"693107c9-2a03-4dc3-986d-138bab068e33"],
+Cell[73193, 1490, 1836, 30, 23, "Message",ExpressionUUID->"6477043c-483a-43cf-a69c-cd0e6be06914"],
+Cell[75032, 1522, 1836, 30, 23, "Message",ExpressionUUID->"d089afaf-e6e3-4223-908d-45d4ec1aa892"],
+Cell[76871, 1554, 293, 4, 32, "Output",ExpressionUUID->"11ac558d-dcbb-4fa3-975d-0c95fb53f580"]
+}, Open  ]]
+}
+]
+*)
+
