@@ -1,4 +1,5 @@
 #include <iomanip>
+#include <iterator>
 #include "geom.h"
 
 namespace {
@@ -104,6 +105,14 @@ std::ostream& operator<<(std::ostream& out, const Point& p) {
         << "(" << p.x << ", " << p.y << ")";
     return out;
 }
+
+std::ostream& operator<<(std::ostream& out, const Points& points) {
+    out << "[";
+    std::copy(points.begin(), points.end(), std::ostream_iterator<Point>(out, ", "));
+    out << "]";
+    return out;
+}
+
 
 //
 // Directions

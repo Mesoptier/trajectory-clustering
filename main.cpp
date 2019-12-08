@@ -10,8 +10,8 @@ int main() {
 
     Solver solver(curve1, curve2, h, ImageMetric::L2, ParamMetric::LInfinity_NoShortcuts);
 
-//    std::cout << "Distance: " << solver.getDistance() << std::endl;
-//    std::cout << solver.getMatching();
+    std::cout << "Distance: " << solver.getDistance() << std::endl;
+    std::cout << solver.getMatching() << std::endl;
 
 //    curve1.getVertices().save("curve1.csv", arma::csv_ascii);
 //    curve2.getVertices().save("curve2.csv", arma::csv_ascii);

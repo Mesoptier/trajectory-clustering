@@ -55,6 +55,8 @@ Point normalise(const Point& point, Norm p = Norm::L2);
 
 using Points = std::vector<Point>;
 
+std::ostream& operator<<(std::ostream& out, const Points& points);
+
 //
 // Directions
 //
