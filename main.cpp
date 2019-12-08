@@ -1,3 +1,4 @@
+#include <io.h>
 #include "src/Curve.h"
 #include "src/IntegralFrechet/Solver.h"
 //#include "FastMarchIntegralFrechet.h"
@@ -9,19 +10,16 @@ int main() {
     double h = .1;
 
     Solver solver(curve1, curve2, h, ImageMetric::L2, ParamMetric::LInfinity_NoShortcuts);
+    auto matching = solver.getMatching();
 
     std::cout << "Distance: " << solver.getDistance() << std::endl;
-    std::cout << solver.getMatching() << std::endl;
+    std::cout << matching << std::endl;
 
-//    curve1.getVertices().save("curve1.csv", arma::csv_ascii);
-//    curve2.getVertices().save("curve2.csv", arma::csv_ascii);
-//    solver.getMatching().save("matching.csv", arma::csv_ascii);
-//    solver.getBoundaryCosts().save("boundaryCosts.csv", arma::csv_ascii);
+    io::exportPoints("curve1.csv", curve1.getPoints());
+    io::exportPoints("curve2.csv", curve2.getPoints());
+    io::exportPoints("matching.csv", matching);
 
-    // TODO: Instead of saving boundaryCosts as one matrix, save some data (edges, ellipse axes,
-    //  image-/param-metrics, boundary costs, etc.) for each cell and visualize it in a grid in
-    //  Mathematica.
-
+    // Solver summary
     std::ofstream solverFile;
     solverFile.open("solver.xml");
 

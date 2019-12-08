@@ -10,12 +10,14 @@ set(HEADER_FILES
         IntegralFrechet/metrics.h
         geom.h
         expressionml.h
+        io.h
         )
 
 set(SOURCE_FILES
         IntegralFrechet/Cell.cpp
         IntegralFrechet/Solver.cpp
         geom.cpp
+        io.cpp
         )
 
 add_library(ProjectName_lib STATIC ${SOURCE_FILES} ${HEADER_FILES})
