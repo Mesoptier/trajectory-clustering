@@ -9,19 +9,18 @@
 #include "metrics.h"
 #include "../geom.h"
 
-template<class V>
 class Cell
 {
-    const Edge<V> edge1;
-    const Edge<V> edge2;
+    const Edge edge1;
+    const Edge edge2;
 
     // Number of points "sampled" along the edges (= size of input and output costs)
     int n1;
     int n2;
 
     // Total costs of getting to an input point (computed by other cells)
-    std::shared_ptr<arma::Col<V> const> in1;
-    std::shared_ptr<arma::Col<V> const> in2;
+    std::shared_ptr<arma::Col<distance_t> const> in1;
+    std::shared_ptr<arma::Col<distance_t> const> in2;
 
     Point offset;
     ImageMetric imageMetric;
@@ -38,18 +37,18 @@ class Cell
 
 public:
     // Total costs of getting to an output point
-    std::shared_ptr<arma::Col<V>> out1;
-    std::shared_ptr<arma::Col<V>> out2;
+    std::shared_ptr<arma::Col<distance_t>> out1;
+    std::shared_ptr<arma::Col<distance_t>> out2;
 
-    Cell(const Edge<V>& edge1, const Edge<V>& edge2, int n1, int n2, const std::shared_ptr<const arma::Col<V>>& in1,
-         const std::shared_ptr<const arma::Col<V>>& in2, Point offset, ImageMetric imageMetric,
+    Cell(const Edge& edge1, const Edge& edge2, int n1, int n2, const std::shared_ptr<const arma::Col<distance_t>>& in1,
+         const std::shared_ptr<const arma::Col<distance_t>>& in2, Point offset, ImageMetric imageMetric,
          ParamMetric paramMetric
     );
 
-    V getResult() const;
-    arma::Mat<V> getPath(int i, int o) const;
+    distance_t getResult() const;
+    Points getPath(int i, int o) const;
     Points getMinPath(Point target) const;
-    arma::Mat<V> getBoundaryCosts() const;
+    arma::Mat<distance_t> getBoundaryCosts() const;
 
     Point getOffset() const {
         return offset;
@@ -81,10 +80,10 @@ public:
         writer.openFunction("List");
         for (int i = 0; i < n1 + n2; ++i) {
 //            writer.writePoints(getMinPath(outPoint(i)));
-            PointsList list;
-            steepestDescent(list, inPoint(i), outPoint(n1 - 1));
+            Points points;
+            steepestDescent(points, inPoint(i), outPoint(n1 - 1));
 //            steepestDescent(list, outPoint(i), inPoint(0));
-            writer.writePointsList(list);
+            writer.writePoints(points);
         }
         writer.closeFunction();
         writer.closeRule();
@@ -109,7 +108,7 @@ public:
         writer.closeFunction();
     }
 
-    friend std::ostream& operator<<(std::ostream& os, const Cell<V>& cell) {
+    friend std::ostream& operator<<(std::ostream& os, const Cell& cell) {
         return os
             << "----------" << std::endl
             << "Edge 1:\n" << cell.edge1
@@ -126,27 +125,27 @@ public:
     }
 
 private:
-    const V& inValue(int i) const;
-    V& outValue(int i) const;
+    const distance_t& inValue(int i) const;
+    distance_t& outValue(int i) const;
 
-    arma::Row<V> inPoint(int i) const;
-    arma::Row<V> outPoint(int i) const;
-    int inIndex(arma::Row<V> p) const;
-    int outIndex(arma::Row<V> p) const;
+    Point inPoint(int i) const;
+    Point outPoint(int i) const;
+    int inIndex(const Point& p) const;
+    int outIndex(const Point& p) const;
 
-    void steepestDescent(PointsList& list, Point s, Point t) const;
-    V computeCost(int i, int o) const;
+    void steepestDescent(Points& points, Point s, Point t) const;
+    distance_t computeCost(int i, int o) const;
 
     /**
      * Compute the value (cost * distance) of integration along the specified param-edge.
      */
-    V integrate(arma::Row<V> p1, arma::Row<V> p2, ImageMetric imageMetric) const;
+    distance_t integrate(const Point& p1, const Point& p2, ImageMetric imageMetric) const;
 
     /**
      * Compute the cost (without distance) of linear travel over two edges in image space parametrized by
      * the x- and y- components of the difference vectors at the start/end of the edges.
      */
-    V integrate(V dx1, V dy1, V dx2, V dy2, ImageMetric imageMetric) const;
+    distance_t integrate(distance_t dx1, distance_t dy1, distance_t dx2, distance_t dy2, ImageMetric imageMetric) const;
 };
 
 #endif //CODE_CELL_H

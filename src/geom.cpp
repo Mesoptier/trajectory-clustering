@@ -1,5 +1,106 @@
+#include <iomanip>
 #include "geom.h"
 
+namespace {
+    template<typename T>
+    T pow2(T d) { return std::pow(d, 2); }
+}
+
+/* POINT */
+
+Point& Point::operator-=(const Point& point) {
+    x -= point.x;
+    y -= point.y;
+    return *this;
+}
+
+Point Point::operator-(const Point& point) const {
+    auto result = *this;
+    result -= point;
+    return result;
+}
+
+Point& Point::operator+=(const Point& point) {
+    x += point.x;
+    y += point.y;
+    return *this;
+}
+
+Point Point::operator+(const Point& point) const {
+    auto result = *this;
+    result += point;
+    return result;
+}
+
+Point& Point::operator*=(distance_t mult) {
+    x *= mult;
+    y *= mult;
+    return *this;
+}
+
+Point Point::operator*(distance_t mult) const {
+    auto result = *this;
+    result *= mult;
+    return result;
+}
+
+Point& Point::operator/=(distance_t distance) {
+    x /= distance;
+    y /= distance;
+    return *this;
+}
+
+Point Point::operator/(distance_t distance) const {
+    return {x / distance, y / distance};
+}
+
+bool Point::operator==(const Point& other) const {
+    return x == other.x && y == other.y;
+}
+
+bool Point::operator!=(const Point& other) const {
+    return !(*this == other);
+}
+
+distance_t Point::dist_sqr(const Point& point) const {
+    return pow2(x - point.x) + pow2(y - point.y);
+}
+
+distance_t Point::dist(const Point& point) const {
+    return std::sqrt(dist_sqr(point));
+}
+
+distance_t norm(const Point& point, Norm p) {
+    switch (p) {
+        case L1:
+            return std::abs(point.x) + std::abs(point.y);
+        case L2:
+            return sqrt(pow2(point.x) + pow2(point.y));
+        case LInf:
+            return std::max(std::abs(point.x), std::abs(point.y));
+        default:
+            throw std::invalid_argument("Unsupported norm");
+    }
+}
+
+Point normalise(const Point& point, Norm p) {
+    return point / norm(point, p);
+}
+
+bool approx_equal(const Point& a, const Point& b) {
+    return ::approx_equal(a.x, b.x) && ::approx_equal(a.y, b.y);
+}
+
 distance_t perp(const Point& a, const Point& b) {
-    return a(0) * b(1) - a(1) * b(0);
+    return a.x * b.y - a.y * b.x;
+}
+
+distance_t dot(const Point& a, const Point& b) {
+    return a.x * b.x + a.y * b.y;
+}
+
+std::ostream& operator<<(std::ostream& out, const Point& p) {
+    out << std::setprecision(15)
+        << "(" << p.x << ", " << p.y << ")";
+    return out;
 }

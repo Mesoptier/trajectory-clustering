@@ -6,11 +6,10 @@
 #include "../Curve.h"
 #include "../expressionml.h"
 
-template<class V>
 class Solver
 {
-    Curve<double> curve1;
-    Curve<double> curve2;
+    Curve curve1;
+    Curve curve2;
 
     // Curve complexity
     unsigned int n1;
@@ -20,14 +19,14 @@ class Solver
     ParamMetric paramMetric;
 
     // Grid of cells
-    std::vector<Cell<V>> cells;
+    std::vector<Cell> cells;
 
 public:
-    Solver(const Curve<V>& curve1, const Curve<V>& curve2, double h, ImageMetric imageMetric, ParamMetric paramMetric);
+    Solver(const Curve& curve1, const Curve& curve2, double h, ImageMetric imageMetric, ParamMetric paramMetric);
 
-    V getDistance() const;
-    arma::Mat<V> getMatching() const;
-    arma::Mat<V> getBoundaryCosts() const;
+    distance_t getDistance() const;
+    Points getMatching() const;
+    arma::Mat<distance_t> getBoundaryCosts() const;
 
     void writeExpressionML(ExpressionML::Writer& writer) const {
         writer.openFunction("Association");

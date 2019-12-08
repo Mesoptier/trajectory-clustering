@@ -75,10 +75,10 @@ TEST(LineTest, GetX) {
 
 TEST(LineTest, Intersect) {
     Point p = intersect(Line({0, 0}, {1, 1}), Line({0, 2}, {1, -1}));
-    ASSERT_DOUBLE_EQ(p(0), 1);
-    ASSERT_DOUBLE_EQ(p(1), 1);
+    ASSERT_DOUBLE_EQ(p.x, 1);
+    ASSERT_DOUBLE_EQ(p.y, 1);
 
     p = intersect(Line({0, 0}, {1, 1}), Line({0, 1}, {1, 0}));
-    ASSERT_DOUBLE_EQ(p(0), 1);
-    ASSERT_DOUBLE_EQ(p(1), 1);
+    ASSERT_DOUBLE_EQ(p.x, 1);
+    ASSERT_DOUBLE_EQ(p.y, 1);
 }

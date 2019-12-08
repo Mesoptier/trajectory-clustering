@@ -3,20 +3,20 @@
 //#include "FastMarchIntegralFrechet.h"
 
 int main() {
-    const Curve<double> curve1({{0, 0}, {1, 1}, {2, 2}});
-    const Curve<double> curve2({{0, 1}, {1, 1}, {2, 1}});
+    const Curve curve1({{0, 0}, {1, 1}, {2, 2}});
+    const Curve curve2({{0, 1}, {1, 1}, {2, 1}});
 
     double h = .1;
 
-    Solver<double> solver(curve1, curve2, h, ImageMetric::L2, ParamMetric::L1);
+    Solver solver(curve1, curve2, h, ImageMetric::L2, ParamMetric::L1);
 
-    std::cout << "Distance: " << solver.getDistance() << std::endl;
-    std::cout << solver.getMatching();
+//    std::cout << "Distance: " << solver.getDistance() << std::endl;
+//    std::cout << solver.getMatching();
 
-    curve1.getVertices().save("curve1.csv", arma::csv_ascii);
-    curve2.getVertices().save("curve2.csv", arma::csv_ascii);
-    solver.getMatching().save("matching.csv", arma::csv_ascii);
-    solver.getBoundaryCosts().save("boundaryCosts.csv", arma::csv_ascii);
+//    curve1.getVertices().save("curve1.csv", arma::csv_ascii);
+//    curve2.getVertices().save("curve2.csv", arma::csv_ascii);
+//    solver.getMatching().save("matching.csv", arma::csv_ascii);
+//    solver.getBoundaryCosts().save("boundaryCosts.csv", arma::csv_ascii);
 
     // TODO: Instead of saving boundaryCosts as one matrix, save some data (edges, ellipse axes,
     //  image-/param-metrics, boundary costs, etc.) for each cell and visualize it in a grid in

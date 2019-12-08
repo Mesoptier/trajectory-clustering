@@ -4,17 +4,52 @@
 #include <assert.h>
 #include "util.h"
 
-typedef double distance_t;
+using distance_t = double;
 
-typedef arma::Row<distance_t>::fixed<2> Point;
-typedef arma::Mat<distance_t> Points;
-typedef std::vector<Point> PointsList;
+enum Norm {
+    L1,
+    L2,
+    LInf,
+};
+
+struct Point {
+    distance_t x;
+    distance_t y;
+
+    Point() = default;
+    Point(distance_t x, distance_t y) : x(x), y(y) {}
+
+    Point& operator-=(const Point& point);
+    Point operator-(const Point& point) const;
+    Point& operator+=(const Point& point);
+    Point operator+(const Point& point) const;
+    Point& operator*=(distance_t mult);
+    Point operator*(distance_t mult) const;
+    Point& operator/=(distance_t distance);
+    Point operator/(distance_t distance) const;
+
+    bool operator==(const Point& other) const;
+    bool operator!=(const Point& other) const;
+
+    distance_t dist_sqr(const Point& point) const;
+    distance_t dist(const Point& point) const;
+
+    friend std::ostream& operator<<(std::ostream& out, const Point& p);
+};
+
+bool approx_equal(const Point& a, const Point& b);
 
 /**
  * Computes perp dot product between two vectors.
  * See: http://mathworld.wolfram.com/PerpDotProduct.html
  */
 distance_t perp(const Point& a, const Point& b);
+distance_t dot(const Point& a, const Point& b);
+
+distance_t norm(const Point& point, Norm p = L2);
+Point normalise(const Point& point, Norm p = L2);
+
+using Points = std::vector<Point>;
 
 struct MonotoneComparator {
     enum Direction {
@@ -28,13 +63,13 @@ struct MonotoneComparator {
 
     bool operator()(const Point& a, const Point& b) {
         return (direction == LowerFirst)
-               ? a(0) < b(0) + ABS_TOL && a(1) < b(1) + ABS_TOL
-               : a(0) + ABS_TOL > b(0) && a(1) + ABS_TOL > b(1);
+               ? a.x < b.x + ABS_TOL && a.y < b.y + ABS_TOL
+               : a.x + ABS_TOL > b.x && a.y + ABS_TOL > b.y;
     }
 
     static Direction getDirection(const Point& a, const Point& b) {
         #ifndef NDEBUG
-        if (arma::approx_equal(a, b, "absdiff", ABS_TOL)) {
+        if (approx_equal(a, b)) {
             throw std::logic_error("Points are equal, and therefore not monotone");
         }
         #endif
@@ -47,7 +82,7 @@ struct MonotoneComparator {
         }
 
         std::stringstream error;
-        error << "Points (" << a(0) << "," << a(1) << ") and (" << b(0) << "," << b(1) << ") are not monotone";
+        error << "Points (" << a.x << "," << a.y << ") and (" << b.x << "," << b.y << ") are not monotone";
         throw std::logic_error(error.str());
     }
 };
@@ -60,13 +95,13 @@ struct Line
     Line() = default;
 
     Line(const Point& origin, const Point& direction)
-        : origin(origin), direction(arma::normalise(direction)) {}
+        : origin(origin), direction(normalise(direction)) {}
 
     /**
      * Create line from two points that lie on the line.
      */
     static Line fromTwoPoints(const Point& a, const Point& b) {
-        assert(!arma::approx_equal(a, b, "absdiff", ABS_TOL));
+        assert(!approx_equal(a, b));
         return {a, b - a};
     }
 
@@ -88,11 +123,11 @@ struct Line
     }
 
     inline bool isVertical() const {
-        return approx_zero(direction(0));
+        return approx_zero(direction.x);
     }
 
     inline bool isHorizontal() const {
-        return approx_zero(direction(1));
+        return approx_zero(direction.y);
     }
 
     /**
@@ -102,7 +137,7 @@ struct Line
         if (isVertical()) {
             return NAN;
         }
-        return (x - origin(0)) * direction(1) / direction(0) + origin(1);
+        return (x - origin.x) * direction.y / direction.x + origin.y;
     }
 
     /**
@@ -112,7 +147,7 @@ struct Line
         if (isHorizontal()) {
             return NAN;
         }
-        return (y - origin(1)) * direction(0) / direction(1) + origin(0);
+        return (y - origin.y) * direction.x / direction.y + origin.x;
     }
 
     /**
@@ -127,28 +162,28 @@ struct Line
      * ASSUMPTION: line1 and line2 are not parallel
      */
     friend Point intersect(const Line& line1, const Line& line2) {
-        const Point perp1 = {-line1.direction(1), line1.direction(0)};
+        const Point perp1 = {-line1.direction.y, line1.direction.x};
         const auto t2 =
-            arma::dot(perp1, line1.origin - line2.origin) / arma::dot(perp1, line2.direction);
+            dot(perp1, line1.origin - line2.origin) / dot(perp1, line2.direction);
         return line2(t2);
     }
 
     friend bool isParallel(const Line& line1, const Line& line2) {
-        return approx_equal(std::abs(arma::dot(line1.direction, line2.direction)), 1.0);
+        return approx_equal(std::abs(dot(line1.direction, line2.direction)), 1.0);
     }
 
     friend bool isSameDirection(const Line& line1, const Line& line2) {
-        return approx_equal(arma::dot(line1.direction, line2.direction), 1.0);
+        return approx_equal(dot(line1.direction, line2.direction), 1.0);
     }
 
     friend bool isOppositeDirection(const Line& line1, const Line& line2) {
-        return approx_equal(arma::dot(line1.direction, line2.direction), -1.0);
+        return approx_equal(dot(line1.direction, line2.direction), -1.0);
     }
 
     /**
      * Test whether the two given lines are perpendicular to each other.
      */
     friend bool isPerpendicular(const Line& line1, const Line& line2) {
-        return approx_zero(arma::dot(line1.direction, line2.direction));
+        return approx_zero(dot(line1.direction, line2.direction));
     }
 };

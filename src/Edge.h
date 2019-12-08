@@ -9,7 +9,6 @@
 #include "geom.h"
 #include "expressionml.h"
 
-template<class V>
 class Edge
 {
 public:
@@ -17,29 +16,29 @@ public:
     const Point second;
 
     Point diff;
-    V length;
+    distance_t length;
 
     Line line;
 
     Edge(const Point& first, const Point& second):
         first(first), second(second), line(Line::fromTwoPoints(first, second)),
-        diff(second - first), length(arma::norm(diff, 2)) {}
+        diff(second - first), length(norm(diff)) {}
 
-    Point interpLength(V t) const {
+    Point interpLength(distance_t t) const {
         return interp(t / length);
     }
 
-    Point interp(V t) const {
-        return (1 - t) * first + t * second;
+    Point interp(distance_t t) const {
+        return first * (1 - t) + second * t;
     }
 
     distance_t param(const Point& point) const {
         // ASSUMPTION: point lies on this edge's infinite line
 
         if (line.isVertical()) {
-            return (first(1) - point(1)) / (first(1) - second(1)) * length;
+            return (first.y - point.y) / (first.y - second.y) * length;
         } else {
-            return (first(0) - point(0)) / (first(0) - second(0)) * length;
+            return (first.x - point.x) / (first.x - second.x) * length;
         }
     }
 
@@ -50,12 +49,10 @@ public:
         writer.closeFunction();
     }
 
-    friend std::ostream& operator<<(std::ostream& os, const Edge& edge) {
-        os << "V1: ";
-        edge.first.print(os);
-        os << "V2: ";
-        edge.second.print(os);
-        return os;
+    friend std::ostream& operator<<(std::ostream& out, const Edge& edge) {
+        out << "V1: " << edge.first << std::endl
+            << "V2: " << edge.second << std::endl;
+        return out;
     }
 };
 

@@ -47,11 +47,11 @@ namespace ExpressionML {
         }
         void writePoint(const Point& point) {
             openFunction("List");
-            writeNumber(point(0));
-            writeNumber(point(1));
+            writeNumber(point.x);
+            writeNumber(point.y);
             closeFunction();
         }
-        void writePointsList(const PointsList& points) {
+        void writePoints(const Points& points) {
             openFunction("List");
             for (const auto& point : points) {
                 writePoint(point);

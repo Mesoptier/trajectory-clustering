@@ -1,13 +1,12 @@
 #include "Cell.h"
 
-template<class V>
-Cell<V>::Cell(
-    const Edge<V>& edge1,
-    const Edge<V>& edge2,
+Cell::Cell(
+    const Edge& edge1,
+    const Edge& edge2,
     int n1,
     int n2,
-    const std::shared_ptr<const arma::Col<V>>& in1,
-    const std::shared_ptr<const arma::Col<V>>& in2,
+    const std::shared_ptr<const arma::Col<distance_t>>& in1,
+    const std::shared_ptr<const arma::Col<distance_t>>& in2,
     Point offset,
     ImageMetric imageMetric,
     ParamMetric paramMetric
@@ -17,8 +16,8 @@ Cell<V>::Cell(
    offset(offset),
    imageMetric(imageMetric),
    paramMetric(paramMetric),
-   out1(std::make_shared<arma::Col<V>>(n1)),
-   out2(std::make_shared<arma::Col<V>>(n2)),
+   out1(std::make_shared<arma::Col<distance_t>>(n1)),
+   out2(std::make_shared<arma::Col<distance_t>>(n2)),
    outOrigin(n1 + n2) {
 
     // === ANALYZE EDGES ===
@@ -33,7 +32,7 @@ Cell<V>::Cell(
 
         // 1. find point on edge2 closest to edge1.first
         const Point imagePoint =
-            edge2.first + edge2.line.direction * arma::dot(edge1.first - edge2.first, edge2.line.direction);
+            edge2.first + edge2.line.direction * dot(edge1.first - edge2.first, edge2.line.direction);
 
         // 2. convert closest point to point in parameter space
         midPoint = {0, edge2.param(imagePoint)};
@@ -48,9 +47,9 @@ Cell<V>::Cell(
         ellH = Line::fromPointAndSlope(midPoint, INFINITY);
         ellV = Line::fromPointAndSlope(midPoint, 0);
     } else {
-        const auto dot = arma::dot(edge2.line.direction, edge1.line.direction);
-        ellH = Line(midPoint, {dot, 1});
-        ellV = Line(midPoint, {1, dot});
+        const auto val = dot(edge2.line.direction, edge1.line.direction);
+        ellH = Line(midPoint, {val, 1});
+        ellV = Line(midPoint, {1, val});
     }
 
     // === COMPUTE OUTPUT VALUES ===
@@ -74,49 +73,42 @@ Cell<V>::Cell(
     }
 }
 
-template<class V>
-V Cell<V>::getResult() const {
+distance_t Cell::getResult() const {
     return (*out2)(n2 - 1);
 }
 
-template<class V>
-arma::Mat<V> Cell<V>::getPath(int i, int o) const {
+Points Cell::getPath(int i, int o) const {
     const auto a = inPoint(i);
     const auto b = outPoint(o);
 
     if (paramMetric == ParamMetric::L1) {
-        arma::Row<V> c1, c2;
+        Point c1, c2;
 
         // NOTE: ellipseAxis is not vertical, so getY and getX are always defined
 
         if (ellipseAxis.includesPoint(a)) {
             // On monotone ellipse axis
             c1 = a;
-        } else if (a(1) < ellipseAxis.getY(a(0))) {
+        } else if (a.y < ellipseAxis.getY(a.x)) {
             // Vertical
-            c1 = {a(0), std::min(ellipseAxis.getY(a(0)), b(1))};
+            c1 = {a.x, std::min(ellipseAxis.getY(a.x), b.y)};
         } else {
             // Horizontal
-            c1 = {std::min(ellipseAxis.getX(a(1)), b(0)), a(1)};
+            c1 = {std::min(ellipseAxis.getX(a.y), b.x), a.y};
         }
 
         if (ellipseAxis.includesPoint(b)) {
             // On monotone ellipse axis
             c2 = b;
-        } else if (b(1) > ellipseAxis.getY(b(0))) {
+        } else if (b.y > ellipseAxis.getY(b.x)) {
             // Vertical
-            c2 = {b(0), std::max(ellipseAxis.getY(b(0)), c1(1))};
+            c2 = {b.x, std::max(ellipseAxis.getY(b.x), c1.y)};
         } else {
             // Horizontal
-            c2 = {std::max(ellipseAxis.getX(b(1)), c1(0)), b(1)};
+            c2 = {std::max(ellipseAxis.getX(b.y), c1.x), b.y};
         }
 
-        arma::Mat<V> path(4, 2);
-        path.row(0) = a;
-        path.row(1) = c1;
-        path.row(2) = c2;
-        path.row(3) = b;
-        return path;
+        return {a, c1, c2, b};
     }
 
     if (paramMetric == ParamMetric::LInfinity_NoShortcuts) {
@@ -127,77 +119,68 @@ arma::Mat<V> Cell<V>::getPath(int i, int o) const {
     throw std::logic_error("unsupported param metric");
 }
 
-template<class V>
-Points Cell<V>::getMinPath(Point target) const {
+Points Cell::getMinPath(Point target) const {
     int targetIndex = outIndex(target);
     return getPath(outOrigin(targetIndex), targetIndex);
 }
 
-template<class V>
-arma::Mat<V> Cell<V>::getBoundaryCosts() const {
-    arma::Mat<V> boundaryCosts(n1 + n2, 3);
+arma::Mat<distance_t> Cell::getBoundaryCosts() const {
+    arma::Mat<distance_t> boundaryCosts(n1 + n2, 3);
     for (int i = 0; i < n1 + n2; ++i) {
-        const arma::Row<V> point = outPoint(i) + getOffset();
-        boundaryCosts(i, 0) = point(0);
-        boundaryCosts(i, 1) = point(1);
+        const auto point = outPoint(i) + getOffset();
+        boundaryCosts(i, 0) = point.x;
+        boundaryCosts(i, 1) = point.y;
         boundaryCosts(i, 2) = outValue(i);
     }
     return boundaryCosts;
 }
 
-template<class V>
-const V& Cell<V>::inValue(int i) const {
+const distance_t& Cell::inValue(int i) const {
     return i < n1 ? (*in1)(i) : (*in2)(i - n1);
 }
 
-template<class V>
-V& Cell<V>::outValue(int i) const {
+distance_t& Cell::outValue(int i) const {
     return i < n1 ? (*out1)(i) : (*out2)(i - n1);
 }
 
-template<class V>
-arma::Row<V> Cell<V>::inPoint(int i) const {
+Point Cell::inPoint(int i) const {
     if (i < n1) {
-        return {(V) i / (n1 - 1) * edge1.length, 0};
+        return {(distance_t) i / (n1 - 1) * edge1.length, 0};
     } else {
-        return {0, (V) (i - n1) / (n2 - 1) * edge2.length};
+        return {0, (distance_t) (i - n1) / (n2 - 1) * edge2.length};
     }
 }
 
-template<class V>
-arma::Row<V> Cell<V>::outPoint(int i) const {
+Point Cell::outPoint(int i) const {
     if (i < n1) {
-        return {(V) i / (n1 - 1) * edge1.length, edge2.length};
+        return {(distance_t) i / (n1 - 1) * edge1.length, edge2.length};
     } else {
-        return {edge1.length, (V) (i - n1) / (n2 - 1) * edge2.length};
+        return {edge1.length, (distance_t) (i - n1) / (n2 - 1) * edge2.length};
     }
 }
 
-template<class V>
-int Cell<V>::inIndex(arma::Row<V> p) const {
+int Cell::inIndex(const Point& p) const {
     return 0;
 }
 
-template<class V>
-int Cell<V>::outIndex(arma::Row<V> p) const {
-    if (approx_equal(p(1), edge2.length)) {
+int Cell::outIndex(const Point& p) const {
+    if (approx_equal(p.y, edge2.length)) {
         // on out1 edge
-        return round(p(0) * (n1 - 1) / edge1.length);
+        return round(p.x * (n1 - 1) / edge1.length);
     } else {
         // on out2 edge
-        return round(p(1) * (n2 - 1) / edge2.length) + n1;
+        return round(p.y * (n2 - 1) / edge2.length) + n1;
     }
 }
 
-template<class V>
-void Cell<V>::steepestDescent(PointsList& list, Point s, Point t) const {
+void Cell::steepestDescent(Points& points, Point s, Point t) const {
     // TODO: Currently supports LInfinity_NoShortcuts only
     // TODO: Support degenerate cells (parallel edges)
 
-    list.push_back(s);
+    points.push_back(s);
 
     // Easy shortest path when the source and target are equal
-    if (arma::approx_equal(s, t, "absdiff", ABS_TOL)) {
+    if (approx_equal(s, t)) {
         return;
     }
 
@@ -207,7 +190,7 @@ void Cell<V>::steepestDescent(PointsList& list, Point s, Point t) const {
     MonotoneComparator compare(dir);
 
     // Multiply with line direction when checking on which side of the line a point lies
-    int lineDir = (dir == MonotoneComparator::LowerFirst ? 1 : -1);
+    distance_t dirMult = (dir == MonotoneComparator::LowerFirst ? 1 : -1);
 
     // Boundaries of the subcell
     Line tHor(t, {1, 0});
@@ -225,7 +208,7 @@ void Cell<V>::steepestDescent(PointsList& list, Point s, Point t) const {
                         ellH.includesPoint(s) ? ellH :
                         ellipseAxis;
 
-            list.push_back(std::min(
+            points.push_back(std::min(
                 {midPoint, intersect(line, tHor), intersect(line, tVer)},
                 compare
             ));
@@ -238,14 +221,14 @@ void Cell<V>::steepestDescent(PointsList& list, Point s, Point t) const {
     }
 
     // Above (left of) ellV
-    if (perp(s - ellV.origin, lineDir * ellV.direction) < 0) {
+    if (perp(s - ellV.origin, ellV.direction * dirMult) < 0) {
         if (tVer.includesPoint(s)) {
             return;
         } else if (compare(s, midPoint)) {
-            steepestDescent(list, std::min(intersect(ellV, sHor), intersect(tVer, sHor), compare), t);
+            steepestDescent(points, std::min(intersect(ellV, sHor), intersect(tVer, sHor), compare), t);
             return;
-        } else if (perp(s - ellH.origin, lineDir * ellH.direction) < 0) {
-            steepestDescent(list, std::min(intersect(ellH, sHor), intersect(tVer, sHor), compare), t);
+        } else if (perp(s - ellH.origin, ellH.direction * dirMult) < 0) {
+            steepestDescent(points, std::min(intersect(ellH, sHor), intersect(tVer, sHor), compare), t);
             return;
         } else {
             return;
@@ -253,14 +236,14 @@ void Cell<V>::steepestDescent(PointsList& list, Point s, Point t) const {
     }
 
     // Right of ellH
-    if (perp(s - ellH.origin, lineDir * ellH.direction) > 0) {
+    if (perp(s - ellH.origin, ellH.direction * dirMult) > 0) {
         if (tHor.includesPoint(s)) {
             return;
         } else if (compare(s, midPoint)) {
-            steepestDescent(list, std::min(intersect(ellH, sVer), intersect(tHor, sVer), compare), t);
+            steepestDescent(points, std::min(intersect(ellH, sVer), intersect(tHor, sVer), compare), t);
             return;
-        } else if (perp(s - ellV.origin, lineDir * ellV.direction) > 0) {
-            steepestDescent(list, std::min(intersect(ellV, sVer), intersect(tHor, sVer), compare), t);
+        } else if (perp(s - ellV.origin, ellV.direction * dirMult) > 0) {
+            steepestDescent(points, std::min(intersect(ellV, sVer), intersect(tHor, sVer), compare), t);
             return;
         } else {
             return;
@@ -271,14 +254,14 @@ void Cell<V>::steepestDescent(PointsList& list, Point s, Point t) const {
     Line diag(s, ellipseAxis.direction);
 
     // Left of diagonal
-    if (perp(s - ellipseAxis.origin, lineDir *ellipseAxis.direction) < 0) {
-        steepestDescent(list, std::min(
+    if (perp(s - ellipseAxis.origin, ellipseAxis.direction * dirMult) < 0) {
+        steepestDescent(points, std::min(
             {intersect(ellV, diag), intersect(tHor, diag), intersect(tVer, diag)},
             compare
         ), t);
         return;
     } else {
-        steepestDescent(list, std::min(
+        steepestDescent(points, std::min(
             {intersect(ellH, diag), intersect(tHor, diag), intersect(tVer, diag)},
             compare
         ), t);
@@ -286,53 +269,50 @@ void Cell<V>::steepestDescent(PointsList& list, Point s, Point t) const {
     }
 }
 
-template<class V>
-V Cell<V>::computeCost(int i, int o) const {
+distance_t Cell::computeCost(int i, int o) const {
     const auto a = inPoint(i);
     const auto b = outPoint(o);
 
     // TODO: Fix for loop so this case doesn't happen
-    if (!(a(0) <= b(0) && a(1) <= b(1))) {
+    if (!(a.x <= b.x && a.y <= b.y)) {
         return INFINITY;
     }
 
-    V cost = 0;
+    distance_t cost = 0;
     const auto path = getPath(i, o);
-    for (int j = 0; j < path.n_rows - 1; ++j) {
-        cost += integrate(path.row(j), path.row(j + 1), imageMetric);
+    for (int j = 1; j < path.size(); ++j) {
+        cost += integrate(path[j - 1], path[j], imageMetric);
     }
     return cost;
 }
 
-template<class V>
-V Cell<V>::integrate(arma::Row<V> p1, arma::Row<V> p2, ImageMetric imageMetric) const {
+distance_t Cell::integrate(const Point& p1, const Point& p2, ImageMetric imageMetric) const {
     // Get difference vectors between start- and endpoints of the two sub-edges.
-    const Vertex<V> d1 = edge1.interpLength(p1(0)) - edge2.interpLength(p1(1));
-    const Vertex<V> d2 = edge1.interpLength(p2(0)) - edge2.interpLength(p2(1));
+    const auto d1 = edge1.interpLength(p1.x) - edge2.interpLength(p1.y);
+    const auto d2 = edge1.interpLength(p2.x) - edge2.interpLength(p2.y);
 
-    const V dx1 = d1(0);
-    const V dy1 = d1(1);
-    const V dx2 = d2(0);
-    const V dy2 = d2(1);
+    const distance_t dx1 = d1.x;
+    const distance_t dy1 = d1.y;
+    const distance_t dx2 = d2.x;
+    const distance_t dy2 = d2.y;
 
     // Length of the edge in parameter space
-    V dist;
+    distance_t dist;
     switch (paramMetric) {
         case ParamMetric::L1:
-            dist = arma::norm(p2 - p1, 1);
+            dist = norm(p2 - p1, L1);
             break;
         case ParamMetric::LInfinity_NoShortcuts:
-            dist = arma::norm(p2 - p1, "inf");
+            dist = norm(p2 - p1, LInf);
             break;
     }
 
     return integrate(dx1, dy1, dx2, dy2, imageMetric) * dist;
 }
 
-template<class V>
-V Cell<V>::integrate(V dx1, V dy1, V dx2, V dy2, ImageMetric imageMetric) const {
+distance_t Cell::integrate(distance_t dx1, distance_t dy1, distance_t dx2, distance_t dy2, ImageMetric imageMetric) const {
     if (imageMetric == ImageMetric::L1) {
-        V cost = 0.0;
+        distance_t cost = 0.0;
 
         // Mathematica: Integrate[Abs[(1-t)dx1+t dx2],{t,0,1}] (and similar for dy1 & dy2)
         if ((dx1 <= 0 && dx2 <= 0) || (dx1 >= 0 && dx2 >= 0)) {
@@ -359,9 +339,9 @@ V Cell<V>::integrate(V dx1, V dy1, V dx2, V dy2, ImageMetric imageMetric) const 
     // TODO: Clean up integration below this point
 
     // Coefficients are the same for both L2 and L2_Squared
-    const V a = pow(dx1 - dx2, 2) + pow(dy1 - dy2, 2);
-    const V b = 2 * (dx1 * dx2 - dx1 * dx1 + dy1 * dy2 - dy1 * dy1);
-    const V c = dx1 * dx1 + dy1 * dy1;
+    const distance_t a = pow(dx1 - dx2, 2) + pow(dy1 - dy2, 2);
+    const distance_t b = 2 * (dx1 * dx2 - dx1 * dx1 + dy1 * dy2 - dy1 * dy1);
+    const distance_t c = dx1 * dx1 + dy1 * dy1;
 
     // === Image Metric: L2 Squared ===
     if (imageMetric == ImageMetric::L2_Squared) {
@@ -382,9 +362,9 @@ V Cell<V>::integrate(V dx1, V dy1, V dx2, V dy2, ImageMetric imageMetric) const 
 
         if (!approx_zero(b)) {
             if (b > 0) {
-                const V sa = sqrt(a);
-                const V sc = sqrt(c);
-                const V sabc = sqrt(a + b + c);
+                const distance_t sa = sqrt(a);
+                const distance_t sc = sqrt(c);
+                const distance_t sabc = sqrt(a + b + c);
 
                 return (
                     2 * sa * (2 * a * sabc + b * (-sc + sabc))
@@ -407,8 +387,8 @@ V Cell<V>::integrate(V dx1, V dy1, V dx2, V dy2, ImageMetric imageMetric) const 
         }
 
         if (!approx_zero(c)) {
-            const V sa = sqrt(a);
-            const V sac = sqrt(a + c);
+            const distance_t sa = sqrt(a);
+            const distance_t sac = sqrt(a + c);
 
             return (
                 (sac / 2)
@@ -427,6 +407,3 @@ V Cell<V>::integrate(V dx1, V dy1, V dx2, V dy2, ImageMetric imageMetric) const 
 
     return sqrt(c);
 }
-
-template
-class Cell<double>;

@@ -5,96 +5,90 @@
 #include "Vertex.h"
 #include "Edge.h"
 
-template<class V>
 class Curve {
-
-    // Number of dimensions
-    unsigned int D;
-
     // Number of vertices
     unsigned int N;
 
     // Matrix with dimensions D x N
-    arma::Mat<V> vertices;
+    Points points;
 
     // Total arc length of the curve
-    V length;
+    distance_t length;
 
     // Total arc length of the curve up to the i-th vertex
-    std::vector<V> lengths;
+    std::vector<distance_t> prefix_length;
 
 public:
-    explicit Curve(const arma::Mat<V>& vertices)
-        : vertices(vertices), D(vertices.n_cols), N(vertices.n_rows), lengths(N) {
+    explicit Curve(const Points& points) : points(points), N(points.size()), prefix_length(N) {
         // Compute lengths
         length = 0;
 
         if (N > 0) {
-            arma::Row<V> prevRow;
-            arma::Row<V> row = vertices.row(0);
+            Point prevPoint;
+            Point point = points[0];
 
             for (int i = 1; i < N; ++i) {
-                prevRow = row;
-                row = vertices.row(i);
+                prevPoint = point;
+                point = points[i];
 
-                // TODO: configure norm
-                length += arma::norm(row - prevRow, 2);
-                lengths[i] = length;
+                length += norm(point - prevPoint, L2);
+                prefix_length[i] = length;
             }
         }
     }
 
-    arma::Row<V> interpLength(double length) const {
+    // TODO: Rewrite to match Curve::interpolate_at from klcluster
+    Point interpLength(double length) const {
         return interp(length / getLength());
     }
 
     // Get a point on the curve at normalized distance t
-    arma::Row<V> interp(double t) const {
+    Point interp(double t) const {
         if (t < 0 || t > 1) {
             throw std::out_of_range("t must be in range [0.0, 1.0]");
         }
 
-        const V targetLength = length * t;
+        const distance_t targetLength = length * t;
 
         // Find the first vertex with length greater or equal to the targetLength
-        const auto lb = std::lower_bound(lengths.begin(), lengths.end(), targetLength);
-        const auto highIndex = lb - lengths.begin();
+        const auto lb = std::lower_bound(prefix_length.begin(), prefix_length.end(), targetLength);
+        const auto highIndex = lb - prefix_length.begin();
 
         if (highIndex == 0) {
             // There is no previous vertex to interpolate with
-            return vertices.row(0);
+            return points[0];
         }
 
-        const V highLength = *lb;
+        const distance_t highLength = *lb;
         const auto lowIndex = highIndex - 1;
-        const V lowLength = lengths[lowIndex];
+        const distance_t lowLength = prefix_length[lowIndex];
 
-        const V highRatio = (targetLength - lowLength) / (highLength - lowLength);
-        return vertices.row(lowIndex) * (1 - highRatio) + vertices.row(highIndex) * highRatio;
+        const distance_t highRatio = (targetLength - lowLength) / (highLength - lowLength);
+        return points[lowIndex] * (1 - highRatio) + points[highIndex] * highRatio;
     }
 
     unsigned int getNoVertices() const {
         return N;
     }
 
-    V getLength() const {
+    distance_t getLength() const {
         return length;
     }
 
-    V getLength(int i) const {
-        return lengths[i];
+    distance_t getLength(int i) const {
+        return prefix_length[i];
     }
 
-    const arma::Mat<V>& getVertices() const {
-        return vertices;
+    const Points& getPoints() const {
+        return points;
     }
 
-    Vertex<V> getVertex(unsigned int i) const {
-        return vertices.row(i);
+    Point getPoint(unsigned int i) const {
+        return points[i];
     }
 
-    Edge<V> getEdge(unsigned int i) const {
-        return {getVertex(i), getVertex(i + 1)};
+    Edge getEdge(unsigned int i) const {
+        return {getPoint(i), getPoint(i + 1)};
     }
 };
 
