@@ -43,14 +43,9 @@ Cell::Cell(
     //       (Might be fixed by using L1 for all image-related distances?)
     ellipseAxis = Line::fromPointAndSlope(midPoint, 1);
 
-    if (isPerpendicular(edge1.line, edge2.line)) {
-        ellH = Line::fromPointAndSlope(midPoint, INFINITY);
-        ellV = Line::fromPointAndSlope(midPoint, 0);
-    } else {
-        const auto val = dot(edge2.line.direction, edge1.line.direction);
-        ellH = Line(midPoint, {val, 1});
-        ellV = Line(midPoint, {1, val});
-    }
+    const auto val = dot(edge2.line.direction, edge1.line.direction);
+    ellH = Line({edge1.param(edge1.line.closest(edge2.first)), 0}, {val, 1});
+    ellV = Line({0, edge2.param(edge2.line.closest(edge1.first))}, {1, val});
 
     // === COMPUTE OUTPUT VALUES ===
     // Default output values
