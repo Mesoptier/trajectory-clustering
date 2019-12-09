@@ -11,10 +11,6 @@ bool approx_equal(T a, T b, double tol = ABS_TOL) {
         return true;
     }
 
-    if (std::signbit(a) != std::signbit(b)) {
-        return false;
-    }
-
     if (std::isinf(a) || std::isinf(b)) { // && a != b
         return false;
     }
