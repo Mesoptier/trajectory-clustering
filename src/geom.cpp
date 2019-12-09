@@ -146,3 +146,24 @@ bool MonotoneComparator::operator()(const Point& a, const Point& b) {
            ? a.x < b.x + ABS_TOL && a.y < b.y + ABS_TOL
            : a.x + ABS_TOL > b.x && a.y + ABS_TOL > b.y;
 }
+
+//
+// Lines
+//
+
+Point Line::closest(const Point& point) const {
+    return direction * dot(point - origin, direction) + origin;
+}
+
+distance_t Line::side(const Point& point) const {
+    return perp(point - closest(point), direction);
+}
+
+bool Line::includesPoint(const Point& point) const {
+    return approx_zero(side(point));
+}
+
+Point intersect(const Line& line1, const Line& line2) {
+    const auto t1 = perp(line2.origin - line1.origin, line2.direction) / perp(line1.direction, line2.direction);
+    return line1(t1);
+}

@@ -137,23 +137,19 @@ struct Line
         return (y - origin.y) * direction.x / direction.y + origin.x;
     }
 
+    Point closest(const Point& point) const;
+    distance_t side(const Point& point) const;
+
     /**
      * Test whether the given point lies on this line.
      */
-    bool includesPoint(const Point& point) const {
-        return approx_zero(perp(origin - point, direction));
-    }
+    bool includesPoint(const Point& point) const;
 
     /**
      * Find point at which the two given lines intersect.
      * ASSUMPTION: line1 and line2 are not parallel
      */
-    friend Point intersect(const Line& line1, const Line& line2) {
-        const Point perp1 = {-line1.direction.y, line1.direction.x};
-        const auto t2 =
-            dot(perp1, line1.origin - line2.origin) / dot(perp1, line2.direction);
-        return line2(t2);
-    }
+    friend Point intersect(const Line& line1, const Line& line2);
 
     friend bool isParallel(const Line& line1, const Line& line2) {
         return approx_equal(std::abs(dot(line1.direction, line2.direction)), 1.0);

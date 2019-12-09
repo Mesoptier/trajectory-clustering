@@ -6,52 +6,39 @@
 #include "Edge.h"
 
 class Curve {
-    // Number of vertices
-    unsigned int N;
-
     // Matrix with dimensions D x N
     Points points;
 
-    // Total arc length of the curve
-    distance_t length;
-
-    // Total arc length of the curve up to the i-th vertex
+    // Total arc length of the curve up to the i-th point
     std::vector<distance_t> prefix_length;
 
 public:
-    explicit Curve(const Points& points) : points(points), N(points.size()), prefix_length(N) {
-        // Compute lengths
-        length = 0;
+    Curve() = default;
+    explicit Curve(const Points& points);
 
-        if (N > 0) {
-            Point prevPoint;
-            Point point = points[0];
-
-            for (int i = 1; i < N; ++i) {
-                prevPoint = point;
-                point = points[i];
-
-                length += norm(point - prevPoint);
-                prefix_length[i] = length;
-            }
-        }
+    std::size_t size() const {
+        return points.size();
     }
+    bool empty() const {
+        return points.empty();
+    }
+
+    distance_t curve_length() const {
+        return prefix_length.back();
+    }
+    distance_t curve_length(int i, int j) const {
+        return prefix_length[j] - prefix_length[i];
+    }
+
+    Point front() const { return points.front(); }
+    Point back() const { return points.back(); }
+
+    void push_back(const Point& point);
 
     // TODO: Rewrite to match Curve::interpolate_at from klcluster
-    Point interpLength(double length) const {
-        return interp(length / getLength());
-    }
-
-    // Get a point on the curve at normalized distance t
-    Point interp(double t) const {
-        if (t < 0 || t > 1) {
-            throw std::out_of_range("t must be in range [0.0, 1.0]");
-        }
-
-        const distance_t targetLength = length * t;
-
+    Point interpLength(distance_t length) const {
         // Find the first vertex with length greater or equal to the targetLength
-        const auto lb = std::lower_bound(prefix_length.begin(), prefix_length.end(), targetLength);
+        const auto lb = std::lower_bound(prefix_length.begin(), prefix_length.end(), length);
         const auto highIndex = lb - prefix_length.begin();
 
         if (highIndex == 0) {
@@ -63,30 +50,31 @@ public:
         const auto lowIndex = highIndex - 1;
         const distance_t lowLength = prefix_length[lowIndex];
 
-        const distance_t highRatio = (targetLength - lowLength) / (highLength - lowLength);
+        const distance_t highRatio = (length - lowLength) / (highLength - lowLength);
         return points[lowIndex] * (1 - highRatio) + points[highIndex] * highRatio;
     }
 
-    unsigned int getNoVertices() const {
-        return N;
-    }
-
+    [[deprecated("Use curve_length() instead")]]
     distance_t getLength() const {
-        return length;
+        return curve_length();
     }
 
+    [[deprecated("Use curve_length(0, i) instead")]]
     distance_t getLength(int i) const {
-        return prefix_length[i];
+        return curve_length(0, i);
     }
 
+    [[deprecated]]
     const Points& getPoints() const {
         return points;
     }
 
+    [[deprecated]]
     Point getPoint(unsigned int i) const {
         return points[i];
     }
 
+    [[deprecated]]
     Edge getEdge(unsigned int i) const {
         return {getPoint(i), getPoint(i + 1)};
     }

@@ -18,6 +18,7 @@ set(SOURCE_FILES
         IntegralFrechet/Solver.cpp
         geom.cpp
         io.cpp
+        Curve.cpp
         )
 
 add_library(ProjectName_lib STATIC ${SOURCE_FILES} ${HEADER_FILES})

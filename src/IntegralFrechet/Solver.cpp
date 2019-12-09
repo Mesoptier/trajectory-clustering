@@ -5,7 +5,7 @@ Solver::Solver(
     const Curve& curve1, const Curve& curve2,
     double h, ImageMetric imageMetric, ParamMetric paramMetric
 ) : curve1(curve1), curve2(curve2),
-    n1(curve1.getNoVertices() - 1), n2(curve2.getNoVertices() - 1),
+    n1(curve1.size() - 1), n2(curve2.size() - 1),
     imageMetric(imageMetric), paramMetric(paramMetric)
 {
 
@@ -35,13 +35,13 @@ Solver::Solver(
                 in2 = cells[(i1 - 1) * n2 + i2].out2;
             }
 
-            const Point offset = {curve1.getLength(i1), curve2.getLength(i2)};
+            const Point offset = {curve1.curve_length(0, i1), curve2.curve_length(0, i2)};
             const Cell cell(edge1, edge2, m1, m2, in1, in2, offset, imageMetric, paramMetric);
             cells.push_back(cell);
 
             in1 = cell.out1;
 
-            std::cout << cell << std::endl;
+//            std::cout << cell << std::endl;
         }
     }
 }
@@ -51,7 +51,7 @@ distance_t Solver::getDistance() const {
 }
 
 Points Solver::getMatching() const {
-    Point start = {curve1.getLength(), curve2.getLength()};
+    Point start = {curve1.curve_length(), curve2.curve_length()};
     Points matching = {start};
 
     int i1 = n1 - 1;
