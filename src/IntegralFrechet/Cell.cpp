@@ -363,7 +363,7 @@ distance_t Cell::integrate(distance_t dx1, distance_t dy1, distance_t dx2, dista
     }
 
     if (imageMetric == ImageMetric::L2) {
-        if ((dx1 == 0 && dx2 == 0) || (dy1 == 0 && dy2 == 0)) {
+        if ((approx_zero(dx1) && approx_zero(dx2)) || (approx_zero(dy1) && approx_zero(dy2))) {
             return integrate(dx1, dy1, dx2, dy2, ImageMetric::L1);
         }
     }
