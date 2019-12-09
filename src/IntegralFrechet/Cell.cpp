@@ -113,7 +113,11 @@ Points Cell::getPath(int i, int o) const {
         steepestDescent(pathB, b, a);
 
         // Steepest descent from both ends should find the same minimum
-        assert(approx_equal(pathA.back(), pathB.back()));
+        #ifndef NDEBUG
+        if (!approx_equal(pathA.back(), pathB.back())) {
+            throw std::logic_error("paths should find same minimum");
+        }
+        #endif
 
         // Combine the two steepest descent paths into one, skipping the duplicated minimum
         pathA.insert(pathA.end(), pathB.rbegin() + 1, pathB.rend());
