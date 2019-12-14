@@ -109,20 +109,27 @@ void IntegralFrechet::get_neighbors(const IntegralFrechet::Node& node, std::vect
     auto cell = get_cell(node);
 
     // Sample along top edge
-    for (int i = 0; i < cell.n1; ++i) {
-        distance_t fraction = i / (cell.n1 - 1.);
-        if (fraction >= node[0].getFraction()) {
-            neighbors.push_back({node[0].floor() + fraction, node[1].floor() + 1});
+    if (node[1].getPoint() + 2 < curve2.size()) {
+        for (int i = 0; i < cell.n1 - 1; ++i) {
+            distance_t fraction = i / (cell.n1 - 1.);
+            if (fraction >= node[0].getFraction()) {
+                neighbors.push_back({node[0].floor() + fraction, node[1].floor() + 1});
+            }
         }
     }
 
-    // Sample along right edge (one less to prevent duplicate in top-right corner)
-    for (int i = 0; i < cell.n2 - 1; ++i) {
-        distance_t fraction = i / (cell.n2 - 1.);
-        if (fraction >= node[1].getFraction()) {
-            neighbors.push_back({node[0].floor() + 1, node[1].floor() + fraction});
+    // Sample along right edge
+    if (node[0].getPoint() + 2 < curve1.size()) {
+        for (int i = 0; i < cell.n2 - 1; ++i) {
+            distance_t fraction = i / (cell.n2 - 1.);
+            if (fraction >= node[1].getFraction()) {
+                neighbors.push_back({node[0].floor() + 1, node[1].floor() + fraction});
+            }
         }
     }
+
+    // Top-right corner
+    neighbors.push_back({node[0].floor() + 1, node[1].floor() + 1});
 }
 
 IntegralFrechet::cost_t IntegralFrechet::cost(const IntegralFrechet::Node& s, const IntegralFrechet::Node& t) const {
