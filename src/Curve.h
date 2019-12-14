@@ -29,9 +29,14 @@ public:
     distance_t curve_length(int i, int j) const {
         return prefix_length[j] - prefix_length[i];
     }
+    distance_t curve_length(const CPoint& point) const;
 
     Point front() const { return points.front(); }
     Point back() const { return points.back(); }
+
+    const Points& get_points() const {
+        return points;
+    }
 
     void push_back(const Point& point);
 
@@ -64,11 +69,6 @@ public:
     [[deprecated("Use curve_length(0, i) instead")]]
     distance_t getLength(int i) const {
         return curve_length(0, i);
-    }
-
-    [[deprecated]]
-    const Points& getPoints() const {
-        return points;
     }
 
     [[deprecated]]

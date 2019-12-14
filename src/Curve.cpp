@@ -25,10 +25,18 @@ void Curve::push_back(const Point& point) {
     }
 }
 
-Point Curve::interpolate_at(const CPoint& point) const {
-    assert(point.getFraction() >= 0. && point.getFraction() <= 1.);
-    assert((point.getPoint() < points.size() - 1) || (point.getPoint() == points.size() - 1 && point.getFraction() == 0.));
-    return point.getFraction() == 0.
-        ? points[point.getPoint()]
-        : points[point.getPoint()] * (1. - point.getFraction()) + points[point.getPoint() + 1] * point.getFraction();
+distance_t Curve::curve_length(const CPoint& p) const {
+    assert(p.getFraction() >= 0. && p.getFraction() <= 1.);
+    assert((p.getPoint() < points.size() - 1) || (p.getPoint() == points.size() - 1 && p.getFraction() == 0.));
+    return p.getFraction() == 0.
+        ? prefix_length[p.getPoint()]
+        : prefix_length[p.getPoint()] * (1. - p.getFraction()) + prefix_length[p.getPoint() + 1] * p.getFraction();
+}
+
+Point Curve::interpolate_at(const CPoint& p) const {
+    assert(p.getFraction() >= 0. && p.getFraction() <= 1.);
+    assert((p.getPoint() < points.size() - 1) || (p.getPoint() == points.size() - 1 && p.getFraction() == 0.));
+    return p.getFraction() == 0.
+        ? points[p.getPoint()]
+        : points[p.getPoint()] * (1. - p.getFraction()) + points[p.getPoint() + 1] * p.getFraction();
 }
