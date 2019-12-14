@@ -18,7 +18,7 @@ namespace {
 }
 
 template<class Graph>
-void a_star_search(Graph graph, typename Graph::Node start, typename Graph::Node goal) {
+void a_star_search(const Graph& graph, typename Graph::Node start, typename Graph::Node goal) {
     using Node = typename Graph::Node;
     using cost_t = typename Graph::cost_t;
     constexpr cost_t inf = std::numeric_limits<cost_t>::infinity();

@@ -2,6 +2,7 @@
 
 #include <armadillo>
 #include <assert.h>
+#include <iomanip>
 #include "util.h"
 #include "id.h"
 
@@ -172,3 +173,112 @@ struct Line
         return approx_zero(dot(line1.direction, line2.direction));
     }
 };
+
+
+//
+// Data Types for FrechetLight and IntegralFrechet:
+//
+
+class CPoint
+{
+private:
+    PointID point;
+    distance_t fraction;
+
+    void normalize() {
+        assert(fraction >= 0. && fraction <= 1.);
+        if (fraction == 1.) {
+            fraction = 0.;
+            ++point;
+        }
+    }
+public:
+    CPoint(PointID point, distance_t fraction) : point(point), fraction(fraction) {
+        normalize();
+    }
+    CPoint() : point(PointID::invalid_value), fraction(0.) {}
+
+    PointID getPoint() const { return point; }
+    distance_t getFraction() const { return fraction; }
+    distance_t convert() const { return (distance_t) point + fraction; }
+    void setPoint(PointID point) { this->point = point; }
+    void setFraction(distance_t frac) {
+        fraction = frac;
+        normalize();
+    }
+
+    bool operator<(CPoint const& other) const {
+        return point < other.point || (point == other.point && fraction < other.fraction);
+    }
+    bool operator<=(CPoint const& other) const {
+        return point < other.point || (point == other.point && fraction <= other.fraction);
+    }
+    bool operator>(CPoint const& other) const {
+        return point > other.point || (point == other.point && fraction > other.fraction);
+    }
+    bool operator>=(CPoint const& other) const {
+        return point > other.point || (point == other.point && fraction >= other.fraction);
+    }
+    bool operator==(CPoint const& other) const {
+        return point == other.point && fraction == other.fraction;
+    }
+    bool operator!=(CPoint const& other) const {
+        return point != other.point or fraction != other.fraction;
+    }
+    bool operator<(PointID other) const {
+        return point < other;
+    }
+    bool operator>(PointID other) const {
+        return point > other || (point == other && fraction > 0.);
+    }
+    bool operator<=(PointID other) const {
+        return point < other || (point == other && fraction == 0.);
+    }
+    bool operator>=(PointID other) const {
+        return point >= other;
+    }
+    bool operator==(PointID other) const {
+        return point == other && fraction == 0.;
+    }
+    bool operator!=(PointID other) const {
+        return !(point == other);
+    }
+    CPoint operator+(distance_t other) const {
+        assert(other <= 1.);
+        PointID p = point;
+        distance_t f = fraction + other;
+        if (f > 1.) {
+            ++p;
+            f -= 1.;
+        }
+        return CPoint(p, f);
+    }
+    CPoint operator-(distance_t other) const {
+        assert(other <= 1.);
+        PointID p = point;
+        distance_t f = fraction - other;
+        if (f < 0.) {
+            --p;
+            f += 1.;
+        }
+        return CPoint(p, f);
+    }
+    CPoint ceil() const {
+        return fraction > 0 ? CPoint(point + 1, 0.) : CPoint(point, 0.);
+    }
+    CPoint floor() const {
+        return CPoint(point, 0.);
+    }
+    std::string to_string() const {
+        std::stringstream stream;
+        stream << std::fixed << std::setprecision(10) << (double) point + fraction;
+        return stream.str();
+    }
+
+    friend std::ostream& operator<<(std::ostream& out, const CPoint& p);
+};
+
+using CPosition = std::array<CPoint, 2>;
+using CPositions = std::vector<CPosition>;
+
+std::ostream& operator<<(std::ostream& out, const CPosition& pos);

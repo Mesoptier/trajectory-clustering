@@ -167,3 +167,19 @@ Point intersect(const Line& line1, const Line& line2) {
     const auto t1 = perp(line2.origin - line1.origin, line2.direction) / perp(line1.direction, line2.direction);
     return line1(t1);
 }
+
+//
+// CPoint
+//
+
+std::ostream& operator<<(std::ostream& out, const CPoint& p)
+{
+    out << std::setprecision (15)
+        << "(" << (size_t) p.point << " + " << p.fraction << ")";
+    return out;
+}
+
+std::ostream& operator<<(std::ostream& out, const CPosition& pos) {
+    out << "(" << pos[0] << ", " << pos[1] << ")";
+    return out;
+}
