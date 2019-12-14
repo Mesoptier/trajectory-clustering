@@ -88,6 +88,7 @@ a_star_search(const Graph& graph, typename Graph::Node start, typename Graph::No
                 open_set.emplace(neighbor_f, neighbor);
             }
         }
+        neighbors.clear();
     }
 
     std::cout << "[A*] failure\n";

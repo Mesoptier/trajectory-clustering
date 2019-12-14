@@ -15,9 +15,19 @@ struct Cell {
 //    distance_t len1;
 //    distance_t len2;
 
+    size_t n1;
+    size_t n2;
+
     Line ellM; // Monotone axis
     Line ellH; // Line through points where ellipse tangent is horizontal
     Line ellV; // Line through points where ellipse tangent is vertical
+
+    Cell(const Point& s1, const Point& s2, const Point& t1, const Point& t2) {
+        // TODO: Make resolution a parameter
+        distance_t resolution = 0.2;
+        n1 = ceil(s1.dist(t1) / resolution) + 1;
+        n2 = ceil(s2.dist(t2) / resolution) + 1;
+    }
 };
 
 class IntegralFrechet

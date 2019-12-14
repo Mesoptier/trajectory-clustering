@@ -4,10 +4,9 @@
 IntegralFrechet::IntegralFrechet(const Curve& curve1, const Curve& curve2) : curve1(curve1), curve2(curve2) {
     cells.reserve(curve1.size() * curve2.size());
 
-    for (PointID p1 = 0; p1 + 1 < curve1.size(); ++p1) {
-        for (PointID p2 = 0; p2 + 1 < curve2.size(); ++p2) {
-            // TODO: Proper initialization of cells
-            cells.emplace_back();
+    for (PointID p2 = 0; p2 + 1 < curve2.size(); ++p2) {
+        for (PointID p1 = 0; p1 + 1 < curve1.size(); ++p1) {
+            cells.emplace_back(curve1[p1], curve2[p2], curve1[p1 + 1], curve2[p2 + 1]);
         }
     }
 }
@@ -20,7 +19,8 @@ CPositions IntegralFrechet::compute_matching() {
 }
 
 const Cell& IntegralFrechet::get_cell(PointID p1, PointID p2) const {
-    return cells[p1 * curve2.size() + p2];
+    assert(p1 + 1 < curve1.size() && p2 + 1 < curve2.size());
+    return cells[p2 * (curve1.size() - 1) + p1];
 }
 
 template<ImageMetric imageMetric, ParamMetric paramMetric>
@@ -86,15 +86,36 @@ CPositions IntegralFrechet::steepest_descent<ImageMetric::L2_Squared, ParamMetri
 //
 
 void IntegralFrechet::get_neighbors(const IntegralFrechet::Node& node, std::vector<Node>& neighbors) const {
-    if (node[0] < curve1.size() - 1) {
-        neighbors.push_back({node[0] + 1, node[1]});
+    if (node[0].getPoint() + 1 == curve1.size()) { // Right boundary
+        if (node[1].getPoint() + 1 == curve2.size()) { // Top-right corner
+            return; // No neighbors
+        }
+        // Move up one cell
+        neighbors.push_back({node[0], node[1].floor() + 1});
+        return;
+    }
+    if (node[1].getPoint() + 1 == curve2.size()) { // Top boundary
+        // Move right one cell
+        neighbors.push_back({node[0].floor() + 1, node[1]});
+        return;
+    }
 
-        if (node[1] < curve2.size() - 1) {
-            neighbors.push_back({node[0] + 1, node[1] + 1});
+    auto cell = get_cell(node);
+
+    // Sample along top edge
+    for (int i = 0; i < cell.n1; ++i) {
+        distance_t fraction = i / (cell.n1 - 1.);
+        if (fraction >= node[0].getFraction()) {
+            neighbors.push_back({node[0].floor() + fraction, node[1].floor() + 1});
         }
     }
-    if (node[1] < curve2.size() - 1) {
-        neighbors.push_back({node[0], node[1] + 1});
+
+    // Sample along right edge (one less to prevent duplicate in top-right corner)
+    for (int i = 0; i < cell.n2 - 1; ++i) {
+        distance_t fraction = i / (cell.n2 - 1.);
+        if (fraction >= node[1].getFraction()) {
+            neighbors.push_back({node[0].floor() + 1, node[1].floor() + fraction});
+        }
     }
 }
 
