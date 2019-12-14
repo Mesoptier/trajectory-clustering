@@ -82,7 +82,7 @@ public:
 
     IntegralFrechet(const Curve& curve1, const Curve& curve2);
 
-    CPositions compute_matching();
+    Points compute_matching();
 
     //
     // Requirements for A* algorithm:

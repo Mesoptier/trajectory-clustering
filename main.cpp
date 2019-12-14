@@ -11,9 +11,9 @@ int main() {
     IntegralFrechet alg(curve1, curve2);
     auto matching = alg.compute_matching();
 
-    for (auto p : matching) {
-        std::cout << p << '\n';
-    }
+    io::exportPoints("data/out/curve1.csv", curve1.get_points());
+    io::exportPoints("data/out/curve2.csv", curve2.get_points());
+    io::exportPoints("data/out/matching.csv", matching);
 
 //    const Curve curve1 = io::readCurve("data/characters/data/a0001.txt");
 //    const Curve curve2 = io::readCurve("data/characters/data/a0002.txt");
@@ -25,10 +25,6 @@ int main() {
 //
 //    std::cout << "Distance: " << solver.getDistance() << std::endl;
 //    std::cout << matching << std::endl;
-
-//    io::exportPoints("curve1.csv", curve1.getPoints());
-//    io::exportPoints("curve2.csv", curve2.getPoints());
-//    io::exportPoints("matching.csv", matching);
 //
 //    // Solver summary
 //    std::ofstream solverFile;

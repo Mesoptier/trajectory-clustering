@@ -11,11 +11,17 @@ IntegralFrechet::IntegralFrechet(const Curve& curve1, const Curve& curve2) : cur
     }
 }
 
-CPositions IntegralFrechet::compute_matching() {
+Points IntegralFrechet::compute_matching() {
     Node start{CPoint(0, 0), CPoint(0, 0)};
     Node goal{CPoint(curve1.size() - 1, 0), CPoint(curve2.size() - 1, 0)};
 
-    return a_star_search(*this, start, goal);
+    auto cmatching = a_star_search(*this, start, goal);
+
+    Points matching; // Arc-length parametrized
+    for (auto cpos : cmatching) {
+        matching.emplace_back(curve1.curve_length(cpos[0]), curve2.curve_length(cpos[1]));
+    }
+    return matching;
 }
 
 const Cell& IntegralFrechet::get_cell(PointID p1, PointID p2) const {
