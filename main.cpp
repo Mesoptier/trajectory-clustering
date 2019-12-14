@@ -1,34 +1,44 @@
 #include <io.h>
-#include "src/Curve.h"
-#include "src/IntegralFrechet/Solver.h"
+#include <Curve.h>
+#include <IntegralFrechet/IntegralFrechet.h>
+//#include "src/IntegralFrechet/Solver.h"
 //#include "FastMarchIntegralFrechet.h"
 
 int main() {
+//    const Curve curve1({{0, 0}, {1, 1}, {2, 2}});
+//    const Curve curve2({{0, 1}, {1, 1}, {2, 1}});
+
     const Curve curve1({{0, 0}, {1, 1}, {2, 2}});
-    const Curve curve2({{0, 1}, {1, 1}, {2, 1}});
+    const Curve curve2({{0, 1}, {2, 1}});
 
-    double h = .1;
+    IntegralFrechet alg(curve1, curve2);
+    alg.findPath();
 
-    Solver solver(curve1, curve2, h, ImageMetric::L2, ParamMetric::LInfinity_NoShortcuts);
-    auto matching = solver.getMatching();
+//    const Curve curve1 = io::readCurve("data/characters/data/a0001.txt");
+//    const Curve curve2 = io::readCurve("data/characters/data/a0002.txt");
 
-    std::cout << "Distance: " << solver.getDistance() << std::endl;
-    std::cout << matching << std::endl;
+//    double h = .1;
+//
+//    Solver solver(curve1, curve2, h, ImageMetric::L2, ParamMetric::LInfinity_NoShortcuts);
+//    auto matching = solver.getMatching();
+//
+//    std::cout << "Distance: " << solver.getDistance() << std::endl;
+//    std::cout << matching << std::endl;
 
-    io::exportPoints("curve1.csv", curve1.getPoints());
-    io::exportPoints("curve2.csv", curve2.getPoints());
-    io::exportPoints("matching.csv", matching);
-
-    // Solver summary
-    std::ofstream solverFile;
-    solverFile.open("solver.xml");
-
-    ExpressionML::Writer writer(solverFile);
-    writer.open();
-    solver.writeExpressionML(writer);
-    writer.close();
-
-    solverFile.close();
+//    io::exportPoints("curve1.csv", curve1.getPoints());
+//    io::exportPoints("curve2.csv", curve2.getPoints());
+//    io::exportPoints("matching.csv", matching);
+//
+//    // Solver summary
+//    std::ofstream solverFile;
+//    solverFile.open("solver.xml");
+//
+//    ExpressionML::Writer writer(solverFile);
+//    writer.open();
+//    solver.writeExpressionML(writer);
+//    writer.close();
+//
+//    solverFile.close();
 
 
 //    double h = 0.01;

@@ -3,6 +3,7 @@
 #include <armadillo>
 #include <assert.h>
 #include "util.h"
+#include "id.h"
 
 using distance_t = double;
 
@@ -53,6 +54,7 @@ distance_t dot(const Point& a, const Point& b);
 distance_t norm(const Point& point, Norm p = Norm::L2);
 Point normalise(const Point& point, Norm p = Norm::L2);
 
+using PointID = ID<Point>;
 using Points = std::vector<Point>;
 
 std::ostream& operator<<(std::ostream& out, const Points& points);
