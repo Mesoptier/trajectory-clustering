@@ -5,14 +5,11 @@
 //#include "FastMarchIntegralFrechet.h"
 
 int main() {
-//    const Curve curve1({{0, 0}, {1, 1}, {2, 2}});
-//    const Curve curve2({{0, 1}, {1, 1}, {2, 1}});
-
     const Curve curve1({{0, 0}, {1, 1}, {2, 2}});
     const Curve curve2({{0, 1}, {2, 1}});
 
     IntegralFrechet alg(curve1, curve2);
-    alg.findPath();
+    alg.compute_matching();
 
 //    const Curve curve1 = io::readCurve("data/characters/data/a0001.txt");
 //    const Curve curve2 = io::readCurve("data/characters/data/a0002.txt");
