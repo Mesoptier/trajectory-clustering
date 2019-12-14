@@ -106,9 +106,11 @@ void IntegralFrechet::get_neighbors(const IntegralFrechet::Node& node, std::vect
         return;
     }
 
+    // We are not along the outer top/right boundary, which means the node is part of a cell
+
     auto cell = get_cell(node);
 
-    // Sample along top edge
+    // Sample along top edge if there are more cells above this one
     if (node[1].getPoint() + 2 < curve2.size()) {
         for (int i = 0; i < cell.n1 - 1; ++i) {
             distance_t fraction = i / (cell.n1 - 1.);
@@ -118,7 +120,7 @@ void IntegralFrechet::get_neighbors(const IntegralFrechet::Node& node, std::vect
         }
     }
 
-    // Sample along right edge
+    // Sample along right edge if there are more cells right of this one
     if (node[0].getPoint() + 2 < curve1.size()) {
         for (int i = 0; i < cell.n2 - 1; ++i) {
             distance_t fraction = i / (cell.n2 - 1.);
@@ -128,7 +130,7 @@ void IntegralFrechet::get_neighbors(const IntegralFrechet::Node& node, std::vect
         }
     }
 
-    // Top-right corner
+    // Always add top-right corner
     neighbors.push_back({node[0].floor() + 1, node[1].floor() + 1});
 }
 
