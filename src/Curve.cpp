@@ -24,3 +24,11 @@ void Curve::push_back(const Point& point) {
         prefix_length.push_back(prefix_length.back() + segment_distance);
     }
 }
+
+Point Curve::interpolate_at(const CPoint& point) const {
+    assert(point.getFraction() >= 0. && point.getFraction() <= 1.);
+    assert((point.getPoint() < points.size() - 1) || (point.getPoint() == points.size() - 1 && point.getFraction() == 0.));
+    return point.getFraction() == 0.
+        ? points[point.getPoint()]
+        : points[point.getPoint()] * (1. - point.getFraction()) + points[point.getPoint() + 1] * point.getFraction();
+}

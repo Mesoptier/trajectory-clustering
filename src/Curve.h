@@ -6,7 +6,6 @@
 #include "Edge.h"
 
 class Curve {
-    // Matrix with dimensions D x N
     Points points;
 
     // Total arc length of the curve up to the i-th point
@@ -22,6 +21,7 @@ public:
     bool empty() const {
         return points.empty();
     }
+    const Point& operator[](PointID id) const { return points[id]; }
 
     distance_t curve_length() const {
         return prefix_length.back();
@@ -35,7 +35,9 @@ public:
 
     void push_back(const Point& point);
 
-    // TODO: Rewrite to match Curve::interpolate_at from klcluster
+    Point interpolate_at(const CPoint& point) const;
+
+    [[deprecated("Use intepolate_at() instead")]]
     Point interpLength(distance_t length) const {
         // Find the first vertex with length greater or equal to the targetLength
         const auto lb = std::lower_bound(prefix_length.begin(), prefix_length.end(), length);
@@ -77,6 +79,11 @@ public:
     [[deprecated]]
     Edge getEdge(unsigned int i) const {
         return {getPoint(i), getPoint(i + 1)};
+    }
+
+    Edge get_edge(PointID id) const {
+        assert(id < points.size() - 1);
+        return {points[id], points[id + 1]};
     }
 };
 
