@@ -29,7 +29,7 @@ public:
 	IDType operator++() { return ++id; }
 	IDType operator--() { return --id; }
 	// FIXME:
-	bool operator==(ID<T> other) const { return id == other.id; }
+    // bool operator==(ID<T> other) const { return id == other.id; }
 	// bool operator==(IDType other) const { return id == other; }
 	bool operator!=(ID<T> other) const { return id != other.id; }
 
