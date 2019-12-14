@@ -18,7 +18,23 @@ namespace {
 }
 
 template<class Graph>
-void a_star_search(const Graph& graph, typename Graph::Node start, typename Graph::Node goal) {
+std::vector<typename Graph::Node>
+reconstruct_path(const std::map<typename Graph::Node, typename Graph::Node>& came_from, typename Graph::Node current) {
+    std::vector<typename Graph::Node> path{current};
+
+    auto it = came_from.find(current);
+    while (it != came_from.end()) {
+        path.push_back(it->second);
+        it = came_from.find(it->second);
+    }
+
+    std::reverse(path.begin(), path.end());
+    return path;
+}
+
+template<class Graph>
+std::vector<typename Graph::Node>
+a_star_search(const Graph& graph, typename Graph::Node start, typename Graph::Node goal) {
     using Node = typename Graph::Node;
     using cost_t = typename Graph::cost_t;
     constexpr cost_t inf = std::numeric_limits<cost_t>::infinity();
@@ -49,7 +65,7 @@ void a_star_search(const Graph& graph, typename Graph::Node start, typename Grap
 
         if (current == goal) {
             std::cout << " -> goal\n";
-            return;
+            return reconstruct_path<Graph>(came_from, goal);
         }
 
         if (get_with_default(f_score, current, inf) < current_f) {
@@ -75,4 +91,5 @@ void a_star_search(const Graph& graph, typename Graph::Node start, typename Grap
     }
 
     std::cout << "[A*] failure\n";
+    throw std::runtime_error("A* failed to find a path");
 }

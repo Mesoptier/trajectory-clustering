@@ -9,7 +9,11 @@ int main() {
     const Curve curve2({{0, 1}, {2, 1}});
 
     IntegralFrechet alg(curve1, curve2);
-    alg.compute_matching();
+    auto matching = alg.compute_matching();
+
+    for (auto p : matching) {
+        std::cout << p << '\n';
+    }
 
 //    const Curve curve1 = io::readCurve("data/characters/data/a0001.txt");
 //    const Curve curve2 = io::readCurve("data/characters/data/a0002.txt");
