@@ -40,8 +40,8 @@ public:
 
         struct Node {
             // TODO: Replace with CPoint (currently only represents bottom-left corner of cell)
-            const PointID p1;
-            const PointID p2;
+            PointID p1;
+            PointID p2;
 
             Node() = default;
             Node(const PointID& p1, const PointID& p2) : p1(p1), p2(p2) {}
