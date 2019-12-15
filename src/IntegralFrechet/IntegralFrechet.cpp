@@ -82,7 +82,12 @@ Points IntegralFrechet::compute_path(const Cell& cell, const Point& s, const Poi
     steepest_descent<imageMetric, paramMetric>(cell, s, t, path1);
     steepest_descent<imageMetric, paramMetric>(cell, t, s, path2);
 
-    assert(approx_equal(path1.back(), path2.back()));
+    // Steepest descent from both ends should find the same minimum
+    #ifndef NDEBUG
+    if (!approx_equal(path1.back(), path2.back())) {
+        throw std::logic_error("paths should find same minimum");
+    }
+    #endif
 
     // Combine the two steepest descent paths into one, skipping the duplicated minimum
     path1.insert(path1.end(), path2.rbegin() + 1, path2.rend());
