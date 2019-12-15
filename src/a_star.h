@@ -2,6 +2,8 @@
 
 #include <queue>
 
+//#define A_STAR_LOGGING
+
 namespace {
     // From: https://stackoverflow.com/a/26958878/1639600
     template<class Map>
@@ -61,20 +63,28 @@ a_star_search(const Graph& graph, typename Graph::Node start, typename Graph::No
         std::tie(current_f, current) = open_set.top();
         open_set.pop();
 
+        #ifdef A_STAR_LOGGING
         std::cout << "[A*] node=" << current << " f=" << current_f;
+        #endif
 
         if (current == goal) {
+            #ifdef A_STAR_LOGGING
             std::cout << " -> goal\n";
+            #endif
             return {g_score[goal], reconstruct_path<Graph>(came_from, goal)};
         }
 
         if (get_with_default(f_score, current, inf) < current_f) {
             // Already handled this node with a lower f score
+            #ifdef A_STAR_LOGGING
             std::cout << " -> continue\n";
+            #endif
             continue;
         }
 
+        #ifdef A_STAR_LOGGING
         std::cout << " -> handle\n";
+        #endif
 
         graph.get_neighbors(current, neighbors);
         for (const Node& neighbor : neighbors) {
