@@ -155,12 +155,13 @@ Point Line::closest(const Point& point) const {
     return direction * dot(point - origin, direction) + origin;
 }
 
-distance_t Line::side(const Point& point) const {
-    return perp(point - closest(point), direction);
+int Line::side(const Point& point) const {
+    auto val = perp(point - closest(point), direction);
+    return approx_zero(val) ? 0 : (val > 0 ? 1 : -1);
 }
 
 bool Line::includesPoint(const Point& point) const {
-    return approx_zero(side(point));
+    return side(point) == 0;
 }
 
 Point intersect(const Line& line1, const Line& line2) {

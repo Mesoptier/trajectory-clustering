@@ -141,7 +141,7 @@ struct Line
     }
 
     Point closest(const Point& point) const;
-    distance_t side(const Point& point) const;
+    int side(const Point& point) const;
 
     /**
      * Test whether the given point lies on this line.
