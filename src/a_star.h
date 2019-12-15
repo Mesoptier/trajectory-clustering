@@ -1,6 +1,7 @@
 #pragma once
 
 #include <queue>
+#include <ostream>
 
 //#define A_STAR_LOGGING
 
@@ -17,6 +18,21 @@ namespace {
             return defval;
         return it->second;
     }
+}
+
+namespace a_star {
+    struct Stats {
+        size_t nodes_opened;
+        size_t nodes_handled;
+        size_t nodes_skipped;
+
+        friend std::ostream& operator<<(std::ostream& out, const Stats& stats) {
+            out << "nodes_opened: " << stats.nodes_opened
+                << " nodes_handled: " << stats.nodes_handled
+                << " nodes_skipped: " << stats.nodes_skipped;
+            return out;
+        }
+    };
 }
 
 template<class Graph>
@@ -41,9 +57,12 @@ a_star_search(const Graph& graph, typename Graph::Node start, typename Graph::No
     using cost_t = typename Graph::cost_t;
     constexpr cost_t inf = std::numeric_limits<cost_t>::infinity();
 
+    a_star::Stats stats{};
+
     using QueueNode = std::pair<cost_t, Node>;
     std::priority_queue<QueueNode, std::vector<QueueNode>, std::greater<>> open_set;
     open_set.emplace(0, start);
+    stats.nodes_opened++;
 
     std::map<Node, Node> came_from;
 
@@ -70,18 +89,21 @@ a_star_search(const Graph& graph, typename Graph::Node start, typename Graph::No
         if (current == goal) {
             #ifdef A_STAR_LOGGING
             std::cout << " -> goal\n";
+            std::cout << stats << std::endl;
             #endif
             return {g_score[goal], reconstruct_path<Graph>(came_from, goal)};
         }
 
         if (get_with_default(f_score, current, inf) < current_f) {
             // Already handled this node with a lower f score
+            stats.nodes_skipped++;
             #ifdef A_STAR_LOGGING
             std::cout << " -> continue\n";
             #endif
             continue;
         }
 
+        stats.nodes_handled++;
         #ifdef A_STAR_LOGGING
         std::cout << " -> handle\n";
         #endif
@@ -96,6 +118,7 @@ a_star_search(const Graph& graph, typename Graph::Node start, typename Graph::No
                 cost_t neighbor_f = neighbor_g + graph.heuristic_cost(neighbor, goal);
                 f_score[neighbor] = neighbor_f;
                 open_set.emplace(neighbor_f, neighbor);
+                stats.nodes_opened++;
             }
         }
         neighbors.clear();
