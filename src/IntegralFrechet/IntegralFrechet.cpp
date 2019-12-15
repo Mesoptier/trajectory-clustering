@@ -111,11 +111,6 @@ Points IntegralFrechet::compute_path<ImageMetric::L2_Squared, ParamMetric::L1>(c
     return {s, t};
 }
 
-template<>
-CPositions IntegralFrechet::steepest_descent<ImageMetric::L2_Squared, ParamMetric::L1>(const CPosition& s, const CPosition& t) const {
-    return CPositions();
-}
-
 //
 // Requirements for A* algorithm:
 //

@@ -81,10 +81,6 @@ private:
     template<ImageMetric imageMetric, ParamMetric paramMetric>
     Points compute_path(const Cell& cell, const Point& s, const Point& t) const;
 
-    // Steepest descent from s in the direction of t
-    template<ImageMetric imageMetric, ParamMetric paramMetric>
-    CPositions steepest_descent(const CPosition& s, const CPosition& t) const;
-
     // Compute cost over path by integration
     template<ImageMetric imageMetric, ParamMetric paramMetric>
     distance_t integrate(const CPositions& path) const;
