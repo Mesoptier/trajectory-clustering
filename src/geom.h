@@ -289,4 +289,26 @@ public:
 using CPosition = std::array<CPoint, 2>;
 using CPositions = std::vector<CPosition>;
 
+namespace std {
+    template<>
+    struct hash<CPosition> {
+        size_t operator()(const CPosition& x) const {
+            size_t seed = 0;
+            hash_combine(seed, x[0]);
+            hash_combine(seed, x[1]);
+            return seed;
+        }
+    };
+
+    template<>
+    struct hash<CPoint> {
+        size_t operator()(const CPoint& x) const {
+            size_t seed = 0;
+            hash_combine(seed, x.getPoint());
+            hash_combine(seed, x.getFraction());
+            return seed;
+        }
+    };
+}
+
 std::ostream& operator<<(std::ostream& out, const CPosition& pos);

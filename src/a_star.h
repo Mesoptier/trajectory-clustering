@@ -2,6 +2,7 @@
 
 #include <queue>
 #include <ostream>
+#include <unordered_map>
 
 //#define A_STAR_LOGGING
 
@@ -37,7 +38,7 @@ namespace a_star {
 
 template<class Graph>
 std::vector<typename Graph::Node>
-reconstruct_path(const std::map<typename Graph::Node, typename Graph::Node>& came_from, typename Graph::Node current) {
+reconstruct_path(const std::unordered_map<typename Graph::Node, typename Graph::Node>& came_from, typename Graph::Node current) {
     std::vector<typename Graph::Node> path{current};
 
     auto it = came_from.find(current);
@@ -64,14 +65,14 @@ a_star_search(const Graph& graph, typename Graph::Node start, typename Graph::No
     open_set.emplace(0, start);
     stats.nodes_opened++;
 
-    std::map<Node, Node> came_from;
+    std::unordered_map<Node, Node> came_from;
 
     // For node n, g_score[n] is the cost of cheapest path from start to n
-    std::map<Node, cost_t> g_score;
+    std::unordered_map<Node, cost_t> g_score;
     g_score[start] = 0;
 
     // For node n, f_score[n] := g_score[n] + graph.heuristic_cost(n)
-    std::map<Node, cost_t> f_score;
+    std::unordered_map<Node, cost_t> f_score;
     f_score[start] = 0;
 
     std::vector<Node> neighbors;

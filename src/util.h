@@ -23,4 +23,11 @@ bool approx_zero(T a, double tol = ABS_TOL) {
     return approx_equal(std::abs(a), 0.0, tol);
 }
 
+template <class T>
+inline void hash_combine(std::size_t& seed, const T& v)
+{
+    std::hash<T> hasher;
+    seed ^= hasher(v) + 0x9e3779b9 + (seed<<6) + (seed>>2);
+}
+
 #endif //CODE_UTIL_H
