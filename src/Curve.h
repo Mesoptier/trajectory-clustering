@@ -1,7 +1,6 @@
 #ifndef CODE_CURVE_H
 #define CODE_CURVE_H
 
-#include <armadillo>
 #include "Vertex.h"
 #include "Edge.h"
 
@@ -26,8 +25,11 @@ public:
     distance_t curve_length() const {
         return prefix_length.back();
     }
-    distance_t curve_length(int i, int j) const {
-        return prefix_length[j] - prefix_length[i];
+    distance_t curve_length(PointID id) const {
+        return prefix_length[id];
+    }
+    distance_t curve_length(PointID i, PointID j) const {
+        return curve_length(j) - curve_length(i);
     }
     distance_t curve_length(const CPoint& point) const;
 
@@ -37,6 +39,16 @@ public:
     const Points& get_points() const {
         return points;
     }
+
+    /**
+     * Get the fraction that is arc-length dist is along the edge {id, id + 1}.
+     */
+    distance_t get_fraction(PointID id, distance_t dist) const;
+
+    /**
+     * Get the CPoint that is arc-length dist is along the edge {id, id + 1}.
+     */
+    CPoint get_cpoint(PointID id, distance_t dist) const;
 
     void push_back(const Point& point);
 

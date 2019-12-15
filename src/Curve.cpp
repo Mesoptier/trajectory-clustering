@@ -40,3 +40,13 @@ Point Curve::interpolate_at(const CPoint& p) const {
         ? points[p.getPoint()]
         : points[p.getPoint()] * (1. - p.getFraction()) + points[p.getPoint() + 1] * p.getFraction();
 }
+
+distance_t Curve::get_fraction(PointID id, distance_t dist) const {
+    assert((id < points.size() - 1) || (id == points.size() - 1 && dist == 0.));
+    assert(dist == 0. || (0. < dist && dist <= curve_length(id, id + 1)));
+    return dist == 0. ? dist : dist / curve_length(id, id + 1);
+}
+
+CPoint Curve::get_cpoint(PointID id, distance_t dist) const {
+    return {id, get_fraction(id, dist)};
+}

@@ -6,6 +6,8 @@
 #include <utility>
 #include "metrics.h"
 
+using CellCoordinate = std::array<PointID, 2>;
+
 struct Cell {
     // Edges (edge1 = {p1, p1 + 1}, edge2 = {p2, p2 + 1})
 //    PointID p1;
@@ -38,13 +40,27 @@ private:
 
     std::vector<Cell> cells;
 
-    const Cell& get_cell(PointID p1, PointID p2) const;
-    Cell get_cell(CPoint p1, CPoint p2) const {
-        return get_cell(p1.getPoint(), p2.getPoint());
-    };
-    Cell get_cell(CPosition pos) const {
-        return get_cell(pos[0], pos[1]);
-    };
+    const Cell& get_cell(CellCoordinate cc) const;
+
+    /**
+     * Convert a global CPosition to a local cell point.
+     */
+    Point to_local_point(CellCoordinate cc, CPosition pos) const {
+        return {
+            curve1.curve_length(pos[0]) - curve1.curve_length(cc[0]),
+            curve2.curve_length(pos[1]) - curve2.curve_length(cc[1])
+        };
+    }
+
+    /**
+     * Convert a local cell point to a global CPosition.
+     */
+    CPosition to_cposition(CellCoordinate cc, Point p) const {
+        return {{
+            curve1.get_cpoint(cc[0], p.x),
+            curve2.get_cpoint(cc[1], p.y)
+        }};
+    }
 
     /**
      * Compute the cost of the optimal path from s through t through a single cell.
@@ -61,6 +77,9 @@ private:
     // Optimal path from s to t
     template<ImageMetric imageMetric, ParamMetric paramMetric>
     CPositions compute_path(const CPosition& s, const CPosition& t) const;
+
+    template<ImageMetric imageMetric, ParamMetric paramMetric>
+    Points compute_path(const Cell& cell, const Point& s, const Point& t) const;
 
     // Steepest descent from s in the direction of t
     template<ImageMetric imageMetric, ParamMetric paramMetric>

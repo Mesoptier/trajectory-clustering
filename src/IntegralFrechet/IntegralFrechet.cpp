@@ -24,15 +24,42 @@ Points IntegralFrechet::compute_matching() {
     return matching;
 }
 
-const Cell& IntegralFrechet::get_cell(PointID p1, PointID p2) const {
-    assert(p1 + 1 < curve1.size() && p2 + 1 < curve2.size());
-    return cells[p2 * (curve1.size() - 1) + p1];
+const Cell& IntegralFrechet::get_cell(CellCoordinate cc) const {
+    assert(cc[0] + 1 < curve1.size() && cc[1] + 1 < curve2.size());
+    return cells[cc[1] * (curve1.size() - 1) + cc[0]];
 }
 
 template<ImageMetric imageMetric, ParamMetric paramMetric>
 distance_t IntegralFrechet::cost(const CPosition& s, const CPosition& t) const {
     auto path = compute_path<imageMetric, paramMetric>(s, t);
     return integrate<imageMetric, paramMetric>(path);
+}
+
+template<ImageMetric imageMetric, ParamMetric paramMetric>
+CPositions IntegralFrechet::compute_path(const CPosition& s, const CPosition& t) const {
+    if (s[0] == t[0] || s[1] == t[1]) {
+        // s and t lie on the same horizontal/vertical axis, so there is only 1 possible path
+        return { s, t };
+    }
+
+    const CellCoordinate cc{s[0].getPoint(), s[1].getPoint()};
+    const auto cell = get_cell(cc);
+
+    // Convert to local cell coordinates
+    const Point sl = to_local_point(cc, s);
+    const Point tl = to_local_point(cc, t);
+
+    // Compute optimal path through cell
+    const Points local_path = compute_path<imageMetric, paramMetric>(cell, sl, tl);
+
+    // Convert path back to global coordinates
+    CPositions path;
+    path.reserve(local_path.size());
+    for (const auto& p : local_path) {
+        path.push_back(to_cposition(cc, p));
+    }
+
+    return path;
 }
 
 template<ImageMetric imageMetric, ParamMetric paramMetric>
@@ -77,7 +104,9 @@ distance_t IntegralFrechet::integrate_dist<ParamMetric::L1>(const Point& s1, con
 //
 
 template<>
-CPositions IntegralFrechet::compute_path<ImageMetric::L2_Squared, ParamMetric::L1>(const CPosition& s, const CPosition& t) const {
+Points IntegralFrechet::compute_path<ImageMetric::L2_Squared, ParamMetric::L1>(const Cell& cell, const Point& s, const Point& t) const {
+
+
     // TODO: Compute actual optimal path
     return {s, t};
 }
@@ -108,7 +137,8 @@ void IntegralFrechet::get_neighbors(const IntegralFrechet::Node& node, std::vect
 
     // We are not along the outer top/right boundary, which means the node is part of a cell
 
-    auto cell = get_cell(node);
+    CellCoordinate cc{node[0].getPoint(), node[1].getPoint()};
+    auto cell = get_cell(cc);
 
     // Sample along top edge if there are more cells above this one
     if (node[1].getPoint() + 2 < curve2.size()) {
