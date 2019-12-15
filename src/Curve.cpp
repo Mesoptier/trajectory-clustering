@@ -15,14 +15,14 @@ Curve::Curve(const Points& points) : points(points) {
 }
 
 void Curve::push_back(const Point& point) {
-    points.push_back(point);
-
     if (prefix_length.empty()) {
         prefix_length.push_back(0);
     } else {
         auto segment_distance = points.back().dist(point);
         prefix_length.push_back(prefix_length.back() + segment_distance);
     }
+
+    points.push_back(point);
 }
 
 distance_t Curve::curve_length(const CPoint& p) const {
