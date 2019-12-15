@@ -33,7 +33,7 @@ reconstruct_path(const std::map<typename Graph::Node, typename Graph::Node>& cam
 }
 
 template<class Graph>
-std::vector<typename Graph::Node>
+std::pair<typename Graph::cost_t, std::vector<typename Graph::Node>>
 a_star_search(const Graph& graph, typename Graph::Node start, typename Graph::Node goal) {
     using Node = typename Graph::Node;
     using cost_t = typename Graph::cost_t;
@@ -65,7 +65,7 @@ a_star_search(const Graph& graph, typename Graph::Node start, typename Graph::No
 
         if (current == goal) {
             std::cout << " -> goal\n";
-            return reconstruct_path<Graph>(came_from, goal);
+            return {g_score[goal], reconstruct_path<Graph>(came_from, goal)};
         }
 
         if (get_with_default(f_score, current, inf) < current_f) {

@@ -11,12 +11,14 @@ IntegralFrechet::IntegralFrechet(const Curve& curve1, const Curve& curve2) : cur
     }
 }
 
-Points IntegralFrechet::compute_matching() {
+std::pair<distance_t, Points> IntegralFrechet::compute_matching() {
     Node start{CPoint(0, 0), CPoint(0, 0)};
     Node goal{CPoint(curve1.size() - 1, 0), CPoint(curve2.size() - 1, 0)};
 
     // Matching from nodes to nodes (on cell boundaries)
-    auto node_matching = a_star_search(*this, start, goal);
+    std::vector<Node> node_matching;
+    cost_t cost;
+    std::tie(cost, node_matching) = a_star_search(*this, start, goal);
 
     // Actual polygonal matching with arc-length coordinates
     Points matching{{0, 0}};
@@ -31,7 +33,7 @@ Points IntegralFrechet::compute_matching() {
             );
         }
     }
-    return matching;
+    return {cost, matching};
 }
 
 const Cell& IntegralFrechet::get_cell(CellCoordinate cc) const {

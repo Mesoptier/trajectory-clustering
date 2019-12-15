@@ -114,7 +114,7 @@ public:
 
     IntegralFrechet(const Curve& curve1, const Curve& curve2);
 
-    Points compute_matching();
+    std::pair<distance_t, Points> compute_matching();
 
     //
     // Requirements for A* algorithm:

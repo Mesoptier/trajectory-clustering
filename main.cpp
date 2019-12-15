@@ -9,7 +9,14 @@ int main() {
     const Curve curve2({{0, 1}, {2, 1}});
 
     IntegralFrechet alg(curve1, curve2);
-    auto matching = alg.compute_matching();
+    distance_t cost;
+    Points matching;
+    std::tie(cost, matching) = alg.compute_matching();
+
+    std::cout << "COST: " << cost << "\n";
+    std::cout << "PATH: ";
+    for (auto p : matching) std::cout << "\n| " << p;
+    std::cout << std::endl;
 
     io::exportPoints("data/out/curve1.csv", curve1.get_points());
     io::exportPoints("data/out/curve2.csv", curve2.get_points());
