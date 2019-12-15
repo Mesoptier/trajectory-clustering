@@ -108,6 +108,14 @@ struct Line
         return {p, {1, slope}};
     }
 
+    static Line horizontal(Point p) {
+        return {p, {1, 0}};
+    }
+
+    static Line vertical(Point p) {
+        return {p, {0, 1}};
+    }
+
     Point operator()(distance_t t) const {
         return origin + direction * t;
     }
