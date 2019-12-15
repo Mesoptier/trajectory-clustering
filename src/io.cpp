@@ -11,7 +11,7 @@ void io::readCurve(const std::string& filename, Curve& curve, int header_size) {
     distance_t x, y;
     while (file >> x >> y) {
         // Ignore duplicate coordinates
-        if (!curve.empty() && curve.back().x == x && curve.back().y == y) {
+        if (!curve.empty() && approx_equal(curve.back(), {x, y})) {
             continue;
         }
         curve.push_back({x, y});
