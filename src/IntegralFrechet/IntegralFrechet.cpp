@@ -15,11 +15,21 @@ Points IntegralFrechet::compute_matching() {
     Node start{CPoint(0, 0), CPoint(0, 0)};
     Node goal{CPoint(curve1.size() - 1, 0), CPoint(curve2.size() - 1, 0)};
 
-    auto cmatching = a_star_search(*this, start, goal);
+    // Matching from nodes to nodes (on cell boundaries)
+    auto node_matching = a_star_search(*this, start, goal);
 
-    Points matching; // Arc-length parametrized
-    for (auto cpos : cmatching) {
-        matching.emplace_back(curve1.curve_length(cpos[0]), curve2.curve_length(cpos[1]));
+    // Actual polygonal matching with arc-length coordinates
+    Points matching{{0, 0}};
+
+    for (int i = 1; i < node_matching.size(); ++i) {
+        auto cell_matching = compute_path<ImageMetric::L2_Squared, ParamMetric::L1>(node_matching[i - 1], node_matching[i]);
+
+        for (int j = 1; j < cell_matching.size(); ++j) {
+            matching.emplace_back(
+                curve1.curve_length(cell_matching[j][0]),
+                curve2.curve_length(cell_matching[j][1])
+            );
+        }
     }
     return matching;
 }
@@ -60,6 +70,21 @@ CPositions IntegralFrechet::compute_path(const CPosition& s, const CPosition& t)
     }
 
     return path;
+}
+
+template<ImageMetric imageMetric, ParamMetric paramMetric>
+Points IntegralFrechet::compute_path(const Cell& cell, const Point& s, const Point& t) const {
+    Points path1;
+    Points path2;
+
+    steepest_descent<imageMetric, paramMetric>(cell, s, t, path1);
+    steepest_descent<imageMetric, paramMetric>(cell, t, s, path2);
+
+    assert(approx_equal(path1.back(), path2.back()));
+
+    // Combine the two steepest descent paths into one, skipping the duplicated minimum
+    path1.insert(path1.end(), path2.rbegin() + 1, path2.rend());
+    return path1;
 }
 
 template<ImageMetric imageMetric, ParamMetric paramMetric>
@@ -104,11 +129,53 @@ distance_t IntegralFrechet::integrate_dist<ParamMetric::L1>(const Point& s1, con
 //
 
 template<>
-Points IntegralFrechet::compute_path<ImageMetric::L2_Squared, ParamMetric::L1>(const Cell& cell, const Point& s, const Point& t) const {
+void IntegralFrechet::steepest_descent<ImageMetric::L2_Squared, ParamMetric::L1>(const Cell& cell, Point s, const Point& t, Points& path) const {
+    path.push_back(s);
 
+    // If source is monotone greater than target, we need to do steepest
+    // descent in reverse monotone direction.
+    auto dir = getMonotoneDirection(s, t);
+    MonotoneComparator compare(dir);
 
-    // TODO: Compute actual optimal path
-    return {s, t};
+    // Which return value of Line::side indicates that a point is on the left
+    int line_left = (dir == BFDirection::Forward ? -1 : 1);
+
+    auto ell_m_side = cell.ell_m.side(s);
+
+    if (ell_m_side != 0) { // -> s is not on ell_m
+        if (ell_m_side == line_left) { // -> s is left of ell_m
+            s = std::min({
+                intersect(Line::horizontal(s), cell.ell_m),
+                intersect(Line::horizontal(s), Line::vertical(t))
+            }, compare);
+        } else  { // -> s is right of ell_m
+            s = std::min({
+                intersect(Line::vertical(s), cell.ell_m),
+                intersect(Line::vertical(s), Line::horizontal(t))
+            }, compare);
+        }
+
+        if (approx_equal(path.back(), s))
+            return;
+        path.push_back(s);
+
+        ell_m_side = cell.ell_m.side(s);
+    }
+
+    if (ell_m_side == 0) { // -> s is on ell_m
+        if (compare(s, cell.center)) {
+            // Move along ell_m until center or until the point where steepest descent from t hits ell_m
+            s = std::min({
+                cell.center,
+                intersect(cell.ell_m, Line::vertical(t)),
+                intersect(cell.ell_m, Line::horizontal(t)),
+            }, compare);
+
+            if (approx_equal(path.back(), s))
+                return;
+            path.push_back(s);
+        }
+    }
 }
 
 //

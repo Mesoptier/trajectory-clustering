@@ -20,15 +20,29 @@ struct Cell {
     size_t n1;
     size_t n2;
 
-    Line ellM; // Monotone axis
-    Line ellH; // Line through points where ellipse tangent is horizontal
-    Line ellV; // Line through points where ellipse tangent is vertical
+    Point center;
+    Line ell_m; // Monotone axis
+//    Line ellH; // Line through points where ellipse tangent is horizontal
+//    Line ellV; // Line through points where ellipse tangent is vertical
 
     Cell(const Point& s1, const Point& s2, const Point& t1, const Point& t2) {
         // TODO: Make resolution a parameter
         distance_t resolution = 0.2;
         n1 = ceil(s1.dist(t1) / resolution) + 1;
         n2 = ceil(s2.dist(t2) / resolution) + 1;
+
+        Edge e1(s1, t1);
+        Edge e2(s2, t2);
+
+        if (isParallel(e1.line, e2.line)) {
+            const auto image_point = e1.line.closest(s2);
+            center = {e1.param(image_point), 0};
+        } else {
+            const auto image_point = intersect(e1.line, e2.line);
+            center = {e1.param(image_point), e2.param(image_point)};
+        }
+
+        ell_m = {center, {1, 1}};
     }
 };
 
@@ -80,6 +94,9 @@ private:
 
     template<ImageMetric imageMetric, ParamMetric paramMetric>
     Points compute_path(const Cell& cell, const Point& s, const Point& t) const;
+
+    template<ImageMetric imageMetric, ParamMetric paramMetric>
+    void steepest_descent(const Cell& cell, Point s, const Point& t, Points& path) const;
 
     // Compute cost over path by integration
     template<ImageMetric imageMetric, ParamMetric paramMetric>
