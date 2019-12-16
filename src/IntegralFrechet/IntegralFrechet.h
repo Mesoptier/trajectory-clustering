@@ -27,7 +27,7 @@ struct Cell {
 
     Cell(const Point& s1, const Point& s2, const Point& t1, const Point& t2) {
         // TODO: Make resolution a parameter
-        distance_t resolution = 0.2;
+        distance_t resolution = 1;
         n1 = ceil(s1.dist(t1) / resolution) + 1;
         n2 = ceil(s2.dist(t2) / resolution) + 1;
 
