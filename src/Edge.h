@@ -1,10 +1,8 @@
-#ifndef CODE_EDGE_H
-#define CODE_EDGE_H
+#pragma once
 
 #include <utility>
 #include <ostream>
-#include <armadillo>
-#include "Vertex.h"
+
 #include "util.h"
 #include "geom.h"
 #include "expressionml.h"
@@ -55,5 +53,3 @@ public:
         return out;
     }
 };
-
-#endif //CODE_EDGE_H

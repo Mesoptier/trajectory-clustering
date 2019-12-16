@@ -3,6 +3,8 @@
 #include <queue>
 #include <ostream>
 #include <unordered_map>
+#include <algorithm>
+#include <iostream>
 
 //#define A_STAR_LOGGING
 

@@ -1,7 +1,5 @@
-#ifndef CODE_CURVE_H
-#define CODE_CURVE_H
+#pragma once
 
-#include "Vertex.h"
 #include "Edge.h"
 
 class Curve {
@@ -98,5 +96,3 @@ public:
         return {points[id], points[id + 1]};
     }
 };
-
-#endif //CODE_CURVE_H

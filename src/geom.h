@@ -1,8 +1,9 @@
 #pragma once
 
-#include <armadillo>
-#include <assert.h>
+#include <cassert>
 #include <iomanip>
+#include <vector>
+
 #include "util.h"
 #include "id.h"
 

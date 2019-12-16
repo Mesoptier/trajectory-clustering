@@ -1,3 +1,4 @@
+#include <fstream>
 #include "io.h"
 
 #define FILE_ERROR(filename) throw std::runtime_error("Failed to open file " + filename)

@@ -1,29 +1,36 @@
-#include <io.h>
-#include <Curve.h>
-#include <IntegralFrechet/IntegralFrechet.h>
-//#include "src/IntegralFrechet/Solver.h"
-//#include "FastMarchIntegralFrechet.h"
+#include <chrono>
+#include <iostream>
+
+#include "io.h"
+#include "Curve.h"
+#include "IntegralFrechet/IntegralFrechet.h"
 
 int main() {
-    const Curve curve1({{0, 0}, {1, 1}, {2, 2}});
-    const Curve curve2({{0, 1}, {2, 1}});
+//    const Curve curve1({{0, 0}, {1, 1}, {2, 2}});
+//    const Curve curve2({{0, 1}, {2, 1}});
+
+    const Curve curve1 = io::readCurve("data/characters/data/a0001.txt");
+    const Curve curve2 = io::readCurve("data/characters/data/a0002.txt");
+
+    auto start = std::chrono::high_resolution_clock::now();
 
     IntegralFrechet alg(curve1, curve2);
     distance_t cost;
     Points matching;
     std::tie(cost, matching) = alg.compute_matching();
 
-    std::cout << "COST: " << cost << "\n";
-    std::cout << "PATH: ";
-    for (auto p : matching) std::cout << "\n| " << p;
-    std::cout << std::endl;
+    auto finish = std::chrono::high_resolution_clock::now();
+    std::chrono::duration<double> elapsed = finish - start;
+    std::cout << "Elapsed time: " << elapsed.count() << " s\n";
+
+//    std::cout << "COST: " << cost << "\n";
+//    std::cout << "PATH: ";
+//    for (auto p : matching) std::cout << "\n| " << p;
+//    std::cout << std::endl;
 
     io::exportPoints("data/out/curve1.csv", curve1.get_points());
     io::exportPoints("data/out/curve2.csv", curve2.get_points());
     io::exportPoints("data/out/matching.csv", matching);
-
-//    const Curve curve1 = io::readCurve("data/characters/data/a0001.txt");
-//    const Curve curve2 = io::readCurve("data/characters/data/a0002.txt");
 
 //    double h = .1;
 //
