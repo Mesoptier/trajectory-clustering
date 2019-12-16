@@ -7,6 +7,7 @@
 #include <iostream>
 
 //#define A_STAR_LOGGING
+#define A_STAR_STATS
 
 namespace {
     // From: https://stackoverflow.com/a/26958878/1639600
@@ -60,12 +61,13 @@ a_star_search(const Graph& graph, typename Graph::Node start, typename Graph::No
     using cost_t = typename Graph::cost_t;
     constexpr cost_t inf = std::numeric_limits<cost_t>::infinity();
 
+    #ifdef A_STAR_STATS
     a_star::Stats stats{};
+    #endif
 
     using QueueNode = std::pair<cost_t, Node>;
     std::priority_queue<QueueNode, std::vector<QueueNode>, std::greater<>> open_set;
     open_set.emplace(0, start);
-    stats.nodes_opened++;
 
     std::unordered_map<Node, Node> came_from;
 
@@ -92,21 +94,27 @@ a_star_search(const Graph& graph, typename Graph::Node start, typename Graph::No
         if (current == goal) {
             #ifdef A_STAR_LOGGING
             std::cout << " -> goal\n";
-            std::cout << stats << std::endl;
+            #endif
+            #ifdef A_STAR_STATS
+            std::cout << stats << " open_set remaining: " << open_set.size() << std::endl;
             #endif
             return {g_score[goal], reconstruct_path<Graph>(came_from, goal)};
         }
 
         if (get_with_default(f_score, current, inf) < current_f) {
             // Already handled this node with a lower f score
-            stats.nodes_skipped++;
             #ifdef A_STAR_LOGGING
             std::cout << " -> continue\n";
+            #endif
+            #ifdef A_STAR_STATS
+            stats.nodes_skipped++;
             #endif
             continue;
         }
 
+        #ifdef A_STAR_STATS
         stats.nodes_handled++;
+        #endif
         #ifdef A_STAR_LOGGING
         std::cout << " -> handle\n";
         #endif
@@ -121,7 +129,10 @@ a_star_search(const Graph& graph, typename Graph::Node start, typename Graph::No
                 cost_t neighbor_f = neighbor_g + graph.heuristic_cost(neighbor, goal);
                 f_score[neighbor] = neighbor_f;
                 open_set.emplace(neighbor_f, neighbor);
+
+                #ifdef A_STAR_STATS
                 stats.nodes_opened++;
+                #endif
             }
         }
         neighbors.clear();
