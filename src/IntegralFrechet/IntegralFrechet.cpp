@@ -24,54 +24,44 @@ std::pair<distance_t, Points> IntegralFrechet::compute_matching() {
     Points matching{{0, 0}};
 
     for (int i = 1; i < node_matching.size(); ++i) {
-        auto cell_matching = compute_path<ImageMetric::L2_Squared, ParamMetric::L1>(node_matching[i - 1], node_matching[i]);
+        const auto s = node_matching[i - 1];
+        const auto t = node_matching[i];
 
-        for (int j = 1; j < cell_matching.size(); ++j) {
-            matching.emplace_back(
-                curve1.curve_length(cell_matching[j][0]),
-                curve2.curve_length(cell_matching[j][1])
-            );
+        const auto s1 = curve1.interpolate_at(s[0]);
+        const auto s2 = curve2.interpolate_at(s[1]);
+        const auto t1 = curve1.interpolate_at(t[0]);
+        const auto t2 = curve2.interpolate_at(t[1]);
+
+        const Cell cell(s1, s2, t1, t2);
+        auto cell_matching = compute_matching<ImageMetric::L2_Squared, ParamMetric::L1>(cell);
+
+        const Point offset(
+            curve1.curve_length(s[0]),
+            curve2.curve_length(s[1])
+        );
+
+        for (size_t j = 1; j < cell_matching.size(); ++j) {
+            matching.push_back(offset + cell_matching[j]);
         }
     }
     return {cost, matching};
 }
 
-const Cell& IntegralFrechet::get_cell(CellCoordinate cc) const {
-    assert(cc[0] + 1 < curve1.size() && cc[1] + 1 < curve2.size());
-    return cells[cc[1] * (curve1.size() - 1) + cc[0]];
+template<ImageMetric imageMetric, ParamMetric paramMetric>
+distance_t IntegralFrechet::cost(const Cell& cell) const {
+    // 1. Compute optimal matching for edges e1 and e2
+    const Points cell_matching = compute_matching<imageMetric, paramMetric>(cell);
+
+    // 2. Compute cost over the matching (using integrate)
+    const distance_t cost = integrate<imageMetric, paramMetric>(cell, cell_matching);
+
+    return cost;
 }
 
 template<ImageMetric imageMetric, ParamMetric paramMetric>
-distance_t IntegralFrechet::cost(const CPosition& s, const CPosition& t) const {
-    auto path = compute_path<imageMetric, paramMetric>(s, t);
-    return integrate<imageMetric, paramMetric>(path);
-}
-
-template<ImageMetric imageMetric, ParamMetric paramMetric>
-CPositions IntegralFrechet::compute_path(const CPosition& s, const CPosition& t) const {
-    if (s[0] == t[0] || s[1] == t[1]) {
-        // s and t lie on the same horizontal/vertical axis, so there is only 1 possible path
-        return { s, t };
-    }
-
-    const CellCoordinate cc{s[0].getPoint(), s[1].getPoint()};
-    const auto cell = get_cell(cc);
-
-    // Convert to local cell coordinates
-    const Point sl = to_local_point(cc, s);
-    const Point tl = to_local_point(cc, t);
-
-    // Compute optimal path through cell
-    const Points local_path = compute_path<imageMetric, paramMetric>(cell, sl, tl);
-
-    // Convert path back to global coordinates
-    CPositions path;
-    path.reserve(local_path.size());
-    for (const auto& p : local_path) {
-        path.push_back(to_cposition(cc, p));
-    }
-
-    return path;
+Points IntegralFrechet::compute_matching(const Cell& cell) const {
+    // TODO: Remove compute_path and merge it into this method
+    return compute_path<imageMetric, paramMetric>(cell, cell.s(), cell.t());
 }
 
 template<ImageMetric imageMetric, ParamMetric paramMetric>
@@ -95,17 +85,24 @@ Points IntegralFrechet::compute_path(const Cell& cell, const Point& s, const Poi
 }
 
 template<ImageMetric imageMetric, ParamMetric paramMetric>
-distance_t IntegralFrechet::integrate(const CPositions& path) const {
+distance_t IntegralFrechet::integrate(const Cell& cell, const Points& cell_matching) const {
     distance_t cost = 0;
-    for (size_t i = 1; i < path.size(); ++i) {
-        auto s1 = curve1.interpolate_at(path[i - 1][0]);
-        auto s2 = curve2.interpolate_at(path[i - 1][1]);
-        auto t1 = curve1.interpolate_at(path[i][0]);
-        auto t2 = curve2.interpolate_at(path[i][1]);
-
-        cost += integrate_cost<imageMetric>(s1, s2, t1, t2) * integrate_dist<paramMetric>(s1, s2, t1, t2);
+    for (size_t i = 1; i < cell_matching.size(); ++i) {
+        cost += integrate<imageMetric, paramMetric>(cell, cell_matching[i - 1], cell_matching[i]);
     }
     return cost;
+}
+
+template<ImageMetric imageMetric, ParamMetric paramMetric>
+distance_t IntegralFrechet::integrate(const Cell& cell, const Point& s, const Point& t) const {
+    const auto [s1, s2] = cell.interpolate_at(s);
+    const auto [t1, t2] = cell.interpolate_at(t);
+    return integrate<imageMetric, paramMetric>(s1, s2, t1, t2);
+}
+
+template<ImageMetric imageMetric, ParamMetric paramMetric>
+distance_t IntegralFrechet::integrate(const Point& s1, const Point& s2, const Point& t1, const Point& t2) const {
+    return integrate_cost<imageMetric>(s1, s2, t1, t2) * integrate_dist<paramMetric>(s1, s2, t1, t2);
 }
 
 template<>
@@ -206,13 +203,18 @@ void IntegralFrechet::get_neighbors(const IntegralFrechet::Node& node, std::vect
 
     // We are not along the outer top/right boundary, which means the node is part of a cell
 
-    CellCoordinate cc{node[0].getPoint(), node[1].getPoint()};
-    auto cell = get_cell(cc);
+    // Compute the number of sampling points
+    // TODO: Make resolution a parameter
+    distance_t resolution = 1;
+    const auto len1 = curve1.curve_length(node[0], node[0].floor() + 1);
+    const auto len2 = curve2.curve_length(node[1], node[1].floor() + 1);
+    const size_t n1 = ceil(len1 / resolution) + 1;
+    const size_t n2 = ceil(len2 / resolution) + 1;
 
     // Sample along top edge if there are more cells above this one
     if (node[1].getPoint() + 2 < curve2.size()) {
-        for (int i = 0; i < cell.n1 - 1; ++i) {
-            distance_t fraction = i / (cell.n1 - 1.);
+        for (int i = 0; i < n1 - 1; ++i) {
+            distance_t fraction = i / (n1 - 1.);
             if (fraction >= node[0].getFraction()) {
                 neighbors.push_back({node[0].floor() + fraction, node[1].floor() + 1});
             }
@@ -221,8 +223,8 @@ void IntegralFrechet::get_neighbors(const IntegralFrechet::Node& node, std::vect
 
     // Sample along right edge if there are more cells right of this one
     if (node[0].getPoint() + 2 < curve1.size()) {
-        for (int i = 0; i < cell.n2 - 1; ++i) {
-            distance_t fraction = i / (cell.n2 - 1.);
+        for (int i = 0; i < n2 - 1; ++i) {
+            distance_t fraction = i / (n2 - 1.);
             if (fraction >= node[1].getFraction()) {
                 neighbors.push_back({node[0].floor() + 1, node[1].floor() + fraction});
             }
@@ -234,7 +236,14 @@ void IntegralFrechet::get_neighbors(const IntegralFrechet::Node& node, std::vect
 }
 
 IntegralFrechet::cost_t IntegralFrechet::cost(const IntegralFrechet::Node& s, const IntegralFrechet::Node& t) const {
-    return cost<ImageMetric::L2_Squared, ParamMetric::L1>(s, t);
+    const auto s1 = curve1.interpolate_at(s[0]);
+    const auto s2 = curve2.interpolate_at(s[1]);
+    const auto t1 = curve1.interpolate_at(t[0]);
+    const auto t2 = curve2.interpolate_at(t[1]);
+
+    const Cell cell(s1, s2, t1, t2);
+
+    return cost<ImageMetric::L2_Squared, ParamMetric::L1>(cell);
 }
 
 IntegralFrechet::cost_t

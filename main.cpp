@@ -5,8 +5,8 @@
 #include "IntegralFrechet/IntegralFrechet.h"
 
 int main() {
-    const Curve curve1 = io::readCurve("data/characters/data/a0001.txt");
-    const Curve curve2 = io::readCurve("data/characters/data/a0002.txt");
+    const Curve curve1 = io::readCurve("data/characters/data/a0001.txt").coarse();
+    const Curve curve2 = io::readCurve("data/characters/data/a0002.txt").coarse();
 
     IntegralFrechet alg(curve1, curve2);
     distance_t cost;

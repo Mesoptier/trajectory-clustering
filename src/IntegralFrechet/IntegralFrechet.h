@@ -2,47 +2,81 @@
 
 #include <Curve.h>
 #include <geom.h>
-#include <ostream>
+#include <iostream>
 #include <utility>
 #include "metrics.h"
 
 using CellCoordinate = std::array<PointID, 2>;
 
 struct Cell {
-    // Edges (edge1 = {p1, p1 + 1}, edge2 = {p2, p2 + 1})
-//    PointID p1;
-//    PointID p2;
+    // Source: bottom-left corner
+    const Point& s1;
+    const Point& s2;
 
-//    // Edge lengths
-//    distance_t len1;
-//    distance_t len2;
+    // Target: top-right corner
+    const Point& t1;
+    const Point& t2;
 
-    size_t n1;
-    size_t n2;
+    // Edge lengths
+    distance_t len1;
+    distance_t len2;
 
+    // NOTE: These values are undefined for degenerate cells
     Point center;
     Line ell_m; // Monotone axis
 //    Line ellH; // Line through points where ellipse tangent is horizontal
 //    Line ellV; // Line through points where ellipse tangent is vertical
 
-    Cell(const Point& s1, const Point& s2, const Point& t1, const Point& t2) {
-        // TODO: Make resolution a parameter
-        distance_t resolution = 1;
-        n1 = ceil(s1.dist(t1) / resolution) + 1;
-        n2 = ceil(s2.dist(t2) / resolution) + 1;
+    Cell(const Point& s1, const Point& s2, const Point& t1, const Point& t2) :
+        s1(s1), s2(s2), t1(t1), t2(t2),
+        len1(s1.dist(t1)),
+        len2(s2.dist(t2))
+    {
+        if (!is_degenerate()) {
+            const Edge e1(s1, t1);
+            const Edge e2(s2, t2);
 
-        Edge e1(s1, t1);
-        Edge e2(s2, t2);
+            if (isParallel(e1.line, e2.line)) {
+                const auto image_point = e1.line.closest(e2.first);
+                center = {e1.param(image_point), 0};
+            } else {
+                const auto image_point = intersect(e1.line, e2.line);
+                center = {e1.param(image_point), e2.param(image_point)};
+            }
 
-        if (isParallel(e1.line, e2.line)) {
-            const auto image_point = e1.line.closest(s2);
-            center = {e1.param(image_point), 0};
-        } else {
-            const auto image_point = intersect(e1.line, e2.line);
-            center = {e1.param(image_point), e2.param(image_point)};
+            ell_m = {center, {1, 1}};
         }
+    }
 
-        ell_m = {center, {1, 1}};
+    Point s() const {
+        return {0, 0};
+    }
+
+    Point t() const {
+        return {len1, len2};
+    }
+
+    bool is_degenerate() const {
+        return is_e1_degenerate() || is_e2_degenerate();
+    }
+    bool is_e1_degenerate() const {
+        return len1 == 0;
+    }
+    bool is_e2_degenerate() const {
+        return len2 == 0;
+    }
+
+    /**
+     * Get points in image space corresponding to the given point in
+     * parameter space.
+     *
+     * @param p
+     * @return
+     */
+    std::pair<Point, Point> interpolate_at(const Point& p) const {
+        const Point p1 = is_e1_degenerate() ? s1 : Edge(s1, t1).interpolate_at(p.x);
+        const Point p2 = is_e2_degenerate() ? s2 : Edge(s2, t2).interpolate_at(p.y);
+        return {p1, p2};
     }
 };
 
@@ -54,53 +88,43 @@ private:
 
     std::vector<Cell> cells;
 
-    const Cell& get_cell(CellCoordinate cc) const;
-
     /**
-     * Convert a global CPosition to a local cell point.
-     */
-    Point to_local_point(CellCoordinate cc, CPosition pos) const {
-        return {
-            curve1.curve_length(pos[0]) - curve1.curve_length(cc[0]),
-            curve2.curve_length(pos[1]) - curve2.curve_length(cc[1])
-        };
-    }
-
-    /**
-     * Convert a local cell point to a global CPosition.
-     */
-    CPosition to_cposition(CellCoordinate cc, Point p) const {
-        return {{
-            curve1.get_cpoint(cc[0], p.x),
-            curve2.get_cpoint(cc[1], p.y)
-        }};
-    }
-
-    /**
-     * Compute the cost of the optimal path from s through t through a single cell.
+     * Compute the cost of the optimal matching from the bottom-left corner to
+     * the top-right corner of the cell.
      *
-     * @tparam imageMetric Which metric to use in image space.
-     * @tparam paramMetric Which metric to use in parameter space.
-     * @param s Source point.
-     * @param t Target point. Should be monotonically greater than s.
+     * @tparam imageMetric
+     * @tparam paramMetric
+     * @param cell
      * @return
      */
     template<ImageMetric imageMetric, ParamMetric paramMetric>
-    distance_t cost(const CPosition& s, const CPosition& t) const;
+    distance_t cost(const Cell& cell) const;
 
-    // Optimal path from s to t
+    /**
+     * Compute the optimal matching from the bottom-left corner to the top-right
+     * corner of the cell.
+     *
+     * @tparam imageMetric
+     * @tparam paramMetric
+     * @param cell
+     * @return
+     */
     template<ImageMetric imageMetric, ParamMetric paramMetric>
-    CPositions compute_path(const CPosition& s, const CPosition& t) const;
-
+    Points compute_matching(const Cell& cell) const;
     template<ImageMetric imageMetric, ParamMetric paramMetric>
     Points compute_path(const Cell& cell, const Point& s, const Point& t) const;
-
     template<ImageMetric imageMetric, ParamMetric paramMetric>
     void steepest_descent(const Cell& cell, Point s, const Point& t, Points& path) const;
 
     // Compute cost over path by integration
     template<ImageMetric imageMetric, ParamMetric paramMetric>
-    distance_t integrate(const CPositions& path) const;
+    distance_t integrate(const Cell& cell, const Points& cell_matching) const;
+    template<ImageMetric imageMetric, ParamMetric paramMetric>
+    distance_t integrate(const Cell& cell, const Point& s, const Point& t) const;
+
+    // TODO: Remove old integration methods
+    template<ImageMetric imageMetric, ParamMetric paramMetric>
+    distance_t integrate(const Point& s1, const Point& s2, const Point& t1, const Point& t2) const;
 
     // Cost from distance between curves
     template<ImageMetric imageMetric>

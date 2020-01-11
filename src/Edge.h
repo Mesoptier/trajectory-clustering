@@ -22,8 +22,15 @@ public:
         first(first), second(second), line(Line::fromTwoPoints(first, second)),
         diff(second - first), length(norm(diff)) {}
 
-    Point interpLength(distance_t t) const {
-        return interp(t / length);
+    /**
+     * Get the Point that lies distance `d` along the edge.
+     *
+     * @param d
+     * @return
+     */
+    Point interpolate_at(distance_t d) const {
+//        assert(0 <= d && d <= length);
+        return interp(d / length);
     }
 
     Point interp(distance_t t) const {

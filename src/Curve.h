@@ -30,6 +30,9 @@ public:
         return curve_length(j) - curve_length(i);
     }
     distance_t curve_length(const CPoint& point) const;
+    distance_t curve_length(const CPoint& i, const CPoint j) const {
+        return curve_length(j) - curve_length(i);
+    }
 
     Point front() const { return points.front(); }
     Point back() const { return points.back(); }
@@ -94,5 +97,13 @@ public:
     Edge get_edge(PointID id) const {
         assert(id < points.size() - 1);
         return {points[id], points[id + 1]};
+    }
+
+    Curve coarse() const {
+        Points coarse_points;
+        for (size_t i = 0; i < points.size(); i += 10) {
+            coarse_points.push_back(points[i]);
+        }
+        return Curve(coarse_points);
     }
 };
