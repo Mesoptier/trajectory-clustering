@@ -60,17 +60,11 @@ distance_t IntegralFrechet::cost(const Cell& cell) const {
 
 template<ImageMetric imageMetric, ParamMetric paramMetric>
 Points IntegralFrechet::compute_matching(const Cell& cell) const {
-    // TODO: Remove compute_path and merge it into this method
-    return compute_path<imageMetric, paramMetric>(cell, cell.s(), cell.t());
-}
-
-template<ImageMetric imageMetric, ParamMetric paramMetric>
-Points IntegralFrechet::compute_path(const Cell& cell, const Point& s, const Point& t) const {
     Points path1;
     Points path2;
 
-    steepest_descent<imageMetric, paramMetric>(cell, s, t, path1);
-    steepest_descent<imageMetric, paramMetric>(cell, t, s, path2);
+    steepest_descent<imageMetric, paramMetric>(cell, cell.s(), cell.t(), path1);
+    steepest_descent<imageMetric, paramMetric>(cell, cell.t(), cell.s(), path2);
 
     // Steepest descent from both ends should find the same minimum
     #ifndef NDEBUG
