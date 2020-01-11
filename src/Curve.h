@@ -55,55 +55,9 @@ public:
 
     Point interpolate_at(const CPoint& point) const;
 
-    [[deprecated("Use intepolate_at() instead")]]
-    Point interpLength(distance_t length) const {
-        // Find the first vertex with length greater or equal to the targetLength
-        const auto lb = std::lower_bound(prefix_length.begin(), prefix_length.end(), length);
-        const auto highIndex = lb - prefix_length.begin();
-
-        if (highIndex == 0) {
-            // There is no previous vertex to interpolate with
-            return points[0];
-        }
-
-        const distance_t highLength = *lb;
-        const auto lowIndex = highIndex - 1;
-        const distance_t lowLength = prefix_length[lowIndex];
-
-        const distance_t highRatio = (length - lowLength) / (highLength - lowLength);
-        return points[lowIndex] * (1 - highRatio) + points[highIndex] * highRatio;
-    }
-
-    [[deprecated("Use curve_length() instead")]]
-    distance_t getLength() const {
-        return curve_length();
-    }
-
-    [[deprecated("Use curve_length(0, i) instead")]]
-    distance_t getLength(int i) const {
-        return curve_length(0, i);
-    }
-
-    [[deprecated]]
-    Point getPoint(unsigned int i) const {
-        return points[i];
-    }
-
-    [[deprecated]]
-    Edge getEdge(unsigned int i) const {
-        return {getPoint(i), getPoint(i + 1)};
-    }
-
-    Edge get_edge(PointID id) const {
-        assert(id < points.size() - 1);
-        return {points[id], points[id + 1]};
-    }
-
-    Curve coarse() const {
-        Points coarse_points;
-        for (size_t i = 0; i < points.size(); i += 10) {
-            coarse_points.push_back(points[i]);
-        }
-        return Curve(coarse_points);
-    }
+    /**
+     * Get a coarsened version of the curve.
+     * FIXME: Super crappy!
+     */
+    Curve coarse() const;
 };

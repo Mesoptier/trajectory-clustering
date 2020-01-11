@@ -50,3 +50,11 @@ distance_t Curve::get_fraction(PointID id, distance_t dist) const {
 CPoint Curve::get_cpoint(PointID id, distance_t dist) const {
     return {id, get_fraction(id, dist)};
 }
+
+Curve Curve::coarse() const {
+    Points coarse_points;
+    for (size_t i = 0; i < points.size(); i += 10) {
+        coarse_points.push_back(points[i]);
+    }
+    return Curve(coarse_points);
+}
