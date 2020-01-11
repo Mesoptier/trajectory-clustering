@@ -112,8 +112,6 @@ private:
     template<ImageMetric imageMetric, ParamMetric paramMetric>
     Points compute_matching(const Cell& cell) const;
     template<ImageMetric imageMetric, ParamMetric paramMetric>
-    Points compute_path(const Cell& cell, const Point& s, const Point& t) const;
-    template<ImageMetric imageMetric, ParamMetric paramMetric>
     void steepest_descent(const Cell& cell, Point s, const Point& t, Points& path) const;
 
     // Compute cost over path by integration
