@@ -55,6 +55,9 @@ Points IntegralFrechet::compute_matching(const Cell& cell) const {
     Points path1;
     Points path2;
 
+    path1.reserve(4);
+    path2.reserve(4);
+
     steepest_descent<imageMetric, paramMetric>(cell, cell.s(), cell.t(), path1);
     steepest_descent<imageMetric, paramMetric>(cell, cell.t(), cell.s(), path2);
 
