@@ -1,4 +1,5 @@
 #include "Curve.h"
+#include <algorithm>
 
 Curve::Curve(const Points& points) : points(points) {
     if (points.empty()) {

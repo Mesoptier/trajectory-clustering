@@ -3,6 +3,8 @@
 #include <cassert>
 #include <iomanip>
 #include <vector>
+#include <sstream>
+#include <array>
 
 #include "util.h"
 #include "id.h"
@@ -232,7 +234,7 @@ public:
         return point == other.point && fraction == other.fraction;
     }
     bool operator!=(CPoint const& other) const {
-        return point != other.point or fraction != other.fraction;
+        return point != other.point || fraction != other.fraction;
     }
     bool operator<(PointID other) const {
         return point < other;

@@ -1,5 +1,6 @@
 #include <iomanip>
 #include <iterator>
+#include <iostream>
 #include "geom.h"
 
 namespace {
