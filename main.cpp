@@ -35,13 +35,30 @@ int main() {
 //
 //    std::cout << "count: " << count << std::endl;
 
+
+    //
+    // READ CURVES
+    //
+    auto start_read_curves = std::chrono::high_resolution_clock::now();
+
     const Curve curve1 = io::read_curve("data/characters/data/a0001.txt");
     const Curve curve2 = io::read_curve("data/characters/data/a0002.txt");
+
+    auto end_read_curves = std::chrono::high_resolution_clock::now();
+    std::cout << "read_curves: " << std::chrono::duration_cast<std::chrono::milliseconds>(end_read_curves - start_read_curves).count() << "ms\n";
+
+    //
+    // COMPUTE MATCHING
+    //
+    auto start_compute_matching = std::chrono::high_resolution_clock::now();
 
     IntegralFrechet alg(curve1, curve2);
     distance_t cost;
     Points matching;
     std::tie(cost, matching) = alg.compute_matching();
+
+    auto end_compute_matching = std::chrono::high_resolution_clock::now();
+    std::cout << "compute_matching: " << std::chrono::duration_cast<std::chrono::milliseconds>(end_compute_matching - start_compute_matching).count() << "ms\n";
 
     std::cout << "cost: " << cost << "\n";
     std::cout << "matching size: " << matching.size() << "\n";
