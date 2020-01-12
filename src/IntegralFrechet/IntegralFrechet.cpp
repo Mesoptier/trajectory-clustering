@@ -1,15 +1,7 @@
 #include "IntegralFrechet.h"
 #include "a_star.h"
 
-IntegralFrechet::IntegralFrechet(const Curve& curve1, const Curve& curve2) : curve1(curve1), curve2(curve2) {
-    cells.reserve(curve1.size() * curve2.size());
-
-    for (PointID p2 = 0; p2 + 1 < curve2.size(); ++p2) {
-        for (PointID p1 = 0; p1 + 1 < curve1.size(); ++p1) {
-            cells.emplace_back(curve1[p1], curve2[p2], curve1[p1 + 1], curve2[p2 + 1]);
-        }
-    }
-}
+IntegralFrechet::IntegralFrechet(const Curve& curve1, const Curve& curve2) : curve1(curve1), curve2(curve2) {}
 
 std::pair<distance_t, Points> IntegralFrechet::compute_matching() {
     Node start{CPoint(0, 0), CPoint(0, 0)};

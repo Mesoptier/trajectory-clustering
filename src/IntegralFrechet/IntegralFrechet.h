@@ -86,8 +86,6 @@ private:
     const Curve curve1;
     const Curve curve2;
 
-    std::vector<Cell> cells;
-
     /**
      * Compute the cost of the optimal matching from the bottom-left corner to
      * the top-right corner of the cell.
