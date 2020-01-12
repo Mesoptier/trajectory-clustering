@@ -29,6 +29,7 @@ namespace a_star {
         size_t nodes_opened;
         size_t nodes_handled;
         size_t nodes_skipped;
+        Points nodes_as_points;
 
         friend std::ostream& operator<<(std::ostream& out, const Stats& stats) {
             out << "nodes_opened: " << stats.nodes_opened
@@ -97,6 +98,7 @@ a_star_search(const Graph& graph, typename Graph::Node start, typename Graph::No
             #endif
             #ifdef A_STAR_STATS
             std::cout << stats << " open_set remaining: " << open_set.size() << std::endl;
+            io::export_points("data/out/debug_points.csv", stats.nodes_as_points);
             #endif
             return {g_score[goal], reconstruct_path<Graph>(came_from, goal)};
         }
@@ -114,6 +116,7 @@ a_star_search(const Graph& graph, typename Graph::Node start, typename Graph::No
 
         #ifdef A_STAR_STATS
         stats.nodes_handled++;
+        stats.nodes_as_points.push_back(graph.node_as_point(current));
         #endif
         #ifdef A_STAR_LOGGING
         std::cout << " -> handle\n";

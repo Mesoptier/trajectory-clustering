@@ -145,4 +145,11 @@ public:
     void get_neighbors(const Node& node, std::vector<Node>& neighbors) const;
     cost_t cost(const Node& s, const Node& t) const;
     cost_t heuristic_cost(const Node& s, const Node& goal) const;
+
+    Point node_as_point(const Node& node) const {
+        return {
+            curve1.curve_length(node[0]),
+            curve2.curve_length(node[1])
+        };
+    }
 };
