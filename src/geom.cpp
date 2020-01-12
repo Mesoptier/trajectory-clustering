@@ -143,9 +143,9 @@ BFDirection getMonotoneDirection(const Point& a, const Point& b) {
 }
 
 bool MonotoneComparator::operator()(const Point& a, const Point& b) {
-    return (direction == BFDirection::Forward)
-           ? a.x < b.x + ABS_TOL && a.y < b.y + ABS_TOL
-           : a.x + ABS_TOL > b.x && a.y + ABS_TOL > b.y;
+    return direction == BFDirection::Forward
+           ? (a.x < b.x + ABS_TOL && a.y < b.y - ABS_TOL) || (a.x < b.x - ABS_TOL && a.y < b.y + ABS_TOL)
+           : (a.x + ABS_TOL > b.x && a.y - ABS_TOL > b.y) || (a.x - ABS_TOL > b.x && a.y + ABS_TOL > b.y);
 }
 
 //
