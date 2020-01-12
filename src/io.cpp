@@ -3,7 +3,7 @@
 
 #define FILE_ERROR(filename) throw std::runtime_error("Failed to open file " + filename)
 
-void io::readCurve(const std::string& filename, Curve& curve, int header_size) {
+void io::read_curve(const std::string& filename, Curve& curve, int header_size) {
     std::ifstream file(filename);
     if (!file.is_open()) {
         FILE_ERROR(filename);
@@ -21,13 +21,28 @@ void io::readCurve(const std::string& filename, Curve& curve, int header_size) {
     file.close();
 }
 
-Curve io::readCurve(const std::string& filename, int header_size) {
+Curve io::read_curve(const std::string& filename, int header_size) {
     Curve curve;
-    readCurve(filename, curve, header_size);
+    read_curve(filename, curve, header_size);
     return curve;
 }
 
-void io::exportPoints(const std::string& filename, const Points& points) {
+std::vector<Curve> io::read_curves(const std::string& directory) {
+    const auto index_filename = directory + "/dataset.txt";
+    std::ifstream index(index_filename);
+
+    std::vector<Curve> curves;
+
+    std::string line;
+    while (std::getline(index, line)) {
+        auto filename = directory + "/" + line;
+        curves.push_back(read_curve(filename));
+    }
+
+    return curves;
+}
+
+void io::export_points(const std::string& filename, const Points& points) {
     std::ofstream file(filename);
     if (!file.is_open()) {
         FILE_ERROR(filename);
