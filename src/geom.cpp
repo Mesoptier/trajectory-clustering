@@ -174,9 +174,8 @@ Point intersect(const Line& line1, const Line& line2) {
 // CPoint
 //
 
-std::ostream& operator<<(std::ostream& out, const CPoint& p)
-{
-    out << std::setprecision (15)
+std::ostream& operator<<(std::ostream& out, const CPoint& p) {
+    out << std::setprecision(15)
         << "(" << (size_t) p.point << " + " << p.fraction << ")";
     return out;
 }
