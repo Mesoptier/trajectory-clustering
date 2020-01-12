@@ -3,7 +3,7 @@
 
 #include <cmath>
 
-const double ABS_TOL = 1e-10;
+const double ABS_TOL = 1e-9;
 
 template<class T>
 bool approx_equal(T a, T b, double tol = ABS_TOL) {
