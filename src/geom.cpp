@@ -157,7 +157,7 @@ Point Line::closest(const Point& point) const {
 }
 
 int Line::side(const Point& point) const {
-    auto val = perp(point - closest(point), direction);
+    const auto val = perp(point - origin, direction);
     return approx_zero(val) ? 0 : (val > 0 ? 1 : -1);
 }
 
