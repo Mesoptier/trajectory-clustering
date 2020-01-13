@@ -2,8 +2,6 @@ project(ProjectName)
 
 set(HEADER_FILES
         Curve.h
-#        IntegralFrechet/Cell.h
-#        IntegralFrechet/Solver.h
         Edge.h
         util.h
         IntegralFrechet/metrics.h
@@ -16,8 +14,6 @@ set(HEADER_FILES
         )
 
 set(SOURCE_FILES
-#        IntegralFrechet/Cell.cpp
-#        IntegralFrechet/Solver.cpp
         geom.cpp
         io.cpp
         Curve.cpp
