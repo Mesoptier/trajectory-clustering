@@ -6,8 +6,6 @@
 #include <utility>
 #include "metrics.h"
 
-using CellCoordinate = std::array<PointID, 2>;
-
 struct Cell {
     // Source: bottom-left corner
     const Point s1;
