@@ -1,7 +1,10 @@
 #include "Curve.h"
 #include <algorithm>
+#include <utility>
 
-Curve::Curve(const Points& points) : points(points) {
+Curve::Curve(std::string name) : m_name(std::move(name)) {}
+
+Curve::Curve(std::string name, const Points& points): m_name(std::move(name)), points(points) {
     if (points.empty()) {
         return;
     }
@@ -57,5 +60,5 @@ Curve Curve::coarse() const {
     for (size_t i = 0; i < points.size(); i += 10) {
         coarse_points.push_back(points[i]);
     }
-    return Curve(coarse_points);
+    return Curve(m_name, coarse_points);
 }

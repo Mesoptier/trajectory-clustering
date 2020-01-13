@@ -22,7 +22,7 @@ void io::read_curve(const std::string& filename, Curve& curve, int header_size) 
 }
 
 Curve io::read_curve(const std::string& filename, int header_size) {
-    Curve curve;
+    Curve curve(filename);
     read_curve(filename, curve, header_size);
     return curve;
 }

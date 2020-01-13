@@ -3,14 +3,19 @@
 #include "Edge.h"
 
 class Curve {
+    const std::string m_name;
     Points points;
 
     // Total arc length of the curve up to the i-th point
     std::vector<distance_t> prefix_length;
 
 public:
-    Curve() = default;
-    explicit Curve(const Points& points);
+    explicit Curve(std::string name);
+    explicit Curve(std::string name, const Points& points);
+
+    std::string name() const {
+        return m_name;
+    }
 
     std::size_t size() const {
         return points.size();
