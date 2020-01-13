@@ -112,24 +112,6 @@ private:
     template<ImageMetric imageMetric, ParamMetric paramMetric>
     void steepest_descent(const Cell& cell, Point s, const Point& t, Points& path) const;
 
-    // Compute cost over path by integration
-    template<ImageMetric imageMetric, ParamMetric paramMetric>
-    distance_t integrate(const Cell& cell, const Points& cell_matching) const;
-    template<ImageMetric imageMetric, ParamMetric paramMetric>
-    distance_t integrate(const Cell& cell, const Point& s, const Point& t) const;
-
-    // TODO: Remove old integration methods
-    template<ImageMetric imageMetric, ParamMetric paramMetric>
-    distance_t integrate(const Point& s1, const Point& s2, const Point& t1, const Point& t2) const;
-
-    // Cost from distance between curves
-    template<ImageMetric imageMetric>
-    distance_t integrate_cost(const Point& s1, const Point& s2, const Point& t1, const Point& t2) const;
-
-    // Cost from distance travelled over curve
-    template<ParamMetric paramMetric>
-    distance_t integrate_dist(const Point& s1, const Point& s2, const Point& t1, const Point& t2) const;
-
 public:
 
     IntegralFrechet(const Curve& curve1, const Curve& curve2);

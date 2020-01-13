@@ -120,6 +120,25 @@ std::ostream& operator<<(std::ostream& out, const Points& points) {
     return out;
 }
 
+//
+// Implicit Edge (pair of points)
+//
+
+namespace ImplicitEdge {
+
+    Point interpolate_at(const Point& s, const Point& t, distance_t dist) {
+        const auto len = s.dist(t);
+
+        // Degenerate case
+        if (len == 0) {
+            return s;
+        }
+
+        const auto i = dist / len;
+        return s * (1 - i) + t * i;
+    }
+
+}
 
 //
 // Directions
@@ -167,6 +186,8 @@ bool Line::includesPoint(const Point& point) const {
 
 Point intersect(const Line& line1, const Line& line2) {
     const auto t1 = perp(line2.origin - line1.origin, line2.direction) / perp(line1.direction, line2.direction);
+    assert(line1.includesPoint(line1(t1)));
+    assert(line2.includesPoint(line1(t1)));
     return line1(t1);
 }
 

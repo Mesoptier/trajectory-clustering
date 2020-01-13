@@ -11,6 +11,7 @@ set(HEADER_FILES
         io.h
         a_star.h
         IntegralFrechet/IntegralFrechet.h
+        IntegralFrechet/Cell.h
         )
 
 set(SOURCE_FILES
@@ -18,6 +19,7 @@ set(SOURCE_FILES
         io.cpp
         Curve.cpp
         IntegralFrechet/IntegralFrechet.cpp
+        IntegralFrechet/Cell.cpp
         )
 
 add_library(ProjectName_lib STATIC ${SOURCE_FILES} ${HEADER_FILES})

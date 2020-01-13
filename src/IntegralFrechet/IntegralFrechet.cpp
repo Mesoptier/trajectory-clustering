@@ -1,5 +1,19 @@
 #include "IntegralFrechet.h"
 #include "a_star.h"
+#include "Cell.h"
+
+// Image metric is always L2_Squared
+// Param metric is one of:
+//  - L1
+//  - LInfinity (without shortcuts)
+//  - DTW (special case)
+
+struct Options {
+    ParamMetric param_metric;
+    distance_t resolution;
+};
+
+
 
 IntegralFrechet::IntegralFrechet(const Curve& curve1, const Curve& curve2) : curve1(curve1), curve2(curve2) {}
 
@@ -47,9 +61,8 @@ distance_t IntegralFrechet::cost(const Cell& cell) const {
     const Points cell_matching = compute_matching<imageMetric, paramMetric>(cell);
 
     // 2. Compute cost over the matching (using integrate)
-    const distance_t cost = integrate<imageMetric, paramMetric>(cell, cell_matching);
-
-    return cost;
+    const NewCell::Cell new_cell({cell.s1, cell.s2, cell.t1, cell.t2});
+    return NewCell::compute_cost<paramMetric>(new_cell, cell_matching);
 }
 
 template<ImageMetric imageMetric, ParamMetric paramMetric>
@@ -73,50 +86,6 @@ Points IntegralFrechet::compute_matching(const Cell& cell) const {
     // Combine the two steepest descent paths into one, skipping the duplicated minimum
     path1.insert(path1.end(), path2.rbegin() + 1, path2.rend());
     return path1;
-}
-
-template<ImageMetric imageMetric, ParamMetric paramMetric>
-distance_t IntegralFrechet::integrate(const Cell& cell, const Points& cell_matching) const {
-    distance_t cost = 0;
-    for (size_t i = 1; i < cell_matching.size(); ++i) {
-        cost += integrate<imageMetric, paramMetric>(cell, cell_matching[i - 1], cell_matching[i]);
-    }
-    return cost;
-}
-
-template<ImageMetric imageMetric, ParamMetric paramMetric>
-distance_t IntegralFrechet::integrate(const Cell& cell, const Point& s, const Point& t) const {
-    const auto [s1, s2] = cell.interpolate_at(s);
-    const auto [t1, t2] = cell.interpolate_at(t);
-    return integrate<imageMetric, paramMetric>(s1, s2, t1, t2);
-}
-
-template<ImageMetric imageMetric, ParamMetric paramMetric>
-distance_t IntegralFrechet::integrate(const Point& s1, const Point& s2, const Point& t1, const Point& t2) const {
-    return integrate_cost<imageMetric>(s1, s2, t1, t2) * integrate_dist<paramMetric>(s1, s2, t1, t2);
-}
-
-template<>
-distance_t IntegralFrechet::integrate_cost<ImageMetric::L2_Squared>(const Point& s1, const Point& s2, const Point& t1, const Point& t2) const {
-    // Get difference vectors between start- and endpoints of the two sub-edges.
-    const auto d1 = s1 - s2;
-    const auto d2 = t1 - t2;
-
-    const distance_t dx1 = d1.x;
-    const distance_t dy1 = d1.y;
-    const distance_t dx2 = d2.x;
-    const distance_t dy2 = d2.y;
-
-    const distance_t a = pow(dx1 - dx2, 2) + pow(dy1 - dy2, 2);
-    const distance_t b = 2 * (dx1 * dx2 - dx1 * dx1 + dy1 * dy2 - dy1 * dy1);
-    const distance_t c = dx1 * dx1 + dy1 * dy1;
-
-    return (a / 3 + b / 2 + c);
-}
-
-template<>
-distance_t IntegralFrechet::integrate_dist<ParamMetric::L1>(const Point& s1, const Point& s2, const Point& t1, const Point& t2) const {
-    return s1.dist(t1) + s2.dist(t2);
 }
 
 //

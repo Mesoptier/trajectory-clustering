@@ -64,6 +64,24 @@ using Points = std::vector<Point>;
 std::ostream& operator<<(std::ostream& out, const Points& points);
 
 //
+// Implicit Edge (pair of points)
+//
+
+namespace ImplicitEdge {
+
+    /**
+     * Get the point that lies `dist` along the edge.
+     *
+     * @param s
+     * @param t
+     * @param dist
+     * @return
+     */
+    Point interpolate_at(const Point& s, const Point& t, distance_t dist);
+
+}
+
+//
 // Directions
 //
 
