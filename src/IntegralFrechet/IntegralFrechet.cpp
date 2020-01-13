@@ -3,6 +3,14 @@
 
 IntegralFrechet::IntegralFrechet(const Curve& curve1, const Curve& curve2) : curve1(curve1), curve2(curve2) {}
 
+Cell IntegralFrechet::get_cell(const CPosition& s, const CPosition& t) const {
+    const auto s1 = curve1.interpolate_at(s[0]);
+    const auto s2 = curve2.interpolate_at(s[1]);
+    const auto t1 = curve1.interpolate_at(t[0]);
+    const auto t2 = curve2.interpolate_at(t[1]);
+    return {s1, s2, t1, t2};
+}
+
 std::pair<distance_t, Points> IntegralFrechet::compute_matching() {
     Node start{CPoint(0, 0), CPoint(0, 0)};
     Node goal{CPoint(curve1.size() - 1, 0), CPoint(curve2.size() - 1, 0)};
@@ -19,13 +27,7 @@ std::pair<distance_t, Points> IntegralFrechet::compute_matching() {
         const auto s = node_matching[i - 1];
         const auto t = node_matching[i];
 
-        const auto s1 = curve1.interpolate_at(s[0]);
-        const auto s2 = curve2.interpolate_at(s[1]);
-        const auto t1 = curve1.interpolate_at(t[0]);
-        const auto t2 = curve2.interpolate_at(t[1]);
-
-        const Cell cell(s1, s2, t1, t2);
-        auto cell_matching = compute_matching<ImageMetric::L2_Squared, ParamMetric::L1>(cell);
+        auto cell_matching = compute_matching<ImageMetric::L2_Squared, ParamMetric::L1>(get_cell(s, t));
 
         const Point offset(
             curve1.curve_length(s[0]),
@@ -225,14 +227,7 @@ void IntegralFrechet::get_neighbors(const IntegralFrechet::Node& node, std::vect
 }
 
 IntegralFrechet::cost_t IntegralFrechet::cost(const IntegralFrechet::Node& s, const IntegralFrechet::Node& t) const {
-    const auto s1 = curve1.interpolate_at(s[0]);
-    const auto s2 = curve2.interpolate_at(s[1]);
-    const auto t1 = curve1.interpolate_at(t[0]);
-    const auto t2 = curve2.interpolate_at(t[1]);
-
-    const Cell cell(s1, s2, t1, t2);
-
-    return cost<ImageMetric::L2_Squared, ParamMetric::L1>(cell);
+    return cost<ImageMetric::L2_Squared, ParamMetric::L1>(get_cell(s, t));
 }
 
 IntegralFrechet::cost_t

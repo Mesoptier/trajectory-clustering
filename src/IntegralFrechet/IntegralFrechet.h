@@ -10,12 +10,12 @@ using CellCoordinate = std::array<PointID, 2>;
 
 struct Cell {
     // Source: bottom-left corner
-    const Point& s1;
-    const Point& s2;
+    const Point s1;
+    const Point s2;
 
     // Target: top-right corner
-    const Point& t1;
-    const Point& t2;
+    const Point t1;
+    const Point t2;
 
     // Edge lengths
     distance_t len1;
@@ -85,6 +85,8 @@ class IntegralFrechet
 private:
     const Curve curve1;
     const Curve curve2;
+
+    Cell get_cell(const CPosition& s, const CPosition& t) const;
 
     /**
      * Compute the cost of the optimal matching from the bottom-left corner to
