@@ -196,7 +196,7 @@ void IntegralFrechet::get_neighbors(const IntegralFrechet::Node& node, std::vect
 
     // Compute the number of sampling points
     // TODO: Make resolution a parameter
-    distance_t resolution = 1;
+    distance_t resolution = 5;
     const auto len1 = curve1.curve_length(node[0], node[0].floor() + 1);
     const auto len2 = curve2.curve_length(node[1], node[1].floor() + 1);
     const size_t n1 = ceil(len1 / resolution) + 1;
