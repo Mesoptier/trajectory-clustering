@@ -2,9 +2,9 @@
 #include <chrono>
 #include <fstream>
 
-#include "io.h"
-#include "Curve.h"
-#include "IntegralFrechet/IntegralFrechet.h"
+#include "src/io.h"
+#include "src/Curve.h"
+#include "src/IntegralFrechet/IntegralFrechet.h"
 
 struct MatchingStat {
     std::string name;

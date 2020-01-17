@@ -1,5 +1,5 @@
-#include <geom.h>
 #include "gtest/gtest.h"
+#include "../src/geom.h"
 
 TEST(PointTest, Perp) {
     // Collinear:

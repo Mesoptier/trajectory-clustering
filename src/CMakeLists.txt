@@ -1,25 +1,12 @@
-project(ProjectName)
-
-set(HEADER_FILES
-        Curve.h
-        Edge.h
-        util.h
-        IntegralFrechet/metrics.h
-        id.h
-        geom.h
-        expressionml.h
-        io.h
-        a_star.h
-        IntegralFrechet/IntegralFrechet.h
-        IntegralFrechet/Cell.h
-        )
+file(GLOB_RECURSE HEADER_FILES *.h)
 
 set(SOURCE_FILES
-        geom.cpp
-        io.cpp
-        Curve.cpp
-        IntegralFrechet/IntegralFrechet.cpp
-        IntegralFrechet/Cell.cpp
-        )
+    geom.cpp
+    io.cpp
+    Curve.cpp
+    IntegralFrechet/IntegralFrechet.cpp
+    IntegralFrechet/Cell.cpp
+)
 
-add_library(ProjectName_lib STATIC ${SOURCE_FILES} ${HEADER_FILES})
+add_library(TrajectoryClustering_lib STATIC ${SOURCE_FILES} ${HEADER_FILES})
+target_include_directories(TrajectoryClustering_lib PRIVATE ../src)

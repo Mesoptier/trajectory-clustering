@@ -1,10 +1,10 @@
 #pragma once
 
-#include <Curve.h>
-#include <geom.h>
 #include <iostream>
 #include <utility>
 #include "metrics.h"
+#include "../geom.h"
+#include "../Curve.h"
 
 struct Cell {
     // Source: bottom-left corner
