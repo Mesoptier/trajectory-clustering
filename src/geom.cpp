@@ -89,8 +89,9 @@ Point normalise(const Point& point, Norm p) {
     return point / norm(point, p);
 }
 
-bool approx_equal(const Point& a, const Point& b) {
-    return ::approx_equal(a.x, b.x) && ::approx_equal(a.y, b.y);
+template<>
+bool approx_equal<Point>(const Point& a, const Point& b, double tol) {
+    return ::approx_equal(a.x, b.x, tol) && ::approx_equal(a.y, b.y, tol);
 }
 
 distance_t perp(const Point& a, const Point& b) {
@@ -103,12 +104,12 @@ distance_t dot(const Point& a, const Point& b) {
 
 std::ostream& operator<<(std::ostream& out, const Point& p) {
     out << std::setprecision(15)
-        << "(" << p.x << ", " << p.y << ")";
+        << "{" << p.x << ", " << p.y << "}";
     return out;
 }
 
 std::ostream& operator<<(std::ostream& out, const Points& points) {
-    out << "[";
+    out << "{";
     auto it = points.begin();
     while (it != points.end()) {
         out << (*it++);
@@ -116,7 +117,7 @@ std::ostream& operator<<(std::ostream& out, const Points& points) {
             out << ", ";
         }
     }
-    out << "]";
+    out << "}";
     return out;
 }
 

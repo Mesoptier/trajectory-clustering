@@ -46,7 +46,8 @@ struct Point {
     friend std::ostream& operator<<(std::ostream& out, const Point& p);
 };
 
-bool approx_equal(const Point& a, const Point& b);
+template<>
+bool approx_equal<Point>(const Point& a, const Point& b, double tol);
 
 /**
  * Computes perp dot product between two vectors.
@@ -139,6 +140,13 @@ struct Line
 
     Point operator()(distance_t t) const {
         return origin + direction * t;
+    }
+    distance_t operator()(const Point& p) const {
+        if (abs(direction.x) > 0.707) {
+            return (p.x - origin.x) / (direction.x);
+        } else {
+            return (p.y - origin.y) / (direction.y);
+        }
     }
 
     inline bool isVertical() const {

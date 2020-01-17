@@ -6,7 +6,7 @@
 const double ABS_TOL = 1e-9;
 
 template<class T>
-bool approx_equal(T a, T b, double tol = ABS_TOL) {
+bool approx_equal(const T& a, const T& b, double tol = ABS_TOL) {
     if (a == b) {
         return true;
     }
