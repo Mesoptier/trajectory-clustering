@@ -6,6 +6,8 @@ set(SOURCE_FILES
     Curve.cpp
     IntegralFrechet/IntegralFrechet.cpp
     IntegralFrechet/Cell.cpp
+    IntegralFrechet/metrics/L1.cpp
+    IntegralFrechet/metrics/LInfinity_NoShortcuts.cpp
 )
 
 add_library(TrajectoryClustering_lib STATIC ${SOURCE_FILES} ${HEADER_FILES})

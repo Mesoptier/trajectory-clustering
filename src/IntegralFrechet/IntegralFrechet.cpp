@@ -2,6 +2,7 @@
 
 #include "a_star.h"
 #include "Cell.h"
+#include "metrics/include.h"
 
 IntegralFrechet::IntegralFrechet(
     const Curve& curve1,
@@ -57,96 +58,18 @@ distance_t IntegralFrechet::cost(const Cell& cell) const {
 Points IntegralFrechet::compute_cell_matching(const Cell& cell) const {
     switch (param_metric) {
         case ParamMetric::L1:
-            return compute_matching_l1(cell);
+            return ::compute_matching<ParamMetric::L1>(cell);
         case ParamMetric::LInfinity_NoShortcuts:
-            const NewCell::Cell new_cell({cell.s1, cell.s2, cell.t1, cell.t2});
-            return NewCell::compute_matching<ParamMetric::LInfinity_NoShortcuts>(new_cell);
+            return ::compute_matching<ParamMetric::LInfinity_NoShortcuts>(cell);
     }
 }
 
 distance_t IntegralFrechet::compute_cell_cost(const Cell& cell, const Points& matching) const {
-    const NewCell::Cell new_cell({cell.s1, cell.s2, cell.t1, cell.t2});
-
     switch (param_metric) {
         case ParamMetric::L1:
-            return NewCell::compute_cost<ParamMetric::L1>(new_cell, matching);
+            return ::compute_cost<ParamMetric::L1>(cell, matching);
         case ParamMetric::LInfinity_NoShortcuts:
-            return NewCell::compute_cost<ParamMetric::LInfinity_NoShortcuts>(new_cell, matching);
-    }
-}
-
-Points IntegralFrechet::compute_matching_l1(const Cell& cell) const {
-    Points path1;
-    Points path2;
-
-    path1.reserve(4);
-    path2.reserve(4);
-
-    steepest_descent_l1(cell, cell.s(), cell.t(), path1);
-    steepest_descent_l1(cell, cell.t(), cell.s(), path2);
-
-    // Steepest descent from both ends should find the same minimum
-    #ifndef NDEBUG
-    if (!approx_equal(path1.back(), path2.back())) {
-        throw std::logic_error("paths should find same minimum");
-    }
-    #endif
-
-    // Combine the two steepest descent paths into one, skipping the duplicated minimum
-    path1.insert(path1.end(), path2.rbegin() + 1, path2.rend());
-    return path1;
-}
-
-//
-// L2_Squared + L1
-//
-
-void IntegralFrechet::steepest_descent_l1(const Cell& cell, Point s, const Point& t, Points& path) const {
-    path.push_back(s);
-
-    // If source is monotone greater than target, we need to do steepest
-    // descent in reverse monotone direction.
-    auto dir = getMonotoneDirection(s, t);
-    MonotoneComparator compare(dir);
-
-    // Which return value of Line::side indicates that a point is on the left
-    int line_left = (dir == BFDirection::Forward ? -1 : 1);
-
-    auto ell_m_side = cell.ell_m.side(s);
-
-    if (ell_m_side != 0) { // -> s is not on ell_m
-        if (ell_m_side == line_left) { // -> s is left of ell_m
-            s = std::min({
-                intersect(Line::horizontal(s), cell.ell_m),
-                intersect(Line::horizontal(s), Line::vertical(t))
-            }, compare);
-        } else  { // -> s is right of ell_m
-            s = std::min({
-                intersect(Line::vertical(s), cell.ell_m),
-                intersect(Line::vertical(s), Line::horizontal(t))
-            }, compare);
-        }
-
-        if (approx_equal(path.back(), s))
-            return;
-        path.push_back(s);
-
-        ell_m_side = cell.ell_m.side(s);
-    }
-
-    if (ell_m_side == 0) { // -> s is on ell_m
-        if (compare(s, cell.center)) {
-            // Move along ell_m until center or until the point where steepest descent from t hits ell_m
-            s = std::min({
-                cell.center,
-                intersect(cell.ell_m, Line::vertical(t)),
-                intersect(cell.ell_m, Line::horizontal(t)),
-            }, compare);
-
-            if (approx_equal(path.back(), s))
-                return;
-            path.push_back(s);
-        }
+            return ::compute_cost<ParamMetric::LInfinity_NoShortcuts>(cell, matching);
     }
 }
 
