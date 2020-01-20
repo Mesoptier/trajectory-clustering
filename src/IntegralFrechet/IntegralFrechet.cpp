@@ -1,21 +1,14 @@
 #include "IntegralFrechet.h"
+
 #include "a_star.h"
 #include "Cell.h"
 
-// Image metric is always L2_Squared
-// Param metric is one of:
-//  - L1
-//  - LInfinity (without shortcuts)
-//  - DTW (special case)
-
-struct Options {
-    ParamMetric param_metric;
-    distance_t resolution;
-};
-
-
-
-IntegralFrechet::IntegralFrechet(const Curve& curve1, const Curve& curve2) : curve1(curve1), curve2(curve2) {}
+IntegralFrechet::IntegralFrechet(
+    const Curve& curve1,
+    const Curve& curve2,
+    ParamMetric param_metric,
+    distance_t resolution
+) : curve1(curve1), curve2(curve2), param_metric(param_metric), resolution(resolution) {}
 
 Cell IntegralFrechet::get_cell(const CPosition& s, const CPosition& t) const {
     const auto s1 = curve1.interpolate_at(s[0]);
@@ -41,7 +34,8 @@ std::pair<distance_t, Points> IntegralFrechet::compute_matching() {
         const auto s = node_matching[i - 1];
         const auto t = node_matching[i];
 
-        auto cell_matching = compute_matching<ImageMetric::L2_Squared, ParamMetric::L1>(get_cell(s, t));
+        const auto cell = get_cell(s, t);
+        auto cell_matching = compute_cell_matching(cell);
 
         const Point offset(
             curve1.curve_length(s[0]),
@@ -55,26 +49,41 @@ std::pair<distance_t, Points> IntegralFrechet::compute_matching() {
     return {cost, matching};
 }
 
-template<ImageMetric imageMetric, ParamMetric paramMetric>
 distance_t IntegralFrechet::cost(const Cell& cell) const {
-    // 1. Compute optimal matching for edges e1 and e2
-    const Points cell_matching = compute_matching<imageMetric, paramMetric>(cell);
-
-    // 2. Compute cost over the matching (using integrate)
-    const NewCell::Cell new_cell({cell.s1, cell.s2, cell.t1, cell.t2});
-    return NewCell::compute_cost<paramMetric>(new_cell, cell_matching);
+    const Points cell_matching = compute_cell_matching(cell);
+    return compute_cell_cost(cell, cell_matching);
 }
 
-template<ImageMetric imageMetric, ParamMetric paramMetric>
-Points IntegralFrechet::compute_matching(const Cell& cell) const {
+Points IntegralFrechet::compute_cell_matching(const Cell& cell) const {
+    switch (param_metric) {
+        case ParamMetric::L1:
+            return compute_matching_l1(cell);
+        case ParamMetric::LInfinity_NoShortcuts:
+            const NewCell::Cell new_cell({cell.s1, cell.s2, cell.t1, cell.t2});
+            return NewCell::compute_matching<ParamMetric::LInfinity_NoShortcuts>(new_cell);
+    }
+}
+
+distance_t IntegralFrechet::compute_cell_cost(const Cell& cell, const Points& matching) const {
+    const NewCell::Cell new_cell({cell.s1, cell.s2, cell.t1, cell.t2});
+
+    switch (param_metric) {
+        case ParamMetric::L1:
+            return NewCell::compute_cost<ParamMetric::L1>(new_cell, matching);
+        case ParamMetric::LInfinity_NoShortcuts:
+            return NewCell::compute_cost<ParamMetric::LInfinity_NoShortcuts>(new_cell, matching);
+    }
+}
+
+Points IntegralFrechet::compute_matching_l1(const Cell& cell) const {
     Points path1;
     Points path2;
 
     path1.reserve(4);
     path2.reserve(4);
 
-    steepest_descent<imageMetric, paramMetric>(cell, cell.s(), cell.t(), path1);
-    steepest_descent<imageMetric, paramMetric>(cell, cell.t(), cell.s(), path2);
+    steepest_descent_l1(cell, cell.s(), cell.t(), path1);
+    steepest_descent_l1(cell, cell.t(), cell.s(), path2);
 
     // Steepest descent from both ends should find the same minimum
     #ifndef NDEBUG
@@ -92,8 +101,7 @@ Points IntegralFrechet::compute_matching(const Cell& cell) const {
 // L2_Squared + L1
 //
 
-template<>
-void IntegralFrechet::steepest_descent<ImageMetric::L2_Squared, ParamMetric::L1>(const Cell& cell, Point s, const Point& t, Points& path) const {
+void IntegralFrechet::steepest_descent_l1(const Cell& cell, Point s, const Point& t, Points& path) const {
     path.push_back(s);
 
     // If source is monotone greater than target, we need to do steepest
@@ -164,8 +172,6 @@ void IntegralFrechet::get_neighbors(const IntegralFrechet::Node& node, std::vect
     // We are not along the outer top/right boundary, which means the node is part of a cell
 
     // Compute the number of sampling points
-    // TODO: Make resolution a parameter
-    distance_t resolution = 5;
     const auto len1 = curve1.curve_length(node[0], node[0].floor() + 1);
     const auto len2 = curve2.curve_length(node[1], node[1].floor() + 1);
     const size_t n1 = ceil(len1 / resolution) + 1;
@@ -196,7 +202,7 @@ void IntegralFrechet::get_neighbors(const IntegralFrechet::Node& node, std::vect
 }
 
 IntegralFrechet::cost_t IntegralFrechet::cost(const IntegralFrechet::Node& s, const IntegralFrechet::Node& t) const {
-    return cost<ImageMetric::L2_Squared, ParamMetric::L1>(get_cell(s, t));
+    return cost(get_cell(s, t));
 }
 
 IntegralFrechet::cost_t

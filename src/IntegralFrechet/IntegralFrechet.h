@@ -5,6 +5,7 @@
 #include "metrics.h"
 #include "../geom.h"
 #include "../Curve.h"
+#include "Cell.h"
 
 struct Cell {
     // Source: bottom-left corner
@@ -81,10 +82,16 @@ struct Cell {
 class IntegralFrechet
 {
 private:
-    const Curve curve1;
-    const Curve curve2;
+    const Curve& curve1;
+    const Curve& curve2;
+
+    const ParamMetric param_metric;
+    const distance_t  resolution;
 
     Cell get_cell(const CPosition& s, const CPosition& t) const;
+
+    Points compute_cell_matching(const Cell& cell) const;
+    distance_t compute_cell_cost(const Cell& cell, const Points& matching) const;
 
     /**
      * Compute the cost of the optimal matching from the bottom-left corner to
@@ -95,26 +102,26 @@ private:
      * @param cell
      * @return
      */
-    template<ImageMetric imageMetric, ParamMetric paramMetric>
     distance_t cost(const Cell& cell) const;
 
     /**
      * Compute the optimal matching from the bottom-left corner to the top-right
      * corner of the cell.
      *
-     * @tparam imageMetric
-     * @tparam paramMetric
      * @param cell
      * @return
      */
-    template<ImageMetric imageMetric, ParamMetric paramMetric>
-    Points compute_matching(const Cell& cell) const;
-    template<ImageMetric imageMetric, ParamMetric paramMetric>
-    void steepest_descent(const Cell& cell, Point s, const Point& t, Points& path) const;
+    Points compute_matching_l1(const Cell& cell) const;
+    void steepest_descent_l1(const Cell& cell, Point s, const Point& t, Points& path) const;
 
 public:
 
-    IntegralFrechet(const Curve& curve1, const Curve& curve2);
+    IntegralFrechet(
+        const Curve& curve1,
+        const Curve& curve2,
+        ParamMetric param_metric,
+        distance_t resolution
+    );
 
     std::pair<distance_t, Points> compute_matching();
 

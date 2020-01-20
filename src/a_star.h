@@ -8,7 +8,7 @@
 #include "io.h"
 
 //#define A_STAR_LOGGING
-//#define A_STAR_STATS
+#define A_STAR_STATS
 
 namespace {
     // From: https://stackoverflow.com/a/26958878/1639600
