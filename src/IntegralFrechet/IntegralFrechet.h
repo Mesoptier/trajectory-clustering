@@ -97,8 +97,6 @@ private:
      * Compute the cost of the optimal matching from the bottom-left corner to
      * the top-right corner of the cell.
      *
-     * @tparam imageMetric
-     * @tparam paramMetric
      * @param cell
      * @return
      */
