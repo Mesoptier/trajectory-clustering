@@ -83,7 +83,7 @@ namespace NewCell {
 
         Point new_s;
 
-        if (cell.ell_v.side(s) != -line_left && cell.ell_h.side(s) == -line_left) {
+        if (cell.ell_v.side(s) != -line_left && cell.ell_h.side(s) == line_left) {
             if (compare(s, cell.mid)) {
                 new_s = std::min({
                     intersect(Line::horizontal(s), cell.ell_v),
@@ -95,7 +95,7 @@ namespace NewCell {
                     intersect(Line::horizontal(s), Line::vertical(t)),
                 }, compare);
             }
-        } else if (cell.ell_h.side(s) != line_left && cell.ell_v.side(s) == line_left) {
+        } else if (cell.ell_h.side(s) != line_left && cell.ell_v.side(s) == -line_left) {
             if (compare(s, cell.mid)) {
                 new_s = std::min({
                     intersect(Line::vertical(s), cell.ell_h),
@@ -131,14 +131,20 @@ namespace NewCell {
             new_s = std::min({
                 cell.mid,
                 intersect(cell.ell_v, Line::vertical(t)),
-                intersect(cell.ell_v, Line::horizontal(t)),
             }, compare);
+
+            if (!cell.ell_v.isHorizontal()) {
+                new_s = std::min(new_s, intersect(cell.ell_v, Line::horizontal(t)), compare);
+            }
         } else if (cell.ell_h.side(s) == 0) {
             new_s = std::min({
                 cell.mid,
-                intersect(cell.ell_h, Line::vertical(t)),
                 intersect(cell.ell_h, Line::horizontal(t)),
             }, compare);
+
+            if (!cell.ell_h.isVertical()) {
+                new_s = std::min(new_s, intersect(cell.ell_h, Line::vertical(t)), compare);
+            }
         } else {
             return s;
         }
@@ -155,53 +161,47 @@ namespace NewCell {
         const auto& ell_h = cell.ell_h;
         const auto& ell_v = cell.ell_v;
 
+        const bool is_opposite_direction = !approx_zero(cell.ell_v.direction.y) && cell.ell_v.direction.y < 0;
+
         // Check if we need to deal with the case where the steepest descent
         // paths would not meet in a single point:
-        // TODO: is_opposite_direction essentially checks what the shape of the ellipses is, use that to implement it!
-//        if (cell.is_opposite_direction() && !approx_equal(cell.len1, cell.len2)) {
-//            if (cell.len2 > cell.len1) {
-//                if (ell_h.side(cell.s) != 0 && ell_h.side(cell.t) != 0 && ell_h.side(cell.s) != ell_h.side(cell.t)) {
-//                    // Vertical plateau case
-//
-//                    const Line diag(
-//                        cell.s + Point(cell.s.x, cell.s.y + (cell.len2 - cell.len1) / 2),
-//                        {1, 1}
-//                    );
-//
-//                    const auto p = intersect(diag, ell_h);
-//
-//                    const auto path1 = compute_matching<ParamMetric::LInfinity_NoShortcuts>(cell.subcell(cell.s, p));
-//                    const auto path2 = compute_matching<ParamMetric::LInfinity_NoShortcuts>(cell.subcell(p, cell.t));
-//
-//
-//                    // TODO:
-//                    //  1. Compute position of plateau
-//                    //  2. Compute steepest descent from s/t to the ends of the plateau
-//                    //  3. Combine the paths
-//                    return {cell.s, cell.t};
-//                }
-//            } else {
-//                if (ell_v.side(cell.s) != 0 && ell_v.side(cell.t) != 0 && ell_v.side(cell.s) != ell_v.side(cell.t)) {
-//                    // Horizontal plateau case
-//                    // TODO: Similar to the vertical plateau case above
-//                    return {cell.s, cell.t};
-//                }
-//            }
-//        }
+        if (is_opposite_direction && !approx_equal(cell.len1, cell.len2)) {
+            if (cell.len2 > cell.len1) {
+                if (ell_h.side(cell.s) != 0 && ell_h.side(cell.t) != 0 && ell_h.side(cell.s) != ell_h.side(cell.t)) {
+                    // Vertical plateau case
 
-        // Otherwise we can simply do steepest descent from both ends
-        // TODO:
-        //  1. Compute steepest descent from s/t
-        //  2. Combine the paths
+                    const Line diag(
+                        cell.s + Point(cell.s.x, cell.s.y + (cell.len2 - cell.len1) / 2),
+                        {1, 1}
+                    );
 
+                    const auto p = intersect(diag, ell_h);
 
-        // 1. For each endpoint: If we are in a "move diagonally" region
-        //      -> Move diagonally until ell_h/ell_v/cell-border
-        // 2. If new endpoints have same x and/or y
-        //      -> Trivial path, RETURN
-        // 3. If not is_opposite_direction
-        //      -> Follow ell_h/ell_v, RETURN
-        // 4. Resolve corner case, RETURN
+                    Points path_forward = compute_matching<ParamMetric::LInfinity_NoShortcuts>(cell.subcell(cell.s, p));
+                    Points path_backward = compute_matching<ParamMetric::LInfinity_NoShortcuts>(cell.subcell(cell.t, p));
+
+                    join_paths(path_forward, path_backward);
+                    return path_forward;
+                }
+            } else {
+                if (ell_v.side(cell.s) != 0 && ell_v.side(cell.t) != 0 && ell_v.side(cell.s) != ell_v.side(cell.t)) {
+                    // Horizontal plateau case
+
+                    const Line diag(
+                        cell.s + Point(cell.s.x + (cell.len1 - cell.len2) / 2, cell.s.y),
+                        {1, 1}
+                    );
+
+                    const auto p = intersect(diag, ell_v);
+
+                    Points path_forward = compute_matching<ParamMetric::LInfinity_NoShortcuts>(cell.subcell(cell.s, p));
+                    Points path_backward = compute_matching<ParamMetric::LInfinity_NoShortcuts>(cell.subcell(cell.t, p));
+
+                    join_paths(path_forward, path_backward);
+                    return path_forward;
+                }
+            }
+        }
 
         auto s = cell.s;
         auto t = cell.t;

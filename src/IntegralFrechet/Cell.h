@@ -38,23 +38,31 @@ namespace NewCell {
             s({0, 0}),
             t({len1, len2})
         {
-            const auto l1 = Line::fromTwoPoints(s1, t1);
-            const auto l2 = Line::fromTwoPoints(s2, t2);
+            if (!is_degenerate()) {
+                const auto l1 = Line::fromTwoPoints(s1, t1);
+                const auto l2 = Line::fromTwoPoints(s2, t2);
 
-            // Find ellipse midpoint
-            if (!isParallel(l1, l2)) {
-                const auto p = intersect(l1, l2);
-                mid = {l1(p), l2(p)};
-            } else {
-                const auto p = l2.closest(s1);
-                mid = {0, l2(p)};
+                // Find ellipse midpoint
+                if (!isParallel(l1, l2)) {
+                    const auto p = intersect(l1, l2);
+                    mid = {l1(p), l2(p)};
+                    c = 0;
+                } else {
+                    const auto p = l2.closest(s1);
+                    mid = {0, l2(p)};
+                    c = p.dist(s1);
+                }
+
+                // Compute ellipse axes
+                ell_m = Line(mid, {1, 1});
+                const auto v = dot(l2.direction, l1.direction);
+                ell_h = Line(mid, {v, 1});
+                ell_v = Line(mid, {1, v});
             }
+        }
 
-            // Compute ellipse axes
-            ell_m = Line(mid, {1, 1});
-            const auto v = dot(l2.direction, l1.direction);
-            ell_h = Line(mid, {v, 1});
-            ell_v = Line(mid, {1, v});
+        bool is_degenerate() {
+            return approx_equal(s1, t1) || approx_equal(s2, t2);
         }
 
         /**

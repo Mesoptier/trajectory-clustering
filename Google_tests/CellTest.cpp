@@ -15,8 +15,11 @@ void AssertPathsEqual(const Points& a, const Points& b) {
 }
 
 TEST(ComputeMatchingTest, LInfinity) {
-    Cell cell = Cell({0, 0}, {0, 1}, {1, 1}, {1, 0});
-    Points matching = compute_matching<ParamMetric::LInfinity_NoShortcuts>(cell);
+    Cell cell({}, {}, {}, {});
+    Points matching;
+
+    cell = Cell({0, 0}, {0, 1}, {1, 1}, {1, 0});
+    matching = compute_matching<ParamMetric::LInfinity_NoShortcuts>(cell);
     AssertPathsEqual(matching, {
         {0,                 0},
         {0.707106781186548, 0.707106781186548},
@@ -29,5 +32,13 @@ TEST(ComputeMatchingTest, LInfinity) {
         {0, 0},
         {0.707106781186548, 0.5},
         {1.4142135623731, 1}
+    });
+
+    cell = Cell({0, 0}, {0, 0}, {1, 1}, {0, 3});
+    matching = compute_matching<ParamMetric::LInfinity_NoShortcuts>(cell);
+    AssertPathsEqual(matching, {
+        {0, 0},
+        {1.4142135623731, 2},
+        {1.4142135623731, 3},
     });
 }
