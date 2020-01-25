@@ -47,7 +47,7 @@ public:
 
     using cost_t = distance_t;
     using Node = CPosition;
-    void get_neighbors(const Node& node, std::vector<Node>& neighbors) const;
+    void get_neighbors(const Node& node, std::vector<Node>& neighbors, BFDirection dir = BFDirection::Forward) const;
     cost_t cost(const Node& s, const Node& t) const;
     cost_t heuristic_cost(const Node& s, const Node& goal) const;
 

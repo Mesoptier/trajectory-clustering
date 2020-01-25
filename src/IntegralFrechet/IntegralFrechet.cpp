@@ -26,7 +26,7 @@ std::pair<distance_t, Points> IntegralFrechet::compute_matching() {
     // Matching from nodes to nodes (on cell boundaries)
     std::vector<Node> node_matching;
     cost_t cost;
-    std::tie(cost, node_matching) = a_star_search(*this, start, goal);
+    std::tie(cost, node_matching) = bidirectional_dijkstra_search(*this, start, goal);
 
     // Actual polygonal matching with arc-length coordinates
     Points matching{{0, 0}};
@@ -77,51 +77,58 @@ distance_t IntegralFrechet::compute_cell_cost(const Cell& cell, const Points& ma
 // Requirements for A* algorithm:
 //
 
-void IntegralFrechet::get_neighbors(const IntegralFrechet::Node& node, std::vector<Node>& neighbors) const {
-    if (node[0].getPoint() + 1 == curve1.size()) { // Right boundary
-        if (node[1].getPoint() + 1 == curve2.size()) { // Top-right corner
-            return; // No neighbors
-        }
-        // Move up one cell
-        neighbors.push_back({node[0], node[1].floor() + 1});
+void IntegralFrechet::get_neighbors(const IntegralFrechet::Node& node, std::vector<Node>& neighbors, BFDirection dir) const {
+    CPoint s1 = node[0];
+    CPoint s2 = node[1];
+    CPoint t1 = dir == BFDirection::Forward
+        ? (s1.getPoint() == curve1.size() - 1 ? s1 : s1.floor() + 1)
+        : (s1.ceil().getPoint() == 0 ? s1 : s1.ceil() - 1);
+    CPoint t2 = dir == BFDirection::Forward
+        ? (s2.getPoint() == curve2.size() - 1 ? s2 : s2.floor() + 1)
+        : (s2.ceil().getPoint() == 0 ? s2 : s2.ceil() - 1);
+
+    if (s1 == t1 && s2 == t2) {
         return;
     }
-    if (node[1].getPoint() + 1 == curve2.size()) { // Top boundary
-        // Move right one cell
-        neighbors.push_back({node[0].floor() + 1, node[1]});
+    if (s1 == t1 || s2 == t2) {
+        neighbors.push_back({t1, t2});
         return;
     }
 
-    // We are not along the outer top/right boundary, which means the node is part of a cell
+    neighbors.push_back({s1, t2});
+    neighbors.push_back({t1, s2});
+    neighbors.push_back({t1, t2});
 
-    // Compute the number of sampling points
-    const auto len1 = curve1.curve_length(node[0], node[0].floor() + 1);
-    const auto len2 = curve2.curve_length(node[1], node[1].floor() + 1);
-    const size_t n1 = ceil(len1 / resolution) + 1;
-    const size_t n2 = ceil(len2 / resolution) + 1;
+    // TODO: Implement sampling again with `dir` support
 
-    // Sample along top edge if there are more cells above this one
-    if (node[1].getPoint() + 2 < curve2.size()) {
-        for (int i = 0; i < n1 - 1; ++i) {
-            distance_t fraction = i / (n1 - 1.);
-            if (fraction >= node[0].getFraction()) {
-                neighbors.push_back({node[0].floor() + fraction, node[1].floor() + 1});
-            }
-        }
-    }
-
-    // Sample along right edge if there are more cells right of this one
-    if (node[0].getPoint() + 2 < curve1.size()) {
-        for (int i = 0; i < n2 - 1; ++i) {
-            distance_t fraction = i / (n2 - 1.);
-            if (fraction >= node[1].getFraction()) {
-                neighbors.push_back({node[0].floor() + 1, node[1].floor() + fraction});
-            }
-        }
-    }
-
-    // Always add top-right corner
-    neighbors.push_back({node[0].floor() + 1, node[1].floor() + 1});
+//    // Compute the number of sampling points
+//    const auto len1 = curve1.curve_length(node[0], node[0].floor() + 1);
+//    const auto len2 = curve2.curve_length(node[1], node[1].floor() + 1);
+//    const size_t n1 = ceil(len1 / resolution) + 1;
+//    const size_t n2 = ceil(len2 / resolution) + 1;
+//
+//    // Sample along top edge if there are more cells above this one
+//    if (node[1].getPoint() + 2 < curve2.size()) {
+//        for (int i = 0; i < n1 - 1; ++i) {
+//            distance_t fraction = i / (n1 - 1.);
+//            if (fraction >= node[0].getFraction()) {
+//                neighbors.push_back({node[0].floor() + fraction, node[1].floor() + 1});
+//            }
+//        }
+//    }
+//
+//    // Sample along right edge if there are more cells right of this one
+//    if (node[0].getPoint() + 2 < curve1.size()) {
+//        for (int i = 0; i < n2 - 1; ++i) {
+//            distance_t fraction = i / (n2 - 1.);
+//            if (fraction >= node[1].getFraction()) {
+//                neighbors.push_back({node[0].floor() + 1, node[1].floor() + fraction});
+//            }
+//        }
+//    }
+//
+//    // Always add top-right corner
+//    neighbors.push_back({node[0].floor() + 1, node[1].floor() + 1});
 }
 
 IntegralFrechet::cost_t IntegralFrechet::cost(const IntegralFrechet::Node& s, const IntegralFrechet::Node& t) const {

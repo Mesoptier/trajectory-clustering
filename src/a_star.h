@@ -145,3 +145,101 @@ a_star_search(const Graph& graph, typename Graph::Node start, typename Graph::No
     std::cout << "[A*] failure\n";
     throw std::runtime_error("A* failed to find a path");
 }
+
+template<class Graph>
+std::pair<typename Graph::cost_t, std::vector<typename Graph::Node>>
+bidirectional_dijkstra_search(const Graph& graph, typename Graph::Node s, typename Graph::Node t) {
+    using Node = typename Graph::Node;
+    using cost_t = typename Graph::cost_t;
+    constexpr cost_t inf = std::numeric_limits<cost_t>::infinity();
+
+    #ifdef A_STAR_STATS
+    a_star::Stats stats{};
+    #endif
+
+    using QueueNode = std::pair<cost_t, Node>;
+    std::priority_queue<QueueNode, std::vector<QueueNode>, std::greater<>> open_set_f;
+    std::priority_queue<QueueNode, std::vector<QueueNode>, std::greater<>> open_set_b;
+    open_set_f.emplace(0, s);
+    open_set_b.emplace(0, t);
+
+    std::unordered_map<Node, cost_t> cost_f;
+    std::unordered_map<Node, cost_t> cost_b;
+    cost_f[s] = 0;
+    cost_b[t] = 0;
+
+    std::unordered_map<Node, Node> came_from_f;
+    std::unordered_map<Node, Node> came_from_b;
+
+    cost_t lowest_cost = inf;
+    Node lowest_cost_node = s;
+
+    std::vector<Node> neighbors;
+
+    BFDirection dir = BFDirection::Forward;
+
+    while (!open_set_f.empty() && !open_set_b.empty()) {
+        auto top_f = open_set_f.top();
+        auto top_b = open_set_b.top();
+
+        if (top_f.first + top_b.first >= lowest_cost) {
+            #ifdef A_STAR_STATS
+            std::cout << stats << " open_set remaining: " << (open_set_f.size() + open_set_b.size()) << std::endl;
+            io::export_points("data/out/debug_points.csv", stats.nodes_as_points);
+            #endif
+
+            auto path_f = reconstruct_path<Graph>(came_from_f, lowest_cost_node);
+            auto path_b = reconstruct_path<Graph>(came_from_b, lowest_cost_node);
+            path_f.insert(path_f.end(), path_b.rbegin() + 1, path_b.rend());
+            return {lowest_cost, path_f};
+        }
+
+//        dir = (open_set_f.size() > open_set_b.size()) ? BFDirection::Backward : BFDirection::Forward;
+        dir = (dir == BFDirection::Forward) ? BFDirection::Backward : BFDirection::Forward;
+
+        auto& open_set = dir == BFDirection::Forward ? open_set_f : open_set_b;
+        auto& cost = dir == BFDirection::Forward ? cost_f : cost_b;
+        auto& opposite_cost = dir == BFDirection::Forward ? cost_b : cost_f;
+        auto& came_from = dir == BFDirection::Forward ? came_from_f : came_from_b;
+
+        auto [current_cost, current] = open_set.top();
+        open_set.pop();
+
+        if (get_with_default(cost, current, inf) < current_cost) {
+            #ifdef A_STAR_STATS
+            stats.nodes_skipped++;
+            #endif
+            continue;
+        }
+
+        #ifdef A_STAR_STATS
+        stats.nodes_handled++;
+        stats.nodes_as_points.push_back(graph.node_as_point(current));
+        #endif
+
+        graph.get_neighbors(current, neighbors, dir);
+        for (const Node& neighbor : neighbors) {
+            cost_t neighbor_cost = dir == BFDirection::Forward
+                ? current_cost + graph.cost(current, neighbor)
+                : current_cost + graph.cost(neighbor, current);
+            if (neighbor_cost < get_with_default(cost, neighbor, inf)) {
+                came_from[neighbor] = current;
+                cost[neighbor] = neighbor_cost;
+                open_set.emplace(neighbor_cost, neighbor);
+
+                #ifdef A_STAR_STATS
+                stats.nodes_opened++;
+                #endif
+
+                cost_t path_cost = neighbor_cost + get_with_default(opposite_cost, neighbor, inf);
+                if (path_cost < lowest_cost) {
+                    lowest_cost = path_cost;
+                    lowest_cost_node = neighbor;
+                }
+            }
+        }
+        neighbors.clear();
+    }
+
+    throw std::runtime_error("failed to find a path");
+}

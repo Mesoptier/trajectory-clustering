@@ -19,8 +19,8 @@ int main() {
     //
     auto start_read_curves = std::chrono::high_resolution_clock::now();
 
-    const auto curve1 = io::read_curve("data/characters/data/a0001.txt").coarse();
-    const auto curve2 = io::read_curve("data/characters/data/a0002.txt").coarse();
+    const auto curve1 = io::read_curve("data/characters/data/a0001.txt");
+    const auto curve2 = io::read_curve("data/characters/data/a0002.txt");
 
     auto end_read_curves = std::chrono::high_resolution_clock::now();
     std::cout << "read_curves: " << std::chrono::duration_cast<std::chrono::milliseconds>(end_read_curves - start_read_curves).count() << "ms\n";
@@ -31,7 +31,7 @@ int main() {
 
     auto start_compute_matching = std::chrono::high_resolution_clock::now();
 
-    IntegralFrechet alg(curve1, curve2, ParamMetric::L1, 1);
+    IntegralFrechet alg(curve1, curve2, ParamMetric::LInfinity_NoShortcuts, 100);
     auto [cost, matching] = alg.compute_matching();
 
     auto end_compute_matching = std::chrono::high_resolution_clock::now();
