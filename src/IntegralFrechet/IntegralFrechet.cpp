@@ -19,14 +19,13 @@ Cell IntegralFrechet::get_cell(const CPosition& s, const CPosition& t) const {
     return {s1, s2, t1, t2};
 }
 
-std::pair<distance_t, Points> IntegralFrechet::compute_matching() {
+IntegralFrechet::MatchingResult IntegralFrechet::compute_matching() {
     Node start{CPoint(0, 0), CPoint(0, 0)};
     Node goal{CPoint(curve1.size() - 1, 0), CPoint(curve2.size() - 1, 0)};
 
     // Matching from nodes to nodes (on cell boundaries)
-    std::vector<Node> node_matching;
-    cost_t cost;
-    std::tie(cost, node_matching) = bidirectional_dijkstra_search(*this, start, goal);
+    const auto search_result = bidirectional_dijkstra_search(*this, start, goal);
+    const auto& node_matching = search_result.path;
 
     // Actual polygonal matching with arc-length coordinates
     Points matching{{0, 0}};
@@ -47,7 +46,11 @@ std::pair<distance_t, Points> IntegralFrechet::compute_matching() {
             matching.push_back(offset + cell_matching[j]);
         }
     }
-    return {cost, matching};
+    return {
+        search_result.cost,
+        matching,
+        search_result.stat,
+    };
 }
 
 distance_t IntegralFrechet::cost(const Cell& cell) const {

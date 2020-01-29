@@ -6,6 +6,7 @@
 #include "../geom.h"
 #include "../Curve.h"
 #include "Cell.h"
+#include "../a_star.h"
 
 class IntegralFrechet
 {
@@ -39,7 +40,13 @@ public:
         distance_t resolution
     );
 
-    std::pair<distance_t, Points> compute_matching();
+    struct MatchingResult {
+        distance_t cost;
+        Points matching;
+        shortest_path_algs::SearchStat search_stat;
+    };
+
+    MatchingResult compute_matching();
 
     //
     // Requirements for A* algorithm:

@@ -8,7 +8,7 @@
 #include "io.h"
 
 //#define A_STAR_LOGGING
-#define A_STAR_STATS
+//#define A_STAR_STATS
 
 namespace {
     // From: https://stackoverflow.com/a/26958878/1639600
@@ -40,6 +40,25 @@ namespace a_star {
         }
     };
 }
+
+namespace shortest_path_algs {
+
+    struct SearchStat {
+        size_t nodes_opened;
+        size_t nodes_handled;
+        size_t nodes_skipped;
+    };
+
+    template<class Graph>
+    struct SearchResult {
+        typename Graph::cost_t cost;
+        std::vector<typename Graph::Node> path;
+        SearchStat stat;
+    };
+
+}
+
+using namespace shortest_path_algs;
 
 template<class Graph>
 std::vector<typename Graph::Node>
@@ -147,7 +166,7 @@ a_star_search(const Graph& graph, typename Graph::Node start, typename Graph::No
 }
 
 template<class Graph>
-std::pair<typename Graph::cost_t, std::vector<typename Graph::Node>>
+SearchResult<Graph>
 bidirectional_dijkstra_search(const Graph& graph, typename Graph::Node s, typename Graph::Node t) {
     using Node = typename Graph::Node;
     using cost_t = typename Graph::cost_t;
@@ -156,6 +175,8 @@ bidirectional_dijkstra_search(const Graph& graph, typename Graph::Node s, typena
     #ifdef A_STAR_STATS
     a_star::Stats stats{};
     #endif
+
+    SearchStat stat{};
 
     using QueueNode = std::pair<cost_t, Node>;
     std::priority_queue<QueueNode, std::vector<QueueNode>, std::greater<>> open_set_f;
@@ -191,11 +212,15 @@ bidirectional_dijkstra_search(const Graph& graph, typename Graph::Node s, typena
             auto path_f = reconstruct_path<Graph>(came_from_f, lowest_cost_node);
             auto path_b = reconstruct_path<Graph>(came_from_b, lowest_cost_node);
             path_f.insert(path_f.end(), path_b.rbegin() + 1, path_b.rend());
-            return {lowest_cost, path_f};
+            return {
+                lowest_cost,
+                path_f,
+                stat,
+            };
         }
 
-//        dir = (open_set_f.size() > open_set_b.size()) ? BFDirection::Backward : BFDirection::Forward;
-        dir = (dir == BFDirection::Forward) ? BFDirection::Backward : BFDirection::Forward;
+        dir = (open_set_f.size() > open_set_b.size()) ? BFDirection::Backward : BFDirection::Forward;
+//        dir = (dir == BFDirection::Forward) ? BFDirection::Backward : BFDirection::Forward;
 
         auto& open_set = dir == BFDirection::Forward ? open_set_f : open_set_b;
         auto& cost = dir == BFDirection::Forward ? cost_f : cost_b;
@@ -206,14 +231,12 @@ bidirectional_dijkstra_search(const Graph& graph, typename Graph::Node s, typena
         open_set.pop();
 
         if (get_with_default(cost, current, inf) < current_cost) {
-            #ifdef A_STAR_STATS
-            stats.nodes_skipped++;
-            #endif
+            ++stat.nodes_skipped;
             continue;
         }
+        ++stat.nodes_handled;
 
         #ifdef A_STAR_STATS
-        stats.nodes_handled++;
         stats.nodes_as_points.push_back(graph.node_as_point(current));
         #endif
 
@@ -227,9 +250,7 @@ bidirectional_dijkstra_search(const Graph& graph, typename Graph::Node s, typena
                 cost[neighbor] = neighbor_cost;
                 open_set.emplace(neighbor_cost, neighbor);
 
-                #ifdef A_STAR_STATS
-                stats.nodes_opened++;
-                #endif
+                ++stat.nodes_opened;
 
                 cost_t path_cost = neighbor_cost + get_with_default(opposite_cost, neighbor, inf);
                 if (path_cost < lowest_cost) {
