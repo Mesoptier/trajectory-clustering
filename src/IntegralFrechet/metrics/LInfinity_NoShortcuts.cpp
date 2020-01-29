@@ -163,6 +163,12 @@ Points compute_matching<ParamMetric::LInfinity_NoShortcuts>(const Cell& cell) {
     Points path_forward = {s};
     Points path_backward = {t};
 
+    // Return if trivial
+    if (approx_equal(s.x, t.x) || approx_equal(s.y, t.y)) {
+        join_paths(path_forward, path_backward);
+        return path_forward;
+    }
+
     // Try steepest descent parallel to middle ellipse axis
     s = linf_sd_diag(path_forward, cell, s, t, BFDirection::Forward);
     t = linf_sd_diag(path_backward, cell, t, s, BFDirection::Backward);
