@@ -60,10 +60,10 @@ namespace shortest_path_algs {
 
 using namespace shortest_path_algs;
 
-template<class Graph>
-std::vector<typename Graph::Node>
-reconstruct_path(const std::unordered_map<typename Graph::Node, typename Graph::Node>& came_from, typename Graph::Node current) {
-    std::vector<typename Graph::Node> path{current};
+template<class Node>
+std::vector<Node>
+reconstruct_path(const std::unordered_map<Node, Node>& came_from, Node current) {
+    std::vector<Node> path{current};
 
     auto it = came_from.find(current);
     while (it != came_from.end()) {
@@ -169,6 +169,7 @@ template<class Graph>
 SearchResult<Graph>
 bidirectional_dijkstra_search(const Graph& graph, typename Graph::Node s, typename Graph::Node t) {
     using Node = typename Graph::Node;
+    using NodeID = size_t;
     using cost_t = typename Graph::cost_t;
     constexpr cost_t inf = std::numeric_limits<cost_t>::infinity();
 
@@ -178,22 +179,31 @@ bidirectional_dijkstra_search(const Graph& graph, typename Graph::Node s, typena
 
     SearchStat stat{};
 
-    using QueueNode = std::pair<cost_t, Node>;
+    std::vector<Node> nodes;
+    std::unordered_map<Node, NodeID> node_ids;
+
+    using QueueNode = std::pair<cost_t, NodeID>;
     std::priority_queue<QueueNode, std::vector<QueueNode>, std::greater<>> open_set_f;
     std::priority_queue<QueueNode, std::vector<QueueNode>, std::greater<>> open_set_b;
-    open_set_f.emplace(0, s);
-    open_set_b.emplace(0, t);
 
-    std::unordered_map<Node, cost_t> cost_f;
-    std::unordered_map<Node, cost_t> cost_b;
-    cost_f[s] = 0;
-    cost_b[t] = 0;
+    std::unordered_map<NodeID, cost_t> cost_f;
+    std::unordered_map<NodeID, cost_t> cost_b;
 
-    std::unordered_map<Node, Node> came_from_f;
-    std::unordered_map<Node, Node> came_from_b;
+    std::unordered_map<NodeID, NodeID> came_from_f;
+    std::unordered_map<NodeID, NodeID> came_from_b;
+
+    NodeID s_id = nodes.size();
+    nodes.push_back(s);
+    open_set_f.emplace(0, s_id);
+    cost_f[s_id] = 0;
+
+    NodeID t_id = nodes.size();
+    nodes.push_back(t);
+    open_set_b.emplace(0, t_id);
+    cost_b[t_id] = 0;
 
     cost_t lowest_cost = inf;
-    Node lowest_cost_node = s;
+    NodeID lowest_cost_node_id = s_id;
 
     std::vector<Node> neighbors;
 
@@ -209,12 +219,18 @@ bidirectional_dijkstra_search(const Graph& graph, typename Graph::Node s, typena
             io::export_points("data/out/debug_points.csv", stats.nodes_as_points);
             #endif
 
-            auto path_f = reconstruct_path<Graph>(came_from_f, lowest_cost_node);
-            auto path_b = reconstruct_path<Graph>(came_from_b, lowest_cost_node);
-            path_f.insert(path_f.end(), path_b.rbegin() + 1, path_b.rend());
+            auto id_path_f = reconstruct_path<NodeID>(came_from_f, lowest_cost_node_id);
+            auto id_path_b = reconstruct_path<NodeID>(came_from_b, lowest_cost_node_id);
+            id_path_f.insert(id_path_f.end(), id_path_b.rbegin() + 1, id_path_b.rend());
+
+            std::vector<Node> path;
+            for (auto id : id_path_f) {
+                path.push_back(nodes[id]);
+            }
+
             return {
                 lowest_cost,
-                path_f,
+                path,
                 stat,
             };
         }
@@ -227,10 +243,11 @@ bidirectional_dijkstra_search(const Graph& graph, typename Graph::Node s, typena
         auto& opposite_cost = dir == BFDirection::Forward ? cost_b : cost_f;
         auto& came_from = dir == BFDirection::Forward ? came_from_f : came_from_b;
 
-        auto [current_cost, current] = open_set.top();
+        auto [current_cost, current_id] = open_set.top();
         open_set.pop();
+        auto current = nodes[current_id];
 
-        if (get_with_default(cost, current, inf) < current_cost) {
+        if (get_with_default(cost, current_id, inf) < current_cost) {
             ++stat.nodes_skipped;
             continue;
         }
@@ -245,17 +262,26 @@ bidirectional_dijkstra_search(const Graph& graph, typename Graph::Node s, typena
             cost_t neighbor_cost = dir == BFDirection::Forward
                 ? current_cost + graph.cost(current, neighbor)
                 : current_cost + graph.cost(neighbor, current);
-            if (neighbor_cost < get_with_default(cost, neighbor, inf)) {
-                came_from[neighbor] = current;
-                cost[neighbor] = neighbor_cost;
-                open_set.emplace(neighbor_cost, neighbor);
+
+            auto neighbor_id_it = node_ids.find(neighbor);
+            NodeID neighbor_id = neighbor_id_it != node_ids.end() ? neighbor_id_it->second : nodes.size();
+
+            if (neighbor_id == nodes.size()) {
+                nodes.push_back(neighbor);
+                node_ids[neighbor] = neighbor_id;
+            }
+
+            if (neighbor_cost < get_with_default(cost, neighbor_id, inf)) {
+                came_from[neighbor_id] = current_id;
+                cost[neighbor_id] = neighbor_cost;
+                open_set.emplace(neighbor_cost, neighbor_id);
 
                 ++stat.nodes_opened;
 
-                cost_t path_cost = neighbor_cost + get_with_default(opposite_cost, neighbor, inf);
+                cost_t path_cost = neighbor_cost + get_with_default(opposite_cost, neighbor_id, inf);
                 if (path_cost < lowest_cost) {
                     lowest_cost = path_cost;
-                    lowest_cost_node = neighbor;
+                    lowest_cost_node_id = neighbor_id;
                 }
             }
         }
