@@ -200,10 +200,10 @@ bidirectional_dijkstra_search(const Graph& graph, typename Graph::Node s, typena
     BFDirection dir = BFDirection::Forward;
 
     while (!open_set_f.empty() && !open_set_b.empty()) {
-        auto top_f = open_set_f.top();
-        auto top_b = open_set_b.top();
+        auto top_f_cost = open_set_f.top().first;
+        auto top_b_cost = open_set_b.top().first;
 
-        if (top_f.first + top_b.first >= lowest_cost) {
+        if (top_f_cost + top_b_cost >= lowest_cost) {
             #ifdef A_STAR_STATS
             std::cout << stats << " open_set remaining: " << (open_set_f.size() + open_set_b.size()) << std::endl;
             io::export_points("data/out/debug_points.csv", stats.nodes_as_points);
