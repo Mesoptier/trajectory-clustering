@@ -61,9 +61,9 @@ distance_t IntegralFrechet::cost(const Cell& cell) const {
 Points IntegralFrechet::compute_cell_matching(const Cell& cell) const {
     switch (param_metric) {
         case ParamMetric::L1:
-            return ::compute_matching<ParamMetric::L1>(cell);
+            return ::compute_matching<ParamMetric::L1>(cell, cell.s, cell.t);
         case ParamMetric::LInfinity_NoShortcuts:
-            return ::compute_matching<ParamMetric::LInfinity_NoShortcuts>(cell);
+            return ::compute_matching<ParamMetric::LInfinity_NoShortcuts>(cell, cell.s, cell.t);
     }
 }
 

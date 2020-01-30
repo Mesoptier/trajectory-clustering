@@ -52,12 +52,12 @@ namespace {
 }
 
 template<>
-Points compute_matching<ParamMetric::L1>(const Cell& cell) {
+Points compute_matching<ParamMetric::L1>(const Cell& cell, const Point& s, const Point& t) {
     if (cell.is_degenerate()) {
-        if (approx_equal(cell.s, cell.t)) {
-            return {cell.s};
+        if (approx_equal(s, t)) {
+            return {s};
         } else {
-            return {cell.s, cell.t};
+            return {s, t};
         }
     }
 
@@ -67,8 +67,8 @@ Points compute_matching<ParamMetric::L1>(const Cell& cell) {
     path1.reserve(4);
     path2.reserve(4);
 
-    steepest_descent(cell, cell.s, cell.t, path1);
-    steepest_descent(cell, cell.t, cell.s, path2);
+    steepest_descent(cell, s, t, path1);
+    steepest_descent(cell, t, s, path2);
 
     // Steepest descent from both ends should find the same minimum
     #ifndef NDEBUG
@@ -83,6 +83,6 @@ Points compute_matching<ParamMetric::L1>(const Cell& cell) {
 }
 
 template<>
-distance_t integrate_linear_dist<ParamMetric::L1>(const Cell& cell) {
-    return cell.len1 + cell.len2;
+distance_t integrate_linear_dist<ParamMetric::L1>(const Cell& cell, const Point& s, const Point& t) {
+    return abs(t.x - s.x) + abs(t.y - s.y);
 }

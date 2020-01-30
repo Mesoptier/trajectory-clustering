@@ -8,6 +8,11 @@ namespace {
         path_forward.insert(path_forward.end(), path_backward.rbegin() + 1, path_backward.rend());
     }
 
+    void join_forward_paths(Points& path_left, const Points& path_right) {
+        assert(approx_equal(path_left.back(), path_right.front()));
+        path_left.insert(path_left.end(), path_right.begin() + 1, path_right.end());
+    }
+
     Point linf_sd_diag(Points& path, const Cell& cell, const Point& s, const Point& t, BFDirection dir) {
         const auto line_left = (dir == BFDirection::Forward ? -1 : 1);
         if (cell.ell_v.side(s) != -line_left || cell.ell_h.side(s) != line_left) {
@@ -111,54 +116,57 @@ namespace {
 }
 
 template<>
-Points compute_matching<ParamMetric::LInfinity_NoShortcuts>(const Cell& cell) {
+Points compute_matching<ParamMetric::LInfinity_NoShortcuts>(const Cell& cell, const Point& cell_s, const Point& cell_t) {
     const auto& ell_h = cell.ell_h;
     const auto& ell_v = cell.ell_v;
 
     const bool is_opposite_direction = !approx_zero(cell.ell_v.direction.y) && cell.ell_v.direction.y < 0;
 
+    const auto cell_len1 = abs(cell_s.x - cell_t.x);
+    const auto cell_len2 = abs(cell_s.y - cell_t.y);
+
     // Check if we need to deal with the case where the steepest descent
     // paths would not meet in a single point:
-    if (is_opposite_direction && !approx_equal(cell.len1, cell.len2)) {
-        if (cell.len2 > cell.len1) {
-            if (ell_h.side(cell.s) != 0 && ell_h.side(cell.t) != 0 && ell_h.side(cell.s) != ell_h.side(cell.t)) {
+    if (is_opposite_direction && !approx_equal(cell_len1, cell_len2)) {
+        if (cell_len2 > cell_len1) {
+            if (ell_h.side(cell_s) != 0 && ell_h.side(cell_t) != 0 && ell_h.side(cell_s) != ell_h.side(cell_t)) {
                 // Vertical plateau case
 
                 const Line diag(
-                    cell.s + Point(cell.s.x, cell.s.y + (cell.len2 - cell.len1) / 2),
+                    cell_s + Point(cell_s.x, cell_s.y + (cell_len2 - cell_len1) / 2),
                     {1, 1}
                 );
 
                 const auto p = intersect(diag, ell_h);
 
-                Points path_forward = compute_matching<ParamMetric::LInfinity_NoShortcuts>(cell.subcell(cell.s, p));
-                Points path_backward = compute_matching<ParamMetric::LInfinity_NoShortcuts>(cell.subcell(cell.t, p));
+                Points path_left = compute_matching<ParamMetric::LInfinity_NoShortcuts>(cell, cell_s, p);
+                Points path_right = compute_matching<ParamMetric::LInfinity_NoShortcuts>(cell, p, cell_t);
 
-                join_paths(path_forward, path_backward);
-                return path_forward;
+                join_forward_paths(path_left, path_right);
+                return path_left;
             }
         } else {
-            if (ell_v.side(cell.s) != 0 && ell_v.side(cell.t) != 0 && ell_v.side(cell.s) != ell_v.side(cell.t)) {
+            if (ell_v.side(cell_s) != 0 && ell_v.side(cell_t) != 0 && ell_v.side(cell_s) != ell_v.side(cell_t)) {
                 // Horizontal plateau case
 
                 const Line diag(
-                    cell.s + Point(cell.s.x + (cell.len1 - cell.len2) / 2, cell.s.y),
+                    cell_s + Point(cell_s.x + (cell_len1 - cell_len2) / 2, cell_s.y),
                     {1, 1}
                 );
 
                 const auto p = intersect(diag, ell_v);
 
-                Points path_forward = compute_matching<ParamMetric::LInfinity_NoShortcuts>(cell.subcell(cell.s, p));
-                Points path_backward = compute_matching<ParamMetric::LInfinity_NoShortcuts>(cell.subcell(cell.t, p));
+                Points path_left = compute_matching<ParamMetric::LInfinity_NoShortcuts>(cell, cell_s, p);
+                Points path_right = compute_matching<ParamMetric::LInfinity_NoShortcuts>(cell, p, cell_t);
 
-                join_paths(path_forward, path_backward);
-                return path_forward;
+                join_forward_paths(path_left, path_right);
+                return path_left;
             }
         }
     }
 
-    auto s = cell.s;
-    auto t = cell.t;
+    auto s = cell_s;
+    auto t = cell_t;
 
     Points path_forward = {s};
     Points path_backward = {t};
@@ -203,6 +211,6 @@ Points compute_matching<ParamMetric::LInfinity_NoShortcuts>(const Cell& cell) {
 }
 
 template<>
-distance_t integrate_linear_dist<ParamMetric::LInfinity_NoShortcuts>(const Cell& cell) {
-    return std::max(cell.len1, cell.len2);
+distance_t integrate_linear_dist<ParamMetric::LInfinity_NoShortcuts>(const Cell& cell, const Point& s, const Point& t) {
+    return std::max(abs(t.x - s.x), abs(t.y - s.y));
 }
