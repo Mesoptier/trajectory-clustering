@@ -125,6 +125,22 @@ Points compute_matching<ParamMetric::LInfinity_NoShortcuts>(const Cell& cell, co
     const auto cell_len1 = abs(cell_s.x - cell_t.x);
     const auto cell_len2 = abs(cell_s.y - cell_t.y);
 
+    auto s = cell_s;
+    auto t = cell_t;
+
+    Points path_forward = {s};
+    Points path_backward = {t};
+
+    // Return if trivial
+    if (approx_equal(s.x, t.x) || approx_equal(s.y, t.y)) {
+        join_paths(path_forward, path_backward);
+        return path_forward;
+    }
+
+    assert(cell_s.x <= cell_t.x);
+    assert(cell_s.y <= cell_t.y);
+    MonotoneComparator compare(BFDirection::Forward);
+
     // Check if we need to deal with the case where the steepest descent
     // paths would not meet in a single point:
     if (is_opposite_direction && !approx_equal(cell_len1, cell_len2)) {
@@ -133,11 +149,23 @@ Points compute_matching<ParamMetric::LInfinity_NoShortcuts>(const Cell& cell, co
                 // Vertical plateau case
 
                 const Line diag(
-                    cell_s + Point(cell_s.x, cell_s.y + (cell_len2 - cell_len1) / 2),
+                    cell_s + Point(0, (cell_len2 - cell_len1) / 2),
                     {1, 1}
                 );
 
-                const auto p = intersect(diag, ell_h);
+                auto p = intersect(diag, ell_h);
+
+                if (!compare(cell_s, p)) {
+                    p = std::max({
+                        intersect(diag, Line::horizontal(cell_s)),
+                        intersect(diag, Line::vertical(cell_s)),
+                    }, compare);
+                } else if (!compare(p, cell_t)) {
+                    p = std::max({
+                        intersect(diag, Line::horizontal(cell_t)),
+                        intersect(diag, Line::vertical(cell_t)),
+                    }, compare);
+                }
 
                 Points path_left = compute_matching<ParamMetric::LInfinity_NoShortcuts>(cell, cell_s, p);
                 Points path_right = compute_matching<ParamMetric::LInfinity_NoShortcuts>(cell, p, cell_t);
@@ -150,11 +178,23 @@ Points compute_matching<ParamMetric::LInfinity_NoShortcuts>(const Cell& cell, co
                 // Horizontal plateau case
 
                 const Line diag(
-                    cell_s + Point(cell_s.x + (cell_len1 - cell_len2) / 2, cell_s.y),
+                    cell_s + Point((cell_len1 - cell_len2) / 2, 0),
                     {1, 1}
                 );
 
-                const auto p = intersect(diag, ell_v);
+                auto p = intersect(diag, ell_v);
+
+                if (!compare(cell_s, p)) {
+                    p = std::max({
+                        intersect(diag, Line::horizontal(cell_s)),
+                        intersect(diag, Line::vertical(cell_s)),
+                    }, compare);
+                } else if (!compare(p, cell_t)) {
+                    p = std::max({
+                        intersect(diag, Line::horizontal(cell_t)),
+                        intersect(diag, Line::vertical(cell_t)),
+                    }, compare);
+                }
 
                 Points path_left = compute_matching<ParamMetric::LInfinity_NoShortcuts>(cell, cell_s, p);
                 Points path_right = compute_matching<ParamMetric::LInfinity_NoShortcuts>(cell, p, cell_t);
@@ -163,18 +203,6 @@ Points compute_matching<ParamMetric::LInfinity_NoShortcuts>(const Cell& cell, co
                 return path_left;
             }
         }
-    }
-
-    auto s = cell_s;
-    auto t = cell_t;
-
-    Points path_forward = {s};
-    Points path_backward = {t};
-
-    // Return if trivial
-    if (approx_equal(s.x, t.x) || approx_equal(s.y, t.y)) {
-        join_paths(path_forward, path_backward);
-        return path_forward;
     }
 
     // Try steepest descent parallel to middle ellipse axis
