@@ -19,7 +19,7 @@ private:
 
     Cell get_cell(const CPosition& s, const CPosition& t) const;
 
-    Points compute_cell_matching(const Cell& cell) const;
+    Points compute_cell_matching(const Cell& cell, const Point& s, const Point& t) const;
     distance_t compute_cell_cost(const Cell& cell, const Points& matching) const;
 
     /**
@@ -29,7 +29,7 @@ private:
      * @param cell
      * @return
      */
-    distance_t cost(const Cell& cell) const;
+    distance_t cost(const Cell& cell, const Point& s, const Point& t) const;
 
 public:
 
@@ -54,9 +54,7 @@ public:
 
     using cost_t = distance_t;
     using Node = CPosition;
-    void get_neighbors(const Node& node, std::vector<Node>& neighbors, BFDirection dir = BFDirection::Forward) const;
-    cost_t cost(const Node& s, const Node& t) const;
-    cost_t heuristic_cost(const Node& s, const Node& goal) const;
+    void get_neighbors(const Node& node, std::vector<Node>& neighbors, std::vector<cost_t>& costs, BFDirection dir) const;
 
     Point node_as_point(const Node& node) const {
         return {

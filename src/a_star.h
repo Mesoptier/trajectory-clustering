@@ -206,6 +206,7 @@ bidirectional_dijkstra_search(const Graph& graph, typename Graph::Node s, typena
     NodeID lowest_cost_node_id = s_id;
 
     std::vector<Node> neighbors;
+    std::vector<cost_t> costs;
 
     BFDirection dir = BFDirection::Forward;
 
@@ -257,11 +258,10 @@ bidirectional_dijkstra_search(const Graph& graph, typename Graph::Node s, typena
         stats.nodes_as_points.push_back(graph.node_as_point(current));
         #endif
 
-        graph.get_neighbors(current, neighbors, dir);
-        for (const Node& neighbor : neighbors) {
-            cost_t neighbor_cost = dir == BFDirection::Forward
-                ? current_cost + graph.cost(current, neighbor)
-                : current_cost + graph.cost(neighbor, current);
+        graph.get_neighbors(current, neighbors, costs, dir);
+        for (size_t i = 0; i < neighbors.size(); ++i) {
+            const Node& neighbor = neighbors[i];
+            cost_t neighbor_cost = current_cost + costs[i];
 
             auto neighbor_id_it = node_ids.find(neighbor);
             NodeID neighbor_id = neighbor_id_it != node_ids.end() ? neighbor_id_it->second : nodes.size();
@@ -286,6 +286,7 @@ bidirectional_dijkstra_search(const Graph& graph, typename Graph::Node s, typena
             }
         }
         neighbors.clear();
+        costs.clear();
     }
 
     throw std::runtime_error("failed to find a path");
