@@ -81,57 +81,76 @@ distance_t IntegralFrechet::compute_cell_cost(const Cell& cell, const Points& ma
 //
 
 void IntegralFrechet::get_neighbors(const IntegralFrechet::Node& node, std::vector<Node>& neighbors, BFDirection dir) const {
-    CPoint s1 = node[0];
-    CPoint s2 = node[1];
-    CPoint t1 = dir == BFDirection::Forward
-        ? (s1.getPoint() == curve1.size() - 1 ? s1 : s1.floor() + 1)
-        : (s1.ceil().getPoint() == 0 ? s1 : s1.ceil() - 1);
-    CPoint t2 = dir == BFDirection::Forward
-        ? (s2.getPoint() == curve2.size() - 1 ? s2 : s2.floor() + 1)
-        : (s2.ceil().getPoint() == 0 ? s2 : s2.ceil() - 1);
+    // p: point in the cell
+    const CPoint p1 = node[0];
+    const CPoint p2 = node[1];
 
-    if (s1 == t1 && s2 == t2) {
+    // s: corner of the cell smaller than p w.r.t. `dir` (i.e. s <=_dir p)
+    const CPoint s1 = dir == BFDirection::Forward ? p1.floor() : p1.ceil();
+    const CPoint s2 = dir == BFDirection::Forward ? p2.floor() : p2.ceil();
+
+    // t: corner of the cell greater than p w.r.t. `dir` (i.e. p <=_dir t)
+    const CPoint t1 = dir == BFDirection::Forward
+        ? (p1.getPoint() == curve1.size() - 1 ? p1 : p1.floor() + 1)
+        : (p1.ceil().getPoint() == 0 ? p1 : p1.ceil() - 1);
+    const CPoint t2 = dir == BFDirection::Forward
+        ? (p2.getPoint() == curve2.size() - 1 ? p2 : p2.floor() + 1)
+        : (p2.ceil().getPoint() == 0 ? p2 : p2.ceil() - 1);
+
+    // Handle degenerate cases where cell has no width and/or height (i.e. we are on the param space boundary)
+    if (p1 == t1 && p2 == t2) {
         return;
     }
-    if (s1 == t1 || s2 == t2) {
+    if (p1 == t1 || p2 == t2) {
         neighbors.push_back({t1, t2});
         return;
     }
 
-    neighbors.push_back({s1, t2});
-    neighbors.push_back({t1, s2});
+    // At this point we have s <=_{dir} p <_{dir} t
+
+    // To prevent floating point errors we need to have a full cell in the forwards direction
+    // and compute sampling points along its boundary.
+    const Cell full_cell = dir == BFDirection::Forward
+        ? get_cell({s1, s2}, {t1, t2})
+        : get_cell({t1, t2}, {s1, s2});
+
+    // CPosition of bottom-left corner of full_cell
+    const CPoint fs1 = dir == BFDirection::Forward ? s1 : t1;
+    const CPoint fs2 = dir == BFDirection::Forward ? s2 : t2;
+
+    // Number of nodes along horizontal/vertical boundaries
+    const size_t n_h = ceil(full_cell.len1 / resolution) + 1;
+    const size_t n_v = ceil(full_cell.len2 / resolution) + 1;
+
+    // TODO: Add intersections of ell_h/ell_v/ell_m with cell boundaries (and of adjacent cells)
+    // Cell boundary lines
+    const Line bound_h = Line::horizontal(dir == BFDirection::Forward ? full_cell.t : full_cell.s);
+    const Line bound_v = Line::vertical(dir == BFDirection::Forward ? full_cell.t : full_cell.s);
+
+    // If there another cell above/below this cell...
+    if (dir == BFDirection::Forward ? (t2.getPoint() + 1 < curve2.size()) : (t2.getPoint() >= 1)) {
+        // ...sample points along the top/bottom boundary of the cell:
+        for (size_t i = 0; i < n_h; ++i) {
+            const CPoint o1 = fs1 + ((distance_t) i / (n_h - 1.0));
+            if (dir == BFDirection::Forward ? o1 >= p1 : o1 <= p1) {
+                neighbors.push_back({o1, t2});
+            }
+        }
+    }
+
+    // If there another cell left/right of this cell...
+    if (dir == BFDirection::Forward ? (t1.getPoint() + 1 < curve1.size()) : (t1.getPoint() >= 1)) {
+        // ...sample points along the left/right boundary of the cell:
+        for (size_t i = 0; i < n_v; ++i) {
+            const CPoint o2 = fs2 + ((distance_t) i / (n_v - 1.0));
+            if (dir == BFDirection::Forward ? o2 >= p2 : o2 <= p2) {
+                neighbors.push_back({t1, o2});
+            }
+        }
+    }
+
+    // Always add top-right (or bottom-left) corner
     neighbors.push_back({t1, t2});
-
-    // TODO: Implement sampling again with `dir` support
-
-//    // Compute the number of sampling points
-//    const auto len1 = curve1.curve_length(node[0], node[0].floor() + 1);
-//    const auto len2 = curve2.curve_length(node[1], node[1].floor() + 1);
-//    const size_t n1 = ceil(len1 / resolution) + 1;
-//    const size_t n2 = ceil(len2 / resolution) + 1;
-//
-//    // Sample along top edge if there are more cells above this one
-//    if (node[1].getPoint() + 2 < curve2.size()) {
-//        for (int i = 0; i < n1 - 1; ++i) {
-//            distance_t fraction = i / (n1 - 1.);
-//            if (fraction >= node[0].getFraction()) {
-//                neighbors.push_back({node[0].floor() + fraction, node[1].floor() + 1});
-//            }
-//        }
-//    }
-//
-//    // Sample along right edge if there are more cells right of this one
-//    if (node[0].getPoint() + 2 < curve1.size()) {
-//        for (int i = 0; i < n2 - 1; ++i) {
-//            distance_t fraction = i / (n2 - 1.);
-//            if (fraction >= node[1].getFraction()) {
-//                neighbors.push_back({node[0].floor() + 1, node[1].floor() + fraction});
-//            }
-//        }
-//    }
-//
-//    // Always add top-right corner
-//    neighbors.push_back({node[0].floor() + 1, node[1].floor() + 1});
 }
 
 IntegralFrechet::cost_t IntegralFrechet::cost(const IntegralFrechet::Node& s, const IntegralFrechet::Node& t) const {
