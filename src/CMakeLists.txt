@@ -8,6 +8,7 @@ set(SOURCE_FILES
     IntegralFrechet/Cell.cpp
     IntegralFrechet/metrics/L1.cpp
     IntegralFrechet/metrics/LInfinity_NoShortcuts.cpp
+    SymmetricMatrix.cpp
 )
 
 add_library(TrajectoryClustering_lib STATIC ${SOURCE_FILES} ${HEADER_FILES})
