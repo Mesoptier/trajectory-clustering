@@ -5,6 +5,7 @@
 #include "src/io.h"
 #include "src/Curve.h"
 #include "src/IntegralFrechet/IntegralFrechet.h"
+#include "src/SymmetricMatrix.h"
 
 struct MatchingStat {
     long long int duration;
@@ -37,41 +38,32 @@ int main() {
     std::cout << "read_curves: " << std::chrono::duration_cast<std::chrono::milliseconds>(end_read_curves - start_read_curves).count() << "ms\n";
 
     //
-    // COMPUTE MATCHING
+    // COMPUTE DISTANCE MATRIX
     //
 
-    const auto& curve1 = curves.front();
-
-    std::vector<MatchingStat> stats;
+    size_t n = curves.size();
+    SymmetricMatrix distance_matrix(n);
 
     auto start_all = std::chrono::high_resolution_clock::now();
 
-    for (size_t i = 0; i < curves.size(); ++i) {
-        const auto curve2 = curves[i];
+    for (size_t i = 0; i < n; ++i) {
+        const auto curve1 = curves[i].coarse();
 
-        auto start_compute_matching = std::chrono::high_resolution_clock::now();
+        // Don't compute the j == i case, since the cost is always 0 (comparing identical curves)
+        distance_matrix.at(i, i) = 0;
 
-        IntegralFrechet alg(curve1, curve2, ParamMetric::LInfinity_NoShortcuts, 100);
-        const auto result = alg.compute_matching();
+        for (size_t j = i + 1; j < n; ++j) {
+            const auto curve2 = curves[j].coarse();
 
-        auto end_compute_matching = std::chrono::high_resolution_clock::now();
-        auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end_compute_matching - start_compute_matching).count();
+            IntegralFrechet alg(curve1, curve2, ParamMetric::LInfinity_NoShortcuts, 100);
+            const auto result = alg.compute_matching();
 
-        stats.push_back({
-            duration,
+            // TODO: Weigh by max or sum?
+            distance_t averaged_cost = result.cost / std::max(curve1.curve_length(), curve2.curve_length());
+            distance_matrix.at(i, j) = averaged_cost;
+        }
 
-            curve1.name(),
-            curve2.name(),
-            curve1.size(),
-            curve2.size(),
-
-            result.cost,
-            result.matching.size(),
-
-            result.search_stat.nodes_opened,
-            result.search_stat.nodes_handled,
-            result.search_stat.nodes_skipped,
-        });
+        std::cout << i << '\n';
     }
 
     auto end_all = std::chrono::high_resolution_clock::now();
@@ -79,16 +71,11 @@ int main() {
     std::cout << "total_duration: " << total_duration << "ms\n";
 
     //
-    // EXPORT MATCHING STATS
+    // EXPORT DISTANCE MATRIX
     //
 
-    std::ofstream file("data/out/matching_stats.csv");
-
-    file.precision(10);
-    for (const auto& stat : stats) {
-        file << stat.curve1_size << ',' << stat.curve2_size << ',' << stat.nodes_opened << '\n';
-    }
-
+    std::ofstream file("data/out/distance_matrix.mtx");
+    distance_matrix.write(file);
     file.close();
 
     return 0;
