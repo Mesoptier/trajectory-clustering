@@ -11,8 +11,8 @@
 class IntegralFrechet
 {
 private:
-    const Curve& curve1;
-    const Curve& curve2;
+    const Curve curve1;
+    const Curve curve2;
 
     const ParamMetric param_metric;
     const distance_t  resolution;
