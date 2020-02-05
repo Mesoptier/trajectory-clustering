@@ -39,32 +39,26 @@ namespace {
         const auto line_left = (dir == BFDirection::Forward ? -1 : 1);
         MonotoneComparator compare(dir);
 
-        Point new_s;
+        Point new_s = t;
 
         if (cell.ell_v.side(s) != -line_left && cell.ell_h.side(s) == line_left) {
             if (compare(s, cell.mid)) {
-                new_s = std::min({
-                    intersect(Line::horizontal(s), cell.ell_v),
-                    intersect(Line::horizontal(s), Line::vertical(t)),
-                }, compare);
+                if (!cell.ell_v.isHorizontal()) {
+                    new_s = std::min(new_s, intersect(Line::horizontal(s), cell.ell_v), compare);
+                }
             } else {
-                new_s = std::min({
-                    intersect(Line::horizontal(s), cell.ell_h),
-                    intersect(Line::horizontal(s), Line::vertical(t)),
-                }, compare);
+                new_s = std::min(new_s, intersect(Line::horizontal(s), cell.ell_h), compare);
             }
+            new_s = std::min(new_s, intersect(Line::horizontal(s), Line::vertical(t)), compare);
         } else if (cell.ell_h.side(s) != line_left && cell.ell_v.side(s) == -line_left) {
             if (compare(s, cell.mid)) {
-                new_s = std::min({
-                    intersect(Line::vertical(s), cell.ell_h),
-                    intersect(Line::vertical(s), Line::horizontal(t)),
-                }, compare);
+                if (!cell.ell_h.isVertical()) {
+                    new_s = std::min(new_s, intersect(Line::vertical(s), cell.ell_h), compare);
+                }
             } else {
-                new_s = std::min({
-                    intersect(Line::vertical(s), cell.ell_v),
-                    intersect(Line::vertical(s), Line::horizontal(t)),
-                }, compare);
+                new_s = std::min(new_s, intersect(Line::vertical(s), cell.ell_v), compare);
             }
+            new_s = std::min(new_s, intersect(Line::vertical(s), Line::horizontal(t)), compare);
         } else {
             return s;
         }
