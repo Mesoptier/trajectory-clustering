@@ -64,5 +64,5 @@ public:
      * Get a coarsened version of the curve.
      * FIXME: Super crappy!
      */
-    Curve coarse() const;
+    Curve simplify(bool maintain_lengths) const;
 };

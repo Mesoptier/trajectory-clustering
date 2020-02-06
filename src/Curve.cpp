@@ -55,10 +55,19 @@ CPoint Curve::get_cpoint(PointID id, distance_t dist) const {
     return {id, get_fraction(id, dist)};
 }
 
-Curve Curve::coarse() const {
-    Points coarse_points;
-    for (size_t i = 0; i < points.size(); i += 10) {
-        coarse_points.push_back(points[i]);
+Curve Curve::simplify(bool maintain_lengths) const {
+    Curve other(m_name);
+
+    for (size_t i = 0; i < points.size(); ++i) {
+        if (i % 10 == 0 || i == points.size() - 1) {
+            if (maintain_lengths) {
+                other.points.push_back(points[i]);
+                other.prefix_length.push_back(prefix_length[i]);
+            } else {
+                other.push_back(points[i]);
+            }
+        }
     }
-    return Curve(m_name, coarse_points);
+
+    return other;
 }
