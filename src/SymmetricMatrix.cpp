@@ -26,8 +26,8 @@ SymmetricMatrix SymmetricMatrix::read(std::ifstream& file) {
 
     // Parse values
     SymmetricMatrix matrix(n);
-    for (size_t i = 0; i < n; ++i) {
-        file >> matrix.data[i];
+    for (auto& value : matrix.data) {
+        file >> value;
     }
 
     return matrix;
