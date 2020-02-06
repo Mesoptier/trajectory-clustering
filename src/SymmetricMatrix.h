@@ -8,7 +8,10 @@
  */
 class SymmetricMatrix
 {
-    size_t n;
+public:
+    const size_t n;
+
+private:
     std::vector<double> data;
 
     /**
@@ -37,6 +40,9 @@ public:
      * @return
      */
     double& at(size_t i, size_t j) {
+        return data.at(idx(i, j));
+    }
+    const double& at(size_t i, size_t j) const {
         return data.at(idx(i, j));
     }
 
