@@ -9,6 +9,7 @@ set(SOURCE_FILES
     IntegralFrechet/metrics/L1.cpp
     IntegralFrechet/metrics/LInfinity_NoShortcuts.cpp
     SymmetricMatrix.cpp
+    clustering/pam.cpp
 )
 
 add_library(TrajectoryClustering_lib STATIC ${SOURCE_FILES} ${HEADER_FILES})
