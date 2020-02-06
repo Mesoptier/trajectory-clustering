@@ -1,6 +1,7 @@
 #include <cmath>
 #include <algorithm>
 #include <iostream>
+#include <map>
 #include "pam.h"
 
 
@@ -154,6 +155,25 @@ namespace {
             // 10.
             td += delta_td_best;
         }
+
+        //
+        // EXPORT MEDOIDS
+        // TODO: Return medoids instead
+        //
+        std::map<size_t, size_t> medoid_indices;
+        for (size_t i = 0; i < k; ++i) {
+            medoid_indices[medoids[i]] = i;
+        }
+
+        SymmetricMatrix clusters(n);
+        for (size_t xi = 0; xi < n; ++xi) {
+            for (size_t xj = 0; xj < n; ++xj) {
+                clusters.at(xi, xj) = (nearest[xi] == nearest[xj]) ? medoid_indices.at(nearest[xi]) : 0;
+            }
+        }
+        std::ofstream file("data/out/clusters.mtx");
+        clusters.write(file);
+        file.close();
     }
 }
 
