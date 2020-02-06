@@ -89,16 +89,41 @@ void compute_clusters(const SymmetricMatrix& distance_matrix, size_t k) {
 
     auto end_time = std::chrono::high_resolution_clock::now();
     auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time).count();
-    std::cout << "read_curves: " << duration << "ms\n";
+    std::cout << "compute_clusters: " << duration << "ms\n";
+}
+
+IntegralFrechet::MatchingResult compute_matching(const Curve& curve1, const Curve& curve2) {
+    auto start_time = std::chrono::high_resolution_clock::now();
+
+    IntegralFrechet alg(curve1, curve2, ParamMetric::LInfinity_NoShortcuts, 10);
+    const auto result = alg.compute_matching();
+
+    auto end_time = std::chrono::high_resolution_clock::now();
+    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time).count();
+    std::cout << "compute_matching: " << duration << "ms\n";
+
+    return result;
 }
 
 int main() {
-    const auto distance_matrix = read_matrix("data/out/distance_matrix.mtx");
-    compute_clusters(distance_matrix, 19); // "characters" has 19 classes
+//    const auto distance_matrix = read_matrix("data/out/distance_matrix.mtx");
+//    compute_clusters(distance_matrix, 19); // "characters" has 19 classes
 
 //    const auto curves = read_curves("data/characters/data");
 //    const auto distance_matrix = compute_distance_matrix(curves);
 //    export_matrix(distance_matrix, "data/out/distance_matrix.mtx");
+
+    bool maintain_lengths = true;
+
+    const auto curve1 = io::read_curve("data/characters/data/a0001.txt");
+    const auto curve2 = io::read_curve("data/characters/data/a0002.txt");
+    const auto result_alt = compute_matching(curve1.simplify(maintain_lengths), curve2.simplify(maintain_lengths));
+    const auto result = compute_matching(curve1, curve2);
+
+    io::export_points("data/out/curve1.csv", curve1.get_points());
+    io::export_points("data/out/curve2.csv", curve2.get_points());
+    io::export_points("data/out/matching.csv", result.matching);
+    io::export_points("data/out/matching_alt.csv", result_alt.matching);
 
     return 0;
 }
