@@ -8,99 +8,97 @@
 #include "src/SymmetricMatrix.h"
 #include "src/clustering/pam.h"
 
-struct MatchingStat {
-    long long int duration;
+//
+// I/O helpers
+//
 
-    // Curves
-    std::string curve1_name;
-    std::string curve2_name;
-    size_t curve1_size;
-    size_t curve2_size;
+std::vector<Curve> read_curves(const std::string& filename) {
+    auto start_time = std::chrono::high_resolution_clock::now();
 
-    // Matching
-    distance_t cost;
-    size_t matching_size;
+    const auto curves = io::read_curves(filename);
 
-    // Shortest path search
-    size_t nodes_opened;
-    size_t nodes_handled;
-    size_t nodes_skipped;
-};
+    auto end_time = std::chrono::high_resolution_clock::now();
+    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time).count();
+    std::cout << "read_curves: " << duration << "ms\n";
+
+    return curves;
+}
+
+SymmetricMatrix read_matrix(const std::string& filename) {
+    auto start_time = std::chrono::high_resolution_clock::now();
+
+    std::ifstream file(filename);
+    const auto matrix = SymmetricMatrix::read(file);
+
+    auto end_time = std::chrono::high_resolution_clock::now();
+    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time).count();
+    std::cout << "read_matrix: " << duration << "ms\n";
+
+    return matrix;
+}
+
+void export_matrix(const SymmetricMatrix& matrix, const std::string& filename) {
+    std::ofstream file(filename);
+    matrix.write(file);
+    file.close();
+}
+
+
+//
+// Algorithms
+//
+
+SymmetricMatrix compute_distance_matrix(const std::vector<Curve>& curves) {
+    size_t n = curves.size();
+    SymmetricMatrix distance_matrix(n);
+
+    auto start_time = std::chrono::high_resolution_clock::now();
+
+    for (size_t i = 0; i < n; ++i) {
+        const auto curve1 = curves[i];
+
+        // Don't compute the j == i case, since the cost is always 0 (comparing identical curves)
+        distance_matrix.at(i, i) = 0;
+
+        for (size_t j = i + 1; j < n; ++j) {
+            const auto curve2 = curves[j];
+
+            IntegralFrechet alg(curve1, curve2, ParamMetric::LInfinity_NoShortcuts, 100);
+            const auto result = alg.compute_matching();
+
+            // TODO: Weigh by max or sum?
+            // TODO: Move to IntegralFrechet class
+            distance_t averaged_cost = result.cost / std::max(curve1.curve_length(), curve2.curve_length());
+            distance_matrix.at(i, j) = averaged_cost;
+        }
+
+        std::cout << i << '\n';
+    }
+
+    auto end_time = std::chrono::high_resolution_clock::now();
+    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time).count();
+    std::cout << "compute_distance_matrix: " << duration << "ms\n";
+
+    return distance_matrix;
+}
+
+void compute_clusters(const SymmetricMatrix& distance_matrix, size_t k) {
+    auto start_time = std::chrono::high_resolution_clock::now();
+
+    clustering::pam::compute(distance_matrix.n, k, distance_matrix);
+
+    auto end_time = std::chrono::high_resolution_clock::now();
+    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time).count();
+    std::cout << "read_curves: " << duration << "ms\n";
+}
 
 int main() {
-    ///
-    // READ DISTANCE MATRIX
-    //
-    auto start_read_mat = std::chrono::high_resolution_clock::now();
+    const auto distance_matrix = read_matrix("data/out/distance_matrix.mtx");
+    compute_clusters(distance_matrix, 19); // "characters" has 19 classes
 
-    std::ifstream file("data/out/distance_matrix.mtx");
-    auto dissimilarity_matrix = SymmetricMatrix::read(file);
-
-    auto end_read_mat = std::chrono::high_resolution_clock::now();
-    std::cout << "read_mat: " << std::chrono::duration_cast<std::chrono::milliseconds>(end_read_mat - start_read_mat).count() << "ms\n";
-
-    //
-    // COMPUTE CLUSTERS
-    //
-    auto start_clustering = std::chrono::high_resolution_clock::now();
-
-    clustering::pam::compute(dissimilarity_matrix.n, 19, dissimilarity_matrix);
-
-    auto end_clustering = std::chrono::high_resolution_clock::now();
-    std::cout << "clustering: " << std::chrono::duration_cast<std::chrono::milliseconds>(end_clustering - start_clustering).count() << "ms\n";
+//    const auto curves = read_curves("data/characters/data");
+//    const auto distance_matrix = compute_distance_matrix(curves);
+//    export_matrix(distance_matrix, "data/out/distance_matrix.mtx");
 
     return 0;
-
-//    //
-//    // READ CURVES
-//    //
-//    auto start_read_curves = std::chrono::high_resolution_clock::now();
-//
-//    const auto curves = io::read_curves("data/characters/data");
-//
-//    auto end_read_curves = std::chrono::high_resolution_clock::now();
-//    std::cout << "read_curves: " << std::chrono::duration_cast<std::chrono::milliseconds>(end_read_curves - start_read_curves).count() << "ms\n";
-//
-//    //
-//    // COMPUTE DISTANCE MATRIX
-//    //
-//
-//    size_t n = curves.size();
-//    SymmetricMatrix distance_matrix(n);
-//
-//    auto start_all = std::chrono::high_resolution_clock::now();
-//
-//    for (size_t i = 0; i < n; ++i) {
-//        const auto curve1 = curves[i].coarse();
-//
-//        // Don't compute the j == i case, since the cost is always 0 (comparing identical curves)
-//        distance_matrix.at(i, i) = 0;
-//
-//        for (size_t j = i + 1; j < n; ++j) {
-//            const auto curve2 = curves[j].coarse();
-//
-//            IntegralFrechet alg(curve1, curve2, ParamMetric::LInfinity_NoShortcuts, 100);
-//            const auto result = alg.compute_matching();
-//
-//            // TODO: Weigh by max or sum?
-//            distance_t averaged_cost = result.cost / std::max(curve1.curve_length(), curve2.curve_length());
-//            distance_matrix.at(i, j) = averaged_cost;
-//        }
-//
-//        std::cout << i << '\n';
-//    }
-//
-//    auto end_all = std::chrono::high_resolution_clock::now();
-//    auto total_duration = std::chrono::duration_cast<std::chrono::milliseconds>(end_all - start_all).count();
-//    std::cout << "total_duration: " << total_duration << "ms\n";
-//
-//    //
-//    // EXPORT DISTANCE MATRIX
-//    //
-//
-//    std::ofstream file("data/out/distance_matrix.mtx");
-//    distance_matrix.write(file);
-//    file.close();
-//
-//    return 0;
 }
