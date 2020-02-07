@@ -7,6 +7,7 @@
 #include "../Curve.h"
 #include "Cell.h"
 #include "../a_star.h"
+#include "MatchingBand.h"
 
 class IntegralFrechet
 {
@@ -16,6 +17,7 @@ private:
 
     const ParamMetric param_metric;
     const distance_t  resolution;
+    const MatchingBand* const band;
 
     Cell get_cell(const CPosition& s, const CPosition& t) const;
 
@@ -37,7 +39,8 @@ public:
         const Curve& curve1,
         const Curve& curve2,
         ParamMetric param_metric,
-        distance_t resolution
+        distance_t resolution,
+        const MatchingBand* band = nullptr
     );
 
     struct MatchingResult {

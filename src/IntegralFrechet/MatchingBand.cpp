@@ -40,7 +40,7 @@ namespace {
     }
 }
 
-MatchingBand::MatchingBand(const Curve& curve_x, const Curve& curve_y, const Points& matching, distance_t radius) : lower_x(curve_x.size()), upper_x(curve_x.size()), lower_y(curve_y.size()), upper_y(curve_y.size()) {
+MatchingBand::MatchingBand(const Curve& curve_x, const Curve& curve_y, const Points& matching, distance_t radius) : lower_y_at_x(curve_x.size()), upper_y_at_x(curve_x.size()), lower_x_at_y(curve_y.size()), upper_x_at_y(curve_y.size()) {
 
     MonotoneComparator compare(BFDirection::Forward);
 
@@ -119,24 +119,24 @@ MatchingBand::MatchingBand(const Curve& curve_x, const Curve& curve_y, const Poi
             auto lo = curve_y.get_cpoint(std::clamp(p.y - radius, 0.0, curve_y.curve_length()));
             auto hi = curve_y.get_cpoint(std::clamp(p.y + radius, 0.0, curve_y.curve_length()));
 
-            if (!lower_x.at(ix).getPoint().valid() || lo < lower_x.at(ix)) {
-                lower_x.at(ix) = lo;
+            if (!lower_y_at_x.at(ix).getPoint().valid() || lo < lower_y_at_x.at(ix)) {
+                lower_y_at_x.at(ix) = lo;
             }
 
-            if (!upper_x.at(ix).getPoint().valid() || hi > upper_x.at(ix)) {
-                upper_x.at(ix) = hi;
+            if (!upper_y_at_x.at(ix).getPoint().valid() || hi > upper_y_at_x.at(ix)) {
+                upper_y_at_x.at(ix) = hi;
             }
         }
         for (PointID iy = min_y_incl; iy <= max_y && iy < curve_y.size(); ++iy) {
             auto lo = curve_x.get_cpoint(std::clamp(p.x - radius, 0.0, curve_x.curve_length()));
             auto hi = curve_x.get_cpoint(std::clamp(p.x + radius, 0.0, curve_x.curve_length()));
 
-            if (!lower_y.at(iy).getPoint().valid() || lo < lower_y.at(iy)) {
-                lower_y.at(iy) = lo;
+            if (!lower_x_at_y.at(iy).getPoint().valid() || lo < lower_x_at_y.at(iy)) {
+                lower_x_at_y.at(iy) = lo;
             }
 
-            if (!upper_y.at(iy).getPoint().valid() || hi > upper_y.at(iy)) {
-                upper_y.at(iy) = hi;
+            if (!upper_x_at_y.at(iy).getPoint().valid() || hi > upper_x_at_y.at(iy)) {
+                upper_x_at_y.at(iy) = hi;
             }
         }
     }
@@ -146,21 +146,21 @@ MatchingBand::MatchingBand(const Curve& curve_x, const Curve& curve_y, const Poi
     for (PointID x = 0; x < curve_x.size(); ++x) {
         debug_points.push_back({
             curve_x.curve_length(x),
-            curve_y.curve_length(lower_x[x]),
+            curve_y.curve_length(lower_y_at_x[x]),
         });
         debug_points.push_back({
             curve_x.curve_length(x),
-            curve_y.curve_length(upper_x[x]),
+            curve_y.curve_length(upper_y_at_x[x]),
         });
     }
 
     for (PointID y = 0; y < curve_y.size(); ++y) {
         debug_points.push_back({
-            curve_x.curve_length(lower_y[y]),
+            curve_x.curve_length(lower_x_at_y[y]),
             curve_y.curve_length(y),
         });
         debug_points.push_back({
-            curve_x.curve_length(upper_y[y]),
+            curve_x.curve_length(upper_x_at_y[y]),
             curve_y.curve_length(y),
         });
     }

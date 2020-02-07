@@ -64,7 +64,7 @@ SymmetricMatrix compute_distance_matrix(const std::vector<Curve>& curves) {
         for (size_t j = i + 1; j < n; ++j) {
             const auto curve2 = curves[j];
 
-            IntegralFrechet alg(curve1, curve2, ParamMetric::LInfinity_NoShortcuts, 100);
+            IntegralFrechet alg(curve1, curve2, ParamMetric::LInfinity_NoShortcuts, 100, nullptr);
             const auto result = alg.compute_matching();
 
             // TODO: Weigh by max or sum?
@@ -93,10 +93,10 @@ void compute_clusters(const SymmetricMatrix& distance_matrix, size_t k) {
     std::cout << "compute_clusters: " << duration << "ms\n";
 }
 
-IntegralFrechet::MatchingResult compute_matching(const Curve& curve1, const Curve& curve2) {
+IntegralFrechet::MatchingResult compute_matching(const Curve& curve1, const Curve& curve2, const MatchingBand* const band) {
     auto start_time = std::chrono::high_resolution_clock::now();
 
-    IntegralFrechet alg(curve1, curve2, ParamMetric::LInfinity_NoShortcuts, 10);
+    IntegralFrechet alg(curve1, curve2, ParamMetric::LInfinity_NoShortcuts, 10, band);
     const auto result = alg.compute_matching();
 
     auto end_time = std::chrono::high_resolution_clock::now();
@@ -118,16 +118,14 @@ int main() {
 
     const auto curve1 = io::read_curve("data/characters/data/a0001.txt");
     const auto curve2 = io::read_curve("data/characters/data/a0002.txt");
-    const auto result_alt = compute_matching(curve1.simplify(maintain_lengths), curve2.simplify(maintain_lengths));
+    const auto result_alt = compute_matching(curve1.simplify(maintain_lengths), curve2.simplify(maintain_lengths),nullptr);
+    const MatchingBand band(curve1, curve2, result_alt.matching, 2);
+    const auto result = compute_matching(curve1, curve2, &band);
 
-    MatchingBand band(curve1, curve2, result_alt.matching, 2);
-
-//    const auto result = compute_matching(curve1, curve2);
-//
-//    io::export_points("data/out/curve1.csv", curve1.get_points());
-//    io::export_points("data/out/curve2.csv", curve2.get_points());
-//    io::export_points("data/out/matching.csv", result.matching);
-//    io::export_points("data/out/matching_alt.csv", result_alt.matching);
+    io::export_points("data/out/curve1.csv", curve1.get_points());
+    io::export_points("data/out/curve2.csv", curve2.get_points());
+    io::export_points("data/out/matching.csv", result.matching);
+    io::export_points("data/out/matching_alt.csv", result_alt.matching);
 
     return 0;
 }

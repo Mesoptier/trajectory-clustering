@@ -8,8 +8,14 @@ IntegralFrechet::IntegralFrechet(
     const Curve& curve1,
     const Curve& curve2,
     ParamMetric param_metric,
-    distance_t resolution
-) : curve1(curve1), curve2(curve2), param_metric(param_metric), resolution(resolution) {}
+    distance_t resolution,
+    const MatchingBand* const band
+) :
+    curve1(curve1),
+    curve2(curve2),
+    param_metric(param_metric),
+    resolution(resolution),
+    band(band) {}
 
 Cell IntegralFrechet::get_cell(const CPosition& s, const CPosition& t) const {
     const auto s1 = curve1.interpolate_at(s[0]);
@@ -120,7 +126,9 @@ void IntegralFrechet::get_neighbors(const Node& node, std::vector<Node>& neighbo
     if (p1 == t1 || p2 == t2) {
         // Subcell has no width OR no height (Degenerate case #2)
         // -> We are along the parameter region boundary, only one neighbor makes sense.
-        neighbors.push_back({t1, t2});
+        if (band == nullptr || band->contains_point(t1, t2)) {
+            neighbors.push_back({t1, t2});
+        }
     } else {
         // At this point we have s <=_{dir} p <_{dir} t
 
@@ -138,9 +146,14 @@ void IntegralFrechet::get_neighbors(const Node& node, std::vector<Node>& neighbo
             // ...sample points along the top/bottom boundary of the cell:
             for (size_t i = 0; i < n_h; ++i) {
                 const CPoint o1 = fs1 + ((distance_t) i / (n_h - 1.0));
-                if (dir == BFDirection::Forward ? o1 >= p1 : o1 <= p1) {
-                    neighbors.push_back({o1, t2});
+                if (dir == BFDirection::Forward ? o1 < p1 : o1 > p1) {
+                    continue;
                 }
+                if (band != nullptr && !band->contains_point(o1, t2)) {
+                    continue;
+                }
+
+                neighbors.push_back({o1, t2});
             }
         }
 
@@ -149,14 +162,21 @@ void IntegralFrechet::get_neighbors(const Node& node, std::vector<Node>& neighbo
             // ...sample points along the left/right boundary of the cell:
             for (size_t i = 0; i < n_v; ++i) {
                 const CPoint o2 = fs2 + ((distance_t) i / (n_v - 1.0));
-                if (dir == BFDirection::Forward ? o2 >= p2 : o2 <= p2) {
-                    neighbors.push_back({t1, o2});
+                if (dir == BFDirection::Forward ? o2 < p2 : o2 > p2) {
+                    continue;
                 }
+                if (band != nullptr && !band->contains_point(t1, o2)) {
+                    continue;
+                }
+
+                neighbors.push_back({t1, o2});
             }
         }
 
-        // Always add top-right (or bottom-left) corner
-        neighbors.push_back({t1, t2});
+        // Always try to add top-right (or bottom-left) corner
+        if (band == nullptr || band->contains_point(t1, t2)) {
+            neighbors.push_back({t1, t2});
+        }
     }
 
     //
