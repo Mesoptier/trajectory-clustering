@@ -29,7 +29,7 @@ public:
         return prefix_length.back();
     }
     distance_t curve_length(PointID id) const {
-        return prefix_length[id];
+        return prefix_length.at(id);
     }
     distance_t curve_length(PointID i, PointID j) const {
         return curve_length(j) - curve_length(i);
@@ -55,6 +55,7 @@ public:
      * Get the CPoint that is arc-length dist is along the edge {id, id + 1}.
      */
     CPoint get_cpoint(PointID id, distance_t dist) const;
+    CPoint get_cpoint(distance_t dist) const;
 
     void push_back(const Point& point);
 

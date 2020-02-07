@@ -7,6 +7,7 @@
 #include "src/IntegralFrechet/IntegralFrechet.h"
 #include "src/SymmetricMatrix.h"
 #include "src/clustering/pam.h"
+#include "src/IntegralFrechet/MatchingBand.h"
 
 //
 // I/O helpers
@@ -118,12 +119,15 @@ int main() {
     const auto curve1 = io::read_curve("data/characters/data/a0001.txt");
     const auto curve2 = io::read_curve("data/characters/data/a0002.txt");
     const auto result_alt = compute_matching(curve1.simplify(maintain_lengths), curve2.simplify(maintain_lengths));
-    const auto result = compute_matching(curve1, curve2);
 
-    io::export_points("data/out/curve1.csv", curve1.get_points());
-    io::export_points("data/out/curve2.csv", curve2.get_points());
-    io::export_points("data/out/matching.csv", result.matching);
-    io::export_points("data/out/matching_alt.csv", result_alt.matching);
+    MatchingBand band(curve1, curve2, result_alt.matching, 2);
+
+//    const auto result = compute_matching(curve1, curve2);
+//
+//    io::export_points("data/out/curve1.csv", curve1.get_points());
+//    io::export_points("data/out/curve2.csv", curve2.get_points());
+//    io::export_points("data/out/matching.csv", result.matching);
+//    io::export_points("data/out/matching_alt.csv", result_alt.matching);
 
     return 0;
 }
