@@ -8,7 +8,7 @@
 #include "io.h"
 
 //#define A_STAR_LOGGING
-//#define A_STAR_STATS
+#define A_STAR_STATS
 
 namespace {
     // From: https://stackoverflow.com/a/26958878/1639600
@@ -47,6 +47,7 @@ namespace shortest_path_algs {
         size_t nodes_opened;
         size_t nodes_handled;
         size_t nodes_skipped;
+        Points nodes_as_points;
     };
 
     template<class Graph>
@@ -173,10 +174,6 @@ bidirectional_dijkstra_search(const Graph& graph, typename Graph::Node s, typena
     using cost_t = typename Graph::cost_t;
     constexpr cost_t inf = std::numeric_limits<cost_t>::infinity();
 
-    #ifdef A_STAR_STATS
-    a_star::Stats stats{};
-    #endif
-
     SearchStat stat{};
 
     std::vector<Node> nodes;
@@ -215,11 +212,6 @@ bidirectional_dijkstra_search(const Graph& graph, typename Graph::Node s, typena
         auto top_b_cost = open_set_b.top().first;
 
         if (top_f_cost + top_b_cost >= lowest_cost) {
-            #ifdef A_STAR_STATS
-            std::cout << stats << " open_set remaining: " << (open_set_f.size() + open_set_b.size()) << std::endl;
-            io::export_points("data/out/debug_points.csv", stats.nodes_as_points);
-            #endif
-
             auto id_path_f = reconstruct_path<NodeID>(came_from_f, lowest_cost_node_id);
             auto id_path_b = reconstruct_path<NodeID>(came_from_b, lowest_cost_node_id);
             id_path_f.insert(id_path_f.end(), id_path_b.rbegin() + 1, id_path_b.rend());
@@ -255,7 +247,7 @@ bidirectional_dijkstra_search(const Graph& graph, typename Graph::Node s, typena
         ++stat.nodes_handled;
 
         #ifdef A_STAR_STATS
-        stats.nodes_as_points.push_back(graph.node_as_point(current));
+        stat.nodes_as_points.push_back(graph.node_as_point(current));
         #endif
 
         graph.get_neighbors(current, neighbors, costs, dir);

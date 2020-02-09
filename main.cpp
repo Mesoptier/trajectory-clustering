@@ -108,7 +108,7 @@ IntegralFrechet::MatchingResult compute_matching(const Curve& curve1, const Curv
 }
 
 MatchingBand compute_band(const Curve& curve1, const Curve& curve2, const Points& matching, distance_t radius) {
-//    auto start_time = std::chrono::high_resolution_clock::now();
+    auto start_time = std::chrono::high_resolution_clock::now();
 
     const MatchingBand band(curve1, curve2, matching, radius);
 
@@ -185,6 +185,37 @@ void experiment_with_or_without_bands() {
     file.close();
 }
 
+void experiment_visualize_band() {
+    bool maintain_lengths = true;
+
+    const auto curve1 = io::read_curve("data/characters/data/a0001.txt");
+    const auto curve2 = io::read_curve("data/characters/data/a0002.txt");
+
+    const auto result_no_band = compute_matching(curve1, curve2, 1, nullptr);
+    io::export_points("data/out/debug_points_old.csv", result_no_band.search_stat.nodes_as_points);
+    io::export_points("data/out/matching3.csv", result_no_band.matching);
+    std::cout << "matching (no band) cost: " << result_no_band.cost << '\n';
+
+    auto start_time = std::chrono::high_resolution_clock::now();
+
+    const auto result_alt = compute_matching(curve1.simplify(maintain_lengths), curve2.simplify(maintain_lengths), 10,nullptr);
+    const auto band = compute_band(curve1, curve2, result_alt.matching,     2);
+    const auto result = compute_matching(curve1, curve2, 1, &band);
+
+    auto end_time = std::chrono::high_resolution_clock::now();
+    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time).count();
+    std::cout << "main: " << duration << "ms\n";
+
+    io::export_points("data/out/curve1.csv", curve1.get_points());
+    io::export_points("data/out/curve2.csv", curve2.get_points());
+    io::export_points("data/out/matching1.csv", result.matching);
+    io::export_points("data/out/matching2.csv", result_alt.matching);
+    io::export_points("data/out/debug_points.csv", result.search_stat.nodes_as_points);
+
+    std::cout << "matching cost: " << result.cost << '\n';
+    std::cout << "matching (alt) cost: " << result_alt.cost << '\n';
+}
+
 int main() {
 //    const auto distance_matrix = read_matrix("data/out/distance_matrix.mtx");
 //    compute_clusters(distance_matrix, 19); // "characters" has 19 classes
@@ -193,7 +224,8 @@ int main() {
 //    const auto distance_matrix = compute_distance_matrix(curves);
 //    export_matrix(distance_matrix, "data/out/distance_matrix.mtx");
 
-    experiment_with_or_without_bands();
+
+    experiment_visualize_band();
 
     return 0;
 }
