@@ -116,8 +116,14 @@ MatchingBand::MatchingBand(const Curve& curve_x, const Curve& curve_y, const Poi
 
 
         for (PointID ix = min_x_incl; ix <= max_x; ++ix) {
-            auto lo = curve_y.get_cpoint(std::clamp(p.y - radius, 0.0, curve_y.curve_length()));
-            auto hi = curve_y.get_cpoint(std::clamp(p.y + radius, 0.0, curve_y.curve_length()));
+            auto lo = curve_y.get_cpoint_after(
+                std::clamp(p.y - radius, 0.0, curve_y.curve_length()),
+                min_y_incl == 0 ? 0 : min_y_incl - 1
+            );
+            auto hi = curve_y.get_cpoint_after(
+                std::clamp(p.y + radius + ABS_TOL, 0.0, curve_y.curve_length()),
+                max_y
+            );
 
             if (!lower_y_at_x.at(ix).getPoint().valid() || lo < lower_y_at_x.at(ix)) {
                 lower_y_at_x.at(ix) = lo;
@@ -128,8 +134,14 @@ MatchingBand::MatchingBand(const Curve& curve_x, const Curve& curve_y, const Poi
             }
         }
         for (PointID iy = min_y_incl; iy <= max_y && iy < curve_y.size(); ++iy) {
-            auto lo = curve_x.get_cpoint(std::clamp(p.x - radius, 0.0, curve_x.curve_length()));
-            auto hi = curve_x.get_cpoint(std::clamp(p.x + radius, 0.0, curve_x.curve_length()));
+            auto lo = curve_x.get_cpoint_after(
+                std::clamp(p.x - radius, 0.0, curve_x.curve_length()),
+                min_x_incl == 0 ? 0 : min_x_incl - 1
+            );
+            auto hi = curve_x.get_cpoint_after(
+                std::clamp(p.x + radius + ABS_TOL, 0.0, curve_x.curve_length()),
+                max_x
+            );
 
             if (!lower_x_at_y.at(iy).getPoint().valid() || lo < lower_x_at_y.at(iy)) {
                 lower_x_at_y.at(iy) = lo;
@@ -141,29 +153,29 @@ MatchingBand::MatchingBand(const Curve& curve_x, const Curve& curve_y, const Poi
         }
     }
 
-    Points debug_points;
-
-    for (PointID x = 0; x < curve_x.size(); ++x) {
-        debug_points.push_back({
-            curve_x.curve_length(x),
-            curve_y.curve_length(lower_y_at_x[x]),
-        });
-        debug_points.push_back({
-            curve_x.curve_length(x),
-            curve_y.curve_length(upper_y_at_x[x]),
-        });
-    }
-
-    for (PointID y = 0; y < curve_y.size(); ++y) {
-        debug_points.push_back({
-            curve_x.curve_length(lower_x_at_y[y]),
-            curve_y.curve_length(y),
-        });
-        debug_points.push_back({
-            curve_x.curve_length(upper_x_at_y[y]),
-            curve_y.curve_length(y),
-        });
-    }
-
-    io::export_points("data/out/debug_points.csv", debug_points);
+//    Points debug_points;
+//
+//    for (PointID x = 0; x < curve_x.size(); ++x) {
+//        debug_points.push_back({
+//            curve_x.curve_length(x),
+//            curve_y.curve_length(lower_y_at_x[x]),
+//        });
+//        debug_points.push_back({
+//            curve_x.curve_length(x),
+//            curve_y.curve_length(upper_y_at_x[x]),
+//        });
+//    }
+//
+//    for (PointID y = 0; y < curve_y.size(); ++y) {
+//        debug_points.push_back({
+//            curve_x.curve_length(lower_x_at_y[y]),
+//            curve_y.curve_length(y),
+//        });
+//        debug_points.push_back({
+//            curve_x.curve_length(upper_x_at_y[y]),
+//            curve_y.curve_length(y),
+//        });
+//    }
+//
+//    io::export_points("data/out/debug_points.csv", debug_points);
 }

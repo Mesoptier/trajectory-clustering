@@ -55,7 +55,14 @@ public:
      * Get the CPoint that is arc-length dist is along the edge {id, id + 1}.
      */
     CPoint get_cpoint(PointID id, distance_t dist) const;
-    CPoint get_cpoint(distance_t dist) const;
+
+    /**
+     * Get the CPoint that is arc-length dist along the curve
+     * @param dist
+     * @param after_id
+     * @return
+     */
+    CPoint get_cpoint_after(distance_t dist, PointID after_id = 0) const;
 
     void push_back(const Point& point);
 

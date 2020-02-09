@@ -55,12 +55,13 @@ CPoint Curve::get_cpoint(PointID id, distance_t dist) const {
     return {id, get_fraction(id, dist)};
 }
 
-CPoint Curve::get_cpoint(distance_t dist) const {
-    PointID id = 0;
-    while (curve_length(id + 1) < dist) {
-        ++id;
+CPoint Curve::get_cpoint_after(distance_t dist, PointID after_id) const {
+    assert(curve_length(after_id) <= dist);
+
+    while (after_id + 1 < size() && curve_length(after_id + 1) < dist) {
+        ++after_id;
     }
-    return get_cpoint(id, dist - curve_length(id));
+    return get_cpoint(after_id, dist - curve_length(after_id));
 }
 
 Curve Curve::simplify(bool maintain_lengths) const {
