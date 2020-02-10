@@ -29,10 +29,8 @@ TEST(MonotoneComparatorTest, Compare) {
     ASSERT_TRUE(MC(BFDirection::Forward)({0, 0}, {1, 1}));
     ASSERT_FALSE(MC(BFDirection::Forward)({1, 1}, {0, 0}));
 
-    // TODO: This is a perhaps unexpected case: equal points are both lower and higher.
-    //  Especially odd since getDirection throws an error for equal points.
-    ASSERT_TRUE(MC(BFDirection::Forward)({0, 0}, {0, 0}));
-    ASSERT_TRUE(MC(BFDirection::Backward)({0, 0}, {0, 0}));
+    ASSERT_FALSE(MC(BFDirection::Forward)({0, 0}, {0, 0}));
+    ASSERT_FALSE(MC(BFDirection::Backward)({0, 0}, {0, 0}));
 }
 
 TEST(LineTest, IncludesPoint) {

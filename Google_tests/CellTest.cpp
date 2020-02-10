@@ -1,7 +1,6 @@
 #include "gtest/gtest.h"
 #include "../src/IntegralFrechet/Cell.h"
-
-using namespace NewCell;
+#include "../src/IntegralFrechet/metrics/include.h"
 
 void AssertPointsEqual(const Point& a, const Point& b) {
     ASSERT_PRED3(approx_equal<Point>, a, b, ABS_TOL);
@@ -19,7 +18,7 @@ TEST(ComputeMatchingTest, LInfinity) {
     Points matching;
 
     cell = Cell({0, 0}, {0, 1}, {1, 1}, {1, 0});
-    matching = compute_matching<ParamMetric::LInfinity_NoShortcuts>(cell);
+    matching = compute_matching<ParamMetric::LInfinity_NoShortcuts>(cell, cell.s, cell.t);
     AssertPathsEqual(matching, {
         {0,                 0},
         {0.707106781186548, 0.707106781186548},
@@ -27,7 +26,7 @@ TEST(ComputeMatchingTest, LInfinity) {
     });
 
     cell = Cell({0, 0}, {0, 0.5}, {1, 1}, {1, 0.5});
-    matching = compute_matching<ParamMetric::LInfinity_NoShortcuts>(cell);
+    matching = compute_matching<ParamMetric::LInfinity_NoShortcuts>(cell, cell.s, cell.t);
     AssertPathsEqual(matching,{
         {0, 0},
         {0.707106781186548, 0.5},
@@ -35,7 +34,7 @@ TEST(ComputeMatchingTest, LInfinity) {
     });
 
     cell = Cell({0, 0}, {0, 0}, {1, 1}, {0, 3});
-    matching = compute_matching<ParamMetric::LInfinity_NoShortcuts>(cell);
+    matching = compute_matching<ParamMetric::LInfinity_NoShortcuts>(cell, cell.s, cell.t);
     AssertPathsEqual(matching, {
         {0, 0},
         {1.4142135623731, 2},
