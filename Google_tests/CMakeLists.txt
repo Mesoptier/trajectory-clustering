@@ -1,5 +1,5 @@
 project(Google_tests)
-add_subdirectory(lib)
+add_subdirectory(googletest)
 include_directories(${gtest_SOURCE_DIR}/include ${gtest_SOURCE_DIR})
 
 add_executable(Google_Tests_run geomTest.cpp CellTest.cpp)
