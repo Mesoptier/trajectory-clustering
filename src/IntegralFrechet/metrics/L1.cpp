@@ -53,7 +53,8 @@ namespace {
 
 template<>
 Points compute_matching<ParamMetric::L1>(const Cell& cell, const Point& s, const Point& t) {
-    if (cell.is_degenerate()) {
+    // Early return for degenerate cases (where subcell bounded by s and t has zero width and/or height)
+    if (approx_equal(s.x, t.x) || approx_equal(s.y, t.y)) {
         if (approx_equal(s, t)) {
             return {s};
         } else {

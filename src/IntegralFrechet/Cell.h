@@ -37,7 +37,7 @@ struct Cell
         s({0, 0}),
         t({len1, len2})
     {
-        if (!is_degenerate()) {
+        if (!(approx_equal(s1, t1) || approx_equal(s2, t2))) {
             const auto l1 = Line::fromTwoPoints(s1, t1);
             const auto l2 = Line::fromTwoPoints(s2, t2);
 
@@ -58,10 +58,6 @@ struct Cell
             ell_h = Line(mid, {v, 1});
             ell_v = Line(mid, {1, v});
         }
-    }
-
-    bool is_degenerate() const {
-        return approx_equal(s1, t1) || approx_equal(s2, t2);
     }
 
     /**
