@@ -17,7 +17,7 @@ struct Interval {
     }
 
     friend std::ostream& operator<<(std::ostream& os, const Interval& interval) {
-        os << "[" << interval.min << ", " << interval.max << "]";
+        os << interval.min << " <= x <= " << interval.max;
         return os;
     }
 };
@@ -158,7 +158,10 @@ struct PolynomialPiece {
     Interval interval;
     Polynomial<D> polynomial;
 
-
+    friend std::ostream& operator<<(std::ostream& os, const PolynomialPiece& piece) {
+        os << "{ " << piece.polynomial << ", " << piece.interval << " }";
+        return os;
+    }
 };
 
 template<size_t D>
@@ -258,16 +261,22 @@ PiecewisePolynomial<D> find_minimum(
         prev_open = is_open;
     }
 
+    std::vector<PolynomialPiece<D>> pieces;
     for (auto edge : edges) {
-        std::cout << edge.interval << ' ' << edge.polynomial << '\n';
+        const auto& hc = h.coefficients;
+        const auto& ec = edge.polynomial.coefficients;
+
+        pieces.push_back({edge.interval, {{
+            hc[0][0] + hc[1][0] * ec[0] + hc[2][0] * ec[0] * ec[0],
+            hc[0][1] + hc[1][0] * ec[1] + hc[1][1] * ec[0] + 2 * hc[2][0] * ec[1] * ec[0],
+            hc[0][2] + hc[1][1] * ec[1] + hc[2][0] * ec[1] * ec[1],
+        }}});
     }
 
-
-    std::vector<PolynomialPiece<D>> pieces;
-    // TODO: Given a set of edges, compute the polynomial pieces
-
-    return PiecewisePolynomial<D>();
+    return lower_envelope(pieces);
 }
 
 template<size_t D>
-PiecewisePolynomial<D> lower_envelope(std::vector<PolynomialPiece<D>>);
+PiecewisePolynomial<D> lower_envelope(const std::vector<PolynomialPiece<D>>& pieces) {
+
+}
