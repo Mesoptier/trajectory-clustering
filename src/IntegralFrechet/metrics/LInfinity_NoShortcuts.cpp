@@ -116,8 +116,8 @@ Points compute_matching<ParamMetric::LInfinity_NoShortcuts>(const Cell& cell, co
 
     const bool is_opposite_direction = !approx_zero(cell.ell_v.direction.y) && cell.ell_v.direction.y < 0;
 
-    const auto cell_len1 = abs(cell_s.x - cell_t.x);
-    const auto cell_len2 = abs(cell_s.y - cell_t.y);
+    const auto cell_len1 = std::abs(cell_s.x - cell_t.x);
+    const auto cell_len2 = std::abs(cell_s.y - cell_t.y);
 
     auto s = cell_s;
     auto t = cell_t;
@@ -234,5 +234,5 @@ Points compute_matching<ParamMetric::LInfinity_NoShortcuts>(const Cell& cell, co
 
 template<>
 distance_t integrate_linear_dist<ParamMetric::LInfinity_NoShortcuts>(const Cell& cell, const Point& s, const Point& t) {
-    return std::max(abs(t.x - s.x), abs(t.y - s.y));
+    return std::max(std::abs(t.x - s.x), std::abs(t.y - s.y));
 }
