@@ -9,6 +9,7 @@
 #include "src/SymmetricMatrix.h"
 #include "src/clustering/pam.h"
 #include "src/IntegralFrechet/MatchingBand.h"
+#include "src/cdtw/cdtw.h"
 
 //
 // I/O helpers
@@ -225,7 +226,35 @@ int main() {
 //    export_matrix(distance_matrix, "data/out/distance_matrix.mtx");
 
 
-    experiment_visualize_band();
+//    experiment_visualize_band();
+
+    // Bottom-left corner of cell
+    double sx = 0;
+    double sy = 0;
+    // Top-right corner of cell
+    double tx = 6;
+    double ty = 10;
+    // "Center" of ellipses
+    double cx = 0;
+    double cy = 2;
+
+    // e.g. h(x,y) = (-1/2 x^2) + (-1/2 y^2) + (2 xy) + (-2 x) + (-8 y) + 70
+    BivariatePolynomial<2> h({{
+        {{cx * sy - cy * sy + (sy * sy) / 2 - cx * tx + cy * tx + (tx * tx) / 2, - cx + cy - tx, -1./2}},
+        {{cx - cy - sy, 2, 0}},
+        {{-1./2, 0, 0}},
+    }});
+
+    Interval y_interval{sy, ty};
+
+    std::vector<Polynomial<1>> left_constraints;
+    left_constraints.push_back({cx - cy, 1});
+    left_constraints.push_back({sx, 0});
+
+    std::vector<Polynomial<1>> right_constraints;
+    right_constraints.push_back({tx, 0});
+
+    find_minimum(h, y_interval, left_constraints, right_constraints);
 
     return 0;
 }
