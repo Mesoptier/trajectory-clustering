@@ -41,25 +41,25 @@ namespace a_star {
     };
 }
 
-namespace shortest_path_algs {
+// namespace shortest_path_algs {
 
-    struct SearchStat {
-        size_t nodes_opened;
-        size_t nodes_handled;
-        size_t nodes_skipped;
-        Points nodes_as_points;
-    };
+struct SearchStat {
+    size_t nodes_opened;
+    size_t nodes_handled;
+    size_t nodes_skipped;
+    Points nodes_as_points;
+};
 
-    template<class Graph>
-    struct SearchResult {
-        typename Graph::cost_t cost;
-        std::vector<typename Graph::Node> path;
-        SearchStat stat;
-    };
+template<class Graph>
+struct SearchResult {
+    typename Graph::cost_t cost;
+    std::vector<typename Graph::Node> path;
+    SearchStat stat;
+};
 
-}
+// }
 
-using namespace shortest_path_algs;
+// using namespace shortest_path_algs;
 
 template<class Node>
 std::vector<Node>
