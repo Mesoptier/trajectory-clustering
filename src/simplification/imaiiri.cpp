@@ -16,8 +16,6 @@ std::pair<distance_t, Curve> simplification::imai_iri::simplify(const Curve& in,
         const PointID& ell) {
     assert(in.size() > 1);
     assert(ell > 0);
-    // Maybe make SymmetricMatrix templated? If we only use it for distances,
-    // then make it store distance_t?
     SymmetricMatrix distances(in.size());
     for (PointID i(0); i < in.size(); ++i) {
         for (PointID j(i); j < in.size(); ++j) {
@@ -28,7 +26,7 @@ std::pair<distance_t, Curve> simplification::imai_iri::simplify(const Curve& in,
             else
                 distances.at(i, j) = IntegralFrechet(
                     in.slice(i, j), Curve("", {in[i], in[j]}),
-                    ParamMetric::L1, 10).compute_matching().cost;
+                    ParamMetric::L1, 50).compute_matching().cost;
         }
     }
 
