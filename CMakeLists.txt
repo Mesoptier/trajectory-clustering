@@ -22,14 +22,15 @@ if(CMAKE_BUILD_TYPE STREQUAL "Release")
     add_definitions(-DNDEBUG)
 endif()
 
+if(NOT MSVC AND (ASAN OR UBSAN))
+    set(SANITIZER "$<IF:$<BOOL:${ASAN}>,address,undefined>")
+    set(SAN_OPTS "-fno-omit-frame-pointer" "-fsanitize=${SANITIZER}")
+    add_compile_options("$<$<CONFIG:DEBUG>:${SAN_OPTS}>")
+    add_link_options("$<$<CONFIG:DEBUG>:${SAN_OPTS}>")
+endif()
+
 add_subdirectory(src)
 add_subdirectory(Google_tests)
-
-if(NOT MSVC AND (ASAN OR UBSAN))
-    set(SANITIZER "$<IF:${ASAN},address,undefined>")
-    add_compile_options("$<$<CONFIG:DEBUG>:-fno-omit-frame-pointer -fsanitize=${SANITIZER}>")
-    add_link_options("$<$<CONFIG:DEBUG>:-fno-omit-frame-pointer -fsanitize=${SANITIZER}>")
-endif()
 
 # Main executable
 add_executable(TrajectoryClustering_run main.cpp)

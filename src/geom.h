@@ -12,10 +12,6 @@
 
 using distance_t = double;
 using SymmetricMatrix = SymmetricMatrixT<distance_t>;
-// template
-// extern void SymmetricMatrix::write(std::ofstream&, unsigned int) const;
-// template
-// extern SymmetricMatrix SymmetricMatrix::read(std::ifstream&);
 
 enum class Norm {
     L1,
