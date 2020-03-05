@@ -47,6 +47,14 @@ public:
     }
 
     /**
+     * \brief Copy the subcurve c[i], ..., c[j], including both endpoints.
+     * \param i The ID of the start of the subcurve.
+     * \param j The ID of the last point of the subcurve.
+     * \return The copy of the subcurve.
+     */
+    Curve slice(PointID i, PointID j) const;
+
+    /**
      * Get the fraction that is arc-length dist is along the edge {id, id + 1}.
      */
     distance_t get_fraction(PointID id, distance_t dist) const;
@@ -58,9 +66,6 @@ public:
 
     /**
      * Get the CPoint that is arc-length dist along the curve
-     * @param dist
-     * @param after_id
-     * @return
      */
     CPoint get_cpoint_after(distance_t dist, PointID after_id = 0) const;
 

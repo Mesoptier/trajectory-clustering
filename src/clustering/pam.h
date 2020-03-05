@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstddef>
+#include "../geom.h"
 #include "../SymmetricMatrix.h"
 
 namespace clustering::pam {

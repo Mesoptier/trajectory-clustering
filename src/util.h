@@ -2,6 +2,7 @@
 #define CODE_UTIL_H
 
 #include <cmath>
+#include <functional>
 
 const double ABS_TOL = 1e-9;
 

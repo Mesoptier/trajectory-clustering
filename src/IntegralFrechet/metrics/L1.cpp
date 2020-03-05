@@ -84,6 +84,6 @@ Points compute_matching<ParamMetric::L1>(const Cell& cell, const Point& s, const
 }
 
 template<>
-distance_t integrate_linear_dist<ParamMetric::L1>(const Cell& cell, const Point& s, const Point& t) {
+distance_t integrate_linear_dist<ParamMetric::L1>(const Cell& /*cell*/, const Point& s, const Point& t) {
     return std::abs(t.x - s.x) + std::abs(t.y - s.y);
 }
