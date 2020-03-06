@@ -10,6 +10,9 @@
 #include "src/clustering/pam.h"
 #include "src/IntegralFrechet/MatchingBand.h"
 #include "src/cdtw/cdtw.h"
+#include "src/cdtw/Interval.h"
+#include "src/cdtw/Polynomial.h"
+#include "src/cdtw/BivariatePolynomial.h"
 
 //
 // I/O helpers
@@ -248,11 +251,11 @@ int main() {
     Interval y_interval{sy, ty};
 
     std::vector<Polynomial<1>> left_constraints;
-    left_constraints.push_back({cx - cy, 1});
-    left_constraints.push_back({sx, 0});
+    left_constraints.push_back(Polynomial<1>({cx - cy, 1}));
+    left_constraints.push_back(Polynomial<1>({sx, 0}));
 
     std::vector<Polynomial<1>> right_constraints;
-    right_constraints.push_back({tx, 0});
+    right_constraints.push_back(Polynomial<1>({tx, 0}));
 
     find_minimum(h, y_interval, left_constraints, right_constraints);
 

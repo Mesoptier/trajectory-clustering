@@ -7,145 +7,9 @@
 #include <iostream>
 #include <set>
 #include <algorithm>
-
-struct Interval {
-    double min;
-    double max;
-
-    bool contains(double x) const {
-        return min <= x && x <= max;
-    }
-
-    friend std::ostream& operator<<(std::ostream& os, const Interval& interval) {
-        os << interval.min << " <= x <= " << interval.max;
-        return os;
-    }
-};
-
-template<size_t D>
-struct Polynomial {
-    std::array<double, D + 1> coefficients;
-
-    friend std::ostream& operator<<(std::ostream& os, const Polynomial& p) {
-        for (int d = D; d >= 0; --d) {
-            if (d < D) os << " + ";
-            os << p.coefficients[d];
-            if (d > 0) os << "*x";
-            if (d > 1)os << "^" << d;
-        }
-        return os;
-    }
-
-    double operator()(double x) const {
-        double y = 0;
-        for (size_t d = 0; d <= D; ++d) {
-            y += coefficients[d] * std::pow(x, d);
-        }
-        return y;
-    }
-
-    Polynomial derivative() const {
-        Polynomial result;
-        for (size_t d = 0; d < D; ++d) {
-            result.coefficients[d] = coefficients[d + 1] * (d + 1);
-        }
-        return result;
-    }
-
-    //
-    // Arithmetic operators
-    //
-
-    Polynomial& operator+=(const Polynomial& rhs) {
-        for (size_t d = 0; d <= D; ++d) {
-            coefficients[d] += rhs.coefficients[d];
-        }
-        return *this;
-    }
-    friend Polynomial operator+(Polynomial lhs, const Polynomial& rhs) {
-        lhs += rhs;
-        return lhs;
-    }
-
-    Polynomial& operator-=(const Polynomial& rhs) {
-        for (size_t d = 0; d <= D; ++d) {
-            coefficients[d] -= rhs.coefficients[d];
-        }
-        return *this;
-    }
-    friend Polynomial operator-(Polynomial lhs, const Polynomial& rhs) {
-        lhs -= rhs;
-        return lhs;
-    }
-
-    //
-    // Equality and relational operators
-    //
-
-    bool operator==(const Polynomial& rhs) const {
-        return coefficients == rhs.coefficients;
-    }
-
-    bool operator!=(const Polynomial& rhs) const {
-        return !(rhs == *this);
-    }
-
-    struct CompareAt {
-        double x;
-        explicit CompareAt(double x) : x(x) {}
-        bool operator()(Polynomial f, Polynomial g) const {
-            size_t d = D;
-            while (f(x) == g(x) && d > 0) {
-                f = f.derivative();
-                g = g.derivative();
-                --d;
-            }
-            return f(x) < g(x);
-        }
-    };
-};
-
-std::vector<double> find_roots(const Polynomial<1>& f) {
-    double a = f.coefficients[1];
-    double b = f.coefficients[0];
-
-    if (a == 0) {
-        if (b == 0) {
-            throw std::runtime_error("f is always 0");
-        }
-        return {};
-    }
-    return {-b / a};
-}
-
-template<size_t D>
-std::vector<double> find_intersections(const Polynomial<D>& f, const Polynomial<D>& g) {
-    return find_roots(f - g);
-}
-
-template<size_t D>
-struct BivariatePolynomial {
-    std::array<std::array<double, D + 1>, D + 1> coefficients;
-
-    explicit BivariatePolynomial(const std::array<std::array<double, D + 1>, D + 1>& coefficients) :
-        coefficients(coefficients) {}
-
-    friend std::ostream& operator<<(std::ostream& os, const BivariatePolynomial& p) {
-        for (int dx = D; dx >= 0; --dx) {
-            for (int dy = D; dy >= 0; --dy) {
-                if (dx + dy > D) continue;
-
-                if (dx < D) os << " + ";
-                os << p.coefficients[dx][dy];
-                if (dx > 0) os << "*x";
-                if (dx > 1) os << "^" << dx;
-                if (dy > 0) os << "*y";
-                if (dy > 1) os << "^" << dy;
-            }
-        }
-        return os;
-    }
-};
+#include "Interval.h"
+#include "Polynomial.h"
+#include "BivariatePolynomial.h"
 
 template<size_t D>
 struct PiecewisePolynomial {
@@ -157,6 +21,9 @@ template<size_t D>
 struct PolynomialPiece {
     Interval interval;
     Polynomial<D> polynomial;
+
+    PolynomialPiece(const Interval& interval, const Polynomial<D>& polynomial) :
+        interval(interval), polynomial(polynomial) {}
 
     friend std::ostream& operator<<(std::ostream& os, const PolynomialPiece& piece) {
         os << "{ " << piece.polynomial << ", " << piece.interval << " }";
@@ -266,11 +133,12 @@ PiecewisePolynomial<D> find_minimum(
         const auto& hc = h.coefficients;
         const auto& ec = edge.polynomial.coefficients;
 
-        pieces.push_back({edge.interval, {{
+        // TODO: Fix this for D != 2
+        pieces.emplace_back(edge.interval, Polynomial<2>({
             hc[0][0] + hc[1][0] * ec[0] + hc[2][0] * ec[0] * ec[0],
             hc[0][1] + hc[1][0] * ec[1] + hc[1][1] * ec[0] + 2 * hc[2][0] * ec[1] * ec[0],
             hc[0][2] + hc[1][1] * ec[1] + hc[2][0] * ec[1] * ec[1],
-        }}});
+        }));
     }
 
     return lower_envelope(pieces);
@@ -278,5 +146,7 @@ PiecewisePolynomial<D> find_minimum(
 
 template<size_t D>
 PiecewisePolynomial<D> lower_envelope(const std::vector<PolynomialPiece<D>>& pieces) {
-
+    for (auto piece : pieces) {
+        std::cout << piece << '\n';
+    }
 }
