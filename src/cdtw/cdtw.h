@@ -59,14 +59,16 @@ PiecewisePolynomial<D> find_minimum(
     // We take the cost function over these edges. This gives us a bunch of polynomial pieces over y.
     // The final result is the lower envelope of all theses pieces, which is a piecewise polynomial.
 
-    // TODO: Add edges for critical lines (i.e. where partial derivative equals 0) of h.
-
     using Edge = PolynomialPiece<1>;
     std::vector<Edge> edges;
 
     std::vector<Polynomial<1>> lines;
     lines.insert(lines.end(), left_constraints.begin(), left_constraints.end());
     lines.insert(lines.end(), right_constraints.begin(), right_constraints.end());
+
+    // TODO: Fix this for D != 2
+    std::vector<Polynomial<1>> critical_lines = find_roots_y(h.partial_derivative_x());
+    lines.insert(lines.end(), critical_lines.begin(), critical_lines.end());
 
     std::set<double> events;
     events.insert(interval.min);
@@ -89,6 +91,9 @@ PiecewisePolynomial<D> find_minimum(
     double right_start;
     Polynomial<1> right_current;
 
+    std::vector<bool> critical_open(critical_lines.size());
+    std::vector<double> critical_start(critical_lines.size());
+
     for (auto event : events) {
         auto compare = Polynomial<1>::CompareAt(event);
         std::sort(left_constraints.begin(), left_constraints.end(), compare);
@@ -97,7 +102,8 @@ PiecewisePolynomial<D> find_minimum(
         auto left_max = left_constraints.back();
         auto right_min = right_constraints.front();
 
-        bool is_open = !compare(right_min, left_max);
+        bool is_last_event = event == *events.rbegin();
+        bool is_open = !compare(right_min, left_max) && !is_last_event;
 
         if (prev_open) {
             // Close previously opened edges
@@ -118,6 +124,22 @@ PiecewisePolynomial<D> find_minimum(
             if (!prev_open || right_min != right_current) {
                 right_start = event;
                 right_current = right_min;
+            }
+        }
+
+        for (size_t i = 0; i < critical_lines.size(); ++i) {
+            if (!critical_open[i]) {
+                // Open new edges
+                if (!compare(right_min, critical_lines[i]) && !compare(critical_lines[i], left_max)) {
+                    critical_open[i] = true;
+                    critical_start[i] = event;
+                }
+            } else {
+                // Close previously opened edges
+                if (is_last_event || compare(right_min, critical_lines[i]) || compare(critical_lines[i], left_max)) {
+                    critical_open[i] = false;
+                    edges.push_back({{critical_start[i], event}, critical_lines[i]});
+                }
             }
         }
 
@@ -147,6 +169,6 @@ PiecewisePolynomial<D> find_minimum(
 template<size_t D>
 PiecewisePolynomial<D> lower_envelope(const std::vector<PolynomialPiece<D>>& pieces) {
     for (auto piece : pieces) {
-        std::cout << piece << '\n';
+        std::cout << "Piecewise[{" << piece << "}, None],\n";
     }
 }
