@@ -257,7 +257,7 @@ int main() {
     std::vector<Polynomial<1>> right_constraints;
     right_constraints.push_back(Polynomial<1>({tx, 0}));
 
-    find_minimum(h, y_interval, left_constraints, right_constraints);
+    std::cout << find_minimum(h, y_interval, left_constraints, right_constraints) << '\n';
 
     return 0;
 }

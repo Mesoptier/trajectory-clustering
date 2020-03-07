@@ -11,6 +11,15 @@ struct Interval {
         return min <= x && x <= max;
     }
 
+    /**
+     * Test whether x is contained in this interval (exclusive).
+     * @param x
+     * @return
+     */
+    bool contains_excl(double x) const {
+        return min < x && x < max;
+    }
+
     friend std::ostream& operator<<(std::ostream& os, const Interval& interval) {
         os << interval.min << " <= x <= " << interval.max;
         return os;

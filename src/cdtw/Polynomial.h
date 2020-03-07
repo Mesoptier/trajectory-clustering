@@ -39,6 +39,13 @@ struct Polynomial
         return result;
     }
 
+    bool changes_sign_at(double x) const {
+        if (!approx_zero((*this)(x))) {
+            return false;
+        }
+        return !this->derivative().changes_sign_at(x);
+    }
+
     //
     // Arithmetic operators
     //
@@ -93,7 +100,7 @@ struct Polynomial
         explicit CompareAt(double x) : x(x) {}
         bool operator()(Polynomial<D> f, Polynomial<D> g) const {
             size_t d = D;
-            while (d > 0 && f(x) == g(x)) {
+            while (d > 0 && approx_equal(f(x), g(x))) {
                 f = f.derivative();
                 g = g.derivative();
                 --d;
@@ -120,17 +127,49 @@ std::ostream& operator<<(std::ostream& os, const Polynomial<D>& p) {
  * @param f
  * @return
  */
-std::vector<double> find_roots(const Polynomial<1>& f) {
-    double a = f.coefficients[1];
-    double b = f.coefficients[0];
+template<size_t D>
+std::vector<double> find_roots(const Polynomial<D>& f);
 
-    if (a == 0) {
-        if (b == 0) {
-            throw std::runtime_error("f is always 0");
-        }
+std::vector<double> find_roots(const Polynomial<1>& f) {
+    double c0 = f.coefficients[0];
+    double c1 = f.coefficients[1];
+
+    if (c1 == 0) {
         return {};
     }
-    return {-b / a};
+    return {-c0 / c1};
+}
+
+/**
+ * Find the values for x where f(x) = 0.
+ *
+ * @param f
+ * @return
+ */
+std::vector<double> find_roots(const Polynomial<2>& f) {
+    double c0 = f.coefficients[0];
+    double c1 = f.coefficients[1];
+    double c2 = f.coefficients[2];
+
+    if (c2 == 0) {
+        if (c1 == 0) {
+            return {};
+        }
+        return {-c0 / c1};
+    }
+
+    double det = c1 * c1 - 4 * c2 * c0;
+    if (det == 0) {
+        return {-c1 / (2 * c2)};
+    }
+    if (det < 0) {
+        throw std::runtime_error("Complex roots");
+    }
+
+    return {
+        (-c1 + sqrt(det)) / (2 * c2),
+        (-c1 - sqrt(det)) / (2 * c2),
+    };
 }
 
 /**
