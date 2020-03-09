@@ -312,7 +312,12 @@ PiecewisePolynomial<D> naive_lower_envelope(const std::vector<PolynomialPiece<D>
         PieceID open_id = state.empty() ? INVALID_PIECE_ID : state.front();
         if (prev_open_id != open_id) {
             // Close previous piece
-            if (prev_open_id != INVALID_PIECE_ID) {
+            if (
+                // If we have already opened a piece
+                prev_open_id != INVALID_PIECE_ID
+                // And this would not result in an empty interval
+                && start_x != event.x
+            ) {
                 result_pieces.emplace_back(Interval{start_x, event.x}, pieces[prev_open_id].polynomial);
             }
 
