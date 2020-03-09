@@ -231,27 +231,29 @@ int main() {
 
 //    experiment_visualize_band();
 
+
+    // To simplify the expressions we assume that (0, 0) in the infinite parameter space corresponds to the "center" of
+    // the ellipses (though in 1D these ellipses are degenerate). The cell is then translated in this space to have the
+    // correct height function.
+
     // Bottom-left corner of cell
     double sx = 0;
-    double sy = 0;
+    double sy = -2;
     // Top-right corner of cell
     double tx = 6;
-    double ty = 10;
-    // "Center" of ellipses
-    double cx = 0;
-    double cy = 2;
+    double ty = 8;
 
     // e.g. h(x,y) = (-1/2 x^2) + (-1/2 y^2) + (2 xy) + (-2 x) + (-8 y) + 70
     BivariatePolynomial<2> h({{
-        {{cx * sy - cy * sy + (sy * sy) / 2 - cx * tx + cy * tx + (tx * tx) / 2, - cx + cy - tx, -1./2}},
-        {{cx - cy - sy, 2, 0}},
+        {{(sy * sy) / 2 + (tx * tx) / 2, -tx, -1./2}},
+        {{-sy, 2, 0}},
         {{-1./2, 0, 0}},
     }});
 
     Interval y_interval{sy, ty};
 
     std::vector<Polynomial<1>> left_constraints;
-    left_constraints.push_back(Polynomial<1>({cx - cy, 1}));
+    left_constraints.push_back(Polynomial<1>({0, 1}));
     left_constraints.push_back(Polynomial<1>({sx, 0}));
 
     std::vector<Polynomial<1>> right_constraints;
