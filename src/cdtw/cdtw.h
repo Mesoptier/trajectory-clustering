@@ -249,7 +249,9 @@ PiecewisePolynomial<D> naive_lower_envelope(const std::vector<PolynomialPiece<D>
         const typename Polynomial<D>::CompareAt compare(event.x);
         auto compare_pieces = [pieces, compare](PieceID p1, PieceID p2) -> bool {
             if (p1 == p2) return false;
-            return compare(pieces[p1].polynomial, pieces[p2].polynomial);
+            if (compare(pieces[p1].polynomial, pieces[p2].polynomial)) return true;
+            if (compare(pieces[p2].polynomial, pieces[p1].polynomial)) return false;
+            return p1 < p2;
         };
 
         if (event.type == EventType::OPEN) {
@@ -292,7 +294,9 @@ PiecewisePolynomial<D> naive_lower_envelope(const std::vector<PolynomialPiece<D>
             const typename Polynomial<D>::CompareAt compare_prev(prev_x);
             auto compare_pieces_prev = [pieces, compare_prev](PieceID p1, PieceID p2) -> bool {
                 if (p1 == p2) return false;
-                return compare_prev(pieces[p1].polynomial, pieces[p2].polynomial);
+                if (compare_prev(pieces[p1].polynomial, pieces[p2].polynomial)) return true;
+                if (compare_prev(pieces[p2].polynomial, pieces[p1].polynomial)) return false;
+                return p1 < p2;
             };
 
             // Iterator to the position of event.id in the state

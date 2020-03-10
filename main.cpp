@@ -10,9 +10,7 @@
 #include "src/clustering/pam.h"
 #include "src/IntegralFrechet/MatchingBand.h"
 #include "src/cdtw/cdtw.h"
-#include "src/cdtw/Interval.h"
-#include "src/cdtw/Polynomial.h"
-#include "src/cdtw/BivariatePolynomial.h"
+#include "src/cdtw/1d-l1.h"
 
 //
 // I/O helpers
@@ -237,29 +235,29 @@ int main() {
     // correct height function.
 
     // Bottom-left corner of cell
-    double sx = 0;
-    double sy = -2;
+    double sx = -5;
+    double sy = 0;
     // Top-right corner of cell
-    double tx = 6;
-    double ty = 8;
+    double tx = 5;
+    double ty = 10;
 
-    // e.g. h(x,y) = (-1/2 x^2) + (-1/2 y^2) + (2 xy) + (-2 x) + (-8 y) + 70
-    BivariatePolynomial<2> h({{
-        {{(sy * sy) / 2 + (tx * tx) / 2, -tx, -1./2}},
-        {{-sy, 2, 0}},
-        {{-1./2, 0, 0}},
-    }});
+    std::cout << "RIGHT = {\n";
+    std::cout << "\t" << bottom_to_right_1(sx, sy, tx, ty) << ",\n";
+    std::cout << "\t" << bottom_to_right_2(sx, sy, tx, ty) << ",\n";
+    std::cout << "\t" << bottom_to_right_3(sx, sy, tx, ty) << ",\n";
+    std::cout << "\t" << bottom_to_right_4(sx, sy, tx, ty) << ",\n";
+    std::cout << "\t" << bottom_to_right_5(sx, sy, tx, ty) << ",\n";
+    std::cout << "\t" << bottom_to_right_6(sx, sy, tx, ty) << ",\n";
+    std::cout << "}\n";
 
-    Interval y_interval{sy, ty};
-
-    std::vector<Polynomial<1>> left_constraints;
-    left_constraints.push_back(Polynomial<1>({0, 1}));
-    left_constraints.push_back(Polynomial<1>({sx, 0}));
-
-    std::vector<Polynomial<1>> right_constraints;
-    right_constraints.push_back(Polynomial<1>({tx, 0}));
-
-    std::cout << find_minimum(h, y_interval, left_constraints, right_constraints) << '\n';
+    std::cout << "TOP = {\n";
+    std::cout << "\t" << bottom_to_top_1(sx, sy, tx, ty) << ",\n";
+    std::cout << "\t" << bottom_to_top_2(sx, sy, tx, ty) << ",\n";
+    std::cout << "\t" << bottom_to_top_3(sx, sy, tx, ty) << ",\n";
+    std::cout << "\t" << bottom_to_top_4(sx, sy, tx, ty) << ",\n";
+    std::cout << "\t" << bottom_to_top_5(sx, sy, tx, ty) << ",\n";
+    std::cout << "\t" << bottom_to_top_6(sx, sy, tx, ty) << ",\n";
+    std::cout << "}\n";
 
     return 0;
 }
