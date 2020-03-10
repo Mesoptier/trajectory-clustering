@@ -6,3 +6,10 @@ build
 
 # IntelliJ
 out/
+
+#vscode 
+.vscode
+
+cluster
+benchmark_stats.csv
+data/

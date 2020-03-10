@@ -1,8 +1,11 @@
 #include "Curve.h"
 #include <algorithm>
 #include <utility>
+#include <iostream>
 
 Curve::Curve(std::string name) : m_name(std::move(name)) {}
+
+Curve::Curve(const Points& points) : m_name("name"), points(points) {}
 
 Curve::Curve(std::string name, const Points& points): m_name(std::move(name)), points(points) {
     if (points.empty()) {
@@ -56,7 +59,8 @@ CPoint Curve::get_cpoint(PointID id, distance_t dist) const {
 }
 
 CPoint Curve::get_cpoint_after(distance_t dist, PointID after_id) const {
-    assert(curve_length(after_id) <= dist);
+    if (curve_length(after_id) > dist)
+        std::cerr << "stuff";
 
     while (after_id + 1 < size() && curve_length(after_id + 1) < dist) {
         ++after_id;

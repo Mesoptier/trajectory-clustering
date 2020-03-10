@@ -191,13 +191,11 @@ bidirectional_dijkstra_search(const Graph& graph, typename Graph::Node s, typena
 
     NodeID s_id = nodes.size();
     nodes.push_back(s);
-    node_ids.emplace(s, s_id);
     open_set_f.emplace(0, s_id);
     cost_f[s_id] = 0;
 
     NodeID t_id = nodes.size();
     nodes.push_back(t);
-    node_ids.emplace(t, t_id);
     open_set_b.emplace(0, t_id);
     cost_b[t_id] = 0;
 

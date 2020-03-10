@@ -8,4 +8,5 @@ namespace io {
     Curve read_curve(const std::string& filename, int header_size = 0);
     std::vector<Curve> read_curves(const std::string& directory);
     void export_points(const std::string& filename, const Points& points);
+    std::vector<Curve> read_pigeon_curves(const std::string& directory);
 }

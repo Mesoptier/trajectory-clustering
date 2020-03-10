@@ -64,6 +64,9 @@ using Points = std::vector<Point>;
 
 std::ostream& operator<<(std::ostream& out, const Points& points);
 
+using CurveID = std::size_t;
+using CurveIDs = std::vector<CurveID>;
+
 //
 // Implicit Edge (pair of points)
 //
@@ -142,7 +145,7 @@ struct Line
         return origin + direction * t;
     }
     distance_t operator()(const Point& p) const {
-        if (std::abs(direction.x) > 0.707) {
+        if (abs(direction.x) > 0.707) {
             return (p.x - origin.x) / (direction.x);
         } else {
             return (p.y - origin.y) / (direction.y);

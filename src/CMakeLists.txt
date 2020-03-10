@@ -10,7 +10,12 @@ set(SOURCE_FILES
     IntegralFrechet/metrics/LInfinity_NoShortcuts.cpp
     SymmetricMatrix.cpp
     clustering/pam.cpp
+    clustering/pam_with_simplifications.cpp
     IntegralFrechet/MatchingBand.cpp
+    clustering/clustering_algs.cpp
+    random.cpp
+    curve_simplification.cpp
+    clustering/center_algs.cpp
 )
 
 add_library(TrajectoryClustering_lib STATIC ${SOURCE_FILES} ${HEADER_FILES})

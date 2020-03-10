@@ -3,15 +3,17 @@
 #include "Edge.h"
 
 class Curve {
-    const std::string m_name;
+    std::string m_name;
     Points points;
 
     // Total arc length of the curve up to the i-th point
     std::vector<distance_t> prefix_length;
 
 public:
+    Curve() = default;
     explicit Curve(std::string name);
     explicit Curve(std::string name, const Points& points);
+    Curve(const Points& points);
 
     std::string name() const {
         return m_name;
@@ -24,6 +26,14 @@ public:
         return points.empty();
     }
     const Point& operator[](PointID id) const { return points[id]; }
+
+    bool operator==(Curve& other) const {
+		return std::equal(points.cbegin(), points.cend(), other.points.cbegin(), other.points.cend());
+	}
+
+    bool operator!=(Curve& other) const {
+		return !(*this == other);
+	}
 
     distance_t curve_length() const {
         return prefix_length.back();
@@ -73,4 +83,5 @@ public:
      * FIXME: Super crappy!
      */
     Curve simplify(bool maintain_lengths) const;
+
 };
