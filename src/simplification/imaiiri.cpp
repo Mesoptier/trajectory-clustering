@@ -26,7 +26,7 @@ std::pair<distance_t, Curve> simplification::imai_iri::simplify(const Curve& in,
             else
                 distances.at(i, j) = IntegralFrechet(
                     in.slice(i, j), Curve("", {in[i], in[j]}),
-                    ParamMetric::L1, 50).compute_matching().cost;
+                    ParamMetric::L1, 10).compute_matching().cost;
         }
     }
 
