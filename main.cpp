@@ -9,7 +9,10 @@
 #include "src/SymmetricMatrix.h"
 #include "src/clustering/pam.h"
 #include "src/IntegralFrechet/MatchingBand.h"
+#include "src/simplification/imaiiri.h"
+#include "src/DTW/dtw.h"
 
+namespace {
 //
 // I/O helpers
 //
@@ -139,10 +142,8 @@ void experiment_with_or_without_bands() {
 
     const auto curves = read_curves("data/characters/data");
 
-    unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
-    seed = 4067390372;
-    std::cout << seed << std::endl;
-    std::default_random_engine generator(seed);
+    std::random_device rd;
+    std::mt19937_64 generator(rd());
     std::uniform_int_distribution<size_t> distribution(0, curves.size() - 1);
 
     size_t k_max = 1000;
@@ -215,17 +216,43 @@ void experiment_visualize_band() {
     std::cout << "matching cost: " << result.cost << '\n';
     std::cout << "matching (alt) cost: " << result_alt.cost << '\n';
 }
+}
 
 int main() {
-//    const auto distance_matrix = read_matrix("data/out/distance_matrix.mtx");
-//    compute_clusters(distance_matrix, 19); // "characters" has 19 classes
+    const auto curves = read_curves("data/characters/data");
+    // const auto dm = compute_distance_matrix(curves);
+    // export_matrix(dm, "data/out/distance_matrix.mtx");
 
-//    const auto curves = read_curves("data/characters/data");
-//    const auto distance_matrix = compute_distance_matrix(curves);
-//    export_matrix(distance_matrix, "data/out/distance_matrix.mtx");
+    // const auto distance_matrix = read_matrix("data/out/distance_matrix.mtx");
+    // compute_clusters(distance_matrix, 19); // "characters" has 19 classes
+{
+    auto start_time = std::chrono::high_resolution_clock::now();
+    auto ret = simplification::imai_iri::simplify(curves[0], 5);
+    auto end_time = std::chrono::high_resolution_clock::now();
+    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time).count();
+    std::cout << "Time: " << duration << "ms\n";
+    std::cout << "Cost: " << ret.first << "\n";
+    std::cout << "Curve:";
+    for (const auto& p: ret.second.get_points())
+        std::cout << " " << p;
+    std::cout << "\n";
+    std::cout << "Length: " << ret.second.size() << std::endl;
+}
+{
+    auto start_time = std::chrono::high_resolution_clock::now();
+    DTW distance(curves[0], curves[1]);
+    auto end_time = std::chrono::high_resolution_clock::now();
+    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time).count();
+    std::cout << "Time: " << duration << "ms\n";
+    std::cout << "Cost: " << distance.cost() << "\n";
+    std::cout << "Matching:";
+    for (const auto& p: distance.matching())
+        std::cout << " (" << p.first << ", " << p.second << ")";
+    std::cout << std::endl;
+}
 
-
-    experiment_visualize_band();
-
+    
+    // experiment_with_or_without_bands();
+    // experiment_visualize_band();
     return 0;
 }

@@ -5,17 +5,17 @@
 #include "metrics/include.h"
 
 IntegralFrechet::IntegralFrechet(
-    const Curve& curve1,
-    const Curve& curve2,
-    ParamMetric param_metric,
-    distance_t resolution,
-    const MatchingBand* const band
+    const Curve& c1,
+    const Curve& c2,
+    ParamMetric metric,
+    distance_t res,
+    const MatchingBand* const b
 ) :
-    curve1(curve1),
-    curve2(curve2),
-    param_metric(param_metric),
-    resolution(resolution),
-    band(band) {}
+    curve1(c1),
+    curve2(c2),
+    resolution(res),
+    band(b),
+    param_metric(metric) {}
 
 Cell IntegralFrechet::get_cell(const CPosition& s, const CPosition& t) const {
     const auto s1 = curve1.interpolate_at(s[0]);
@@ -36,7 +36,7 @@ IntegralFrechet::MatchingResult IntegralFrechet::compute_matching() {
     // Actual polygonal matching with arc-length coordinates
     Points matching{{0, 0}};
 
-    for (int i = 1; i < node_matching.size(); ++i) {
+    for (size_t i = 1; i < node_matching.size(); ++i) {
         const auto s = node_matching[i - 1];
         const auto t = node_matching[i];
 
@@ -64,14 +64,29 @@ distance_t IntegralFrechet::cost(const Cell& cell, const Point& s, const Point& 
     return compute_cell_cost(cell, cell_matching);
 }
 
+extern template
+Points compute_matching<ParamMetric::L1>(const Cell&, const Point&, const Point&);
+extern template
+Points compute_matching<ParamMetric::LInfinity_NoShortcuts>(const Cell&,
+    const Point&, const Point&);
+
 Points IntegralFrechet::compute_cell_matching(const Cell& cell, const Point& s, const Point& t) const {
     switch (param_metric) {
         case ParamMetric::L1:
             return ::compute_matching<ParamMetric::L1>(cell, s, t);
         case ParamMetric::LInfinity_NoShortcuts:
             return ::compute_matching<ParamMetric::LInfinity_NoShortcuts>(cell, s, t);
+        default:
+            throw std::invalid_argument("Unsupported norm");
     }
 }
+
+extern template
+distance_t integrate_linear_dist<ParamMetric::L1>(const Cell&, const Point& s,
+    const Point& t);
+extern template
+distance_t integrate_linear_dist<ParamMetric::LInfinity_NoShortcuts>(
+    const Cell&, const Point& s, const Point& t);
 
 distance_t IntegralFrechet::compute_cell_cost(const Cell& cell, const Points& matching) const {
     switch (param_metric) {
@@ -79,6 +94,8 @@ distance_t IntegralFrechet::compute_cell_cost(const Cell& cell, const Points& ma
             return ::compute_cost<ParamMetric::L1>(cell, matching);
         case ParamMetric::LInfinity_NoShortcuts:
             return ::compute_cost<ParamMetric::LInfinity_NoShortcuts>(cell, matching);
+        default:
+            throw std::invalid_argument("Unsupported norm");
     }
 }
 
@@ -133,19 +150,19 @@ void IntegralFrechet::get_neighbors(const Node& node, std::vector<Node>& neighbo
         // At this point we have s <=_{dir} p <_{dir} t
 
         // Number of nodes along horizontal/vertical boundaries
-        const size_t n_h = ceil(full_cell.len1 / resolution) + 1;
-        const size_t n_v = ceil(full_cell.len2 / resolution) + 1;
+        const size_t n_h = static_cast<size_t>(std::ceil(full_cell.len1 / resolution)) + 1;
+        const size_t n_v = static_cast<size_t>(std::ceil(full_cell.len2 / resolution)) + 1;
 
         // TODO: Add intersections of ell_h/ell_v/ell_m with cell boundaries (and of adjacent cells)
         // Cell boundary lines
-        const Line bound_h = Line::horizontal(dir == BFDirection::Forward ? full_cell.t : full_cell.s);
-        const Line bound_v = Line::vertical(dir == BFDirection::Forward ? full_cell.t : full_cell.s);
+        // const Line bound_h = Line::horizontal(dir == BFDirection::Forward ? full_cell.t : full_cell.s);
+        // const Line bound_v = Line::vertical(dir == BFDirection::Forward ? full_cell.t : full_cell.s);
 
         // If there another cell above/below this cell...
         if (dir == BFDirection::Forward ? (t2.getPoint() + 1 < curve2.size()) : (t2.getPoint() >= 1)) {
             // ...sample points along the top/bottom boundary of the cell:
             for (size_t i = 0; i < n_h; ++i) {
-                const CPoint o1 = fs1 + ((distance_t) i / (n_h - 1.0));
+                const CPoint o1 = fs1 + (static_cast<distance_t>(i) / (n_h - 1.0));
                 if (dir == BFDirection::Forward ? o1 < p1 : o1 > p1) {
                     continue;
                 }
@@ -161,7 +178,7 @@ void IntegralFrechet::get_neighbors(const Node& node, std::vector<Node>& neighbo
         if (dir == BFDirection::Forward ? (t1.getPoint() + 1 < curve1.size()) : (t1.getPoint() >= 1)) {
             // ...sample points along the left/right boundary of the cell:
             for (size_t i = 0; i < n_v; ++i) {
-                const CPoint o2 = fs2 + ((distance_t) i / (n_v - 1.0));
+                const CPoint o2 = fs2 + (static_cast<distance_t>(i) / (n_v - 1.0));
                 if (dir == BFDirection::Forward ? o2 < p2 : o2 > p2) {
                     continue;
                 }
