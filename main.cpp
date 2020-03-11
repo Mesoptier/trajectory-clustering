@@ -10,6 +10,7 @@
 #include "src/clustering/pam.h"
 #include "src/IntegralFrechet/MatchingBand.h"
 #include "src/simplification/imaiiri.h"
+#include "src/DTW/dtw.h"
 
 namespace {
 //
@@ -219,23 +220,39 @@ void experiment_visualize_band() {
 
 int main() {
     const auto curves = read_curves("data/characters/data");
-    const auto dm = compute_distance_matrix(curves);
-    export_matrix(dm, "data/out/distance_matrix.mtx");
+    // const auto dm = compute_distance_matrix(curves);
+    // export_matrix(dm, "data/out/distance_matrix.mtx");
 
-    const auto distance_matrix = read_matrix("data/out/distance_matrix.mtx");
-    compute_clusters(distance_matrix, 19); // "characters" has 19 classes
-
-    auto ret = simplification::imai_iri::simplify(curves[0], 30);
+    // const auto distance_matrix = read_matrix("data/out/distance_matrix.mtx");
+    // compute_clusters(distance_matrix, 19); // "characters" has 19 classes
+{
+    auto start_time = std::chrono::high_resolution_clock::now();
+    auto ret = simplification::imai_iri::simplify(curves[0], 5);
+    auto end_time = std::chrono::high_resolution_clock::now();
+    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time).count();
+    std::cout << "Time: " << duration << "ms\n";
     std::cout << "Cost: " << ret.first << "\n";
     std::cout << "Curve:";
     for (const auto& p: ret.second.get_points())
         std::cout << " " << p;
     std::cout << "\n";
-    io::export_points("data/out/simpl0.csv", ret.second.get_points());
     std::cout << "Length: " << ret.second.size() << std::endl;
+}
+{
+    auto start_time = std::chrono::high_resolution_clock::now();
+    DTW distance(curves[0], curves[1]);
+    auto end_time = std::chrono::high_resolution_clock::now();
+    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time).count();
+    std::cout << "Time: " << duration << "ms\n";
+    std::cout << "Cost: " << distance.cost() << "\n";
+    std::cout << "Matching:";
+    for (const auto& p: distance.matching())
+        std::cout << " (" << p.first << ", " << p.second << ")";
+    std::cout << std::endl;
+}
 
     
-    experiment_with_or_without_bands();
-    experiment_visualize_band();
+    // experiment_with_or_without_bands();
+    // experiment_visualize_band();
     return 0;
 }

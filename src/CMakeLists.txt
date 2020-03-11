@@ -12,6 +12,7 @@ set(SOURCE_FILES
     clustering/pam.cpp
     IntegralFrechet/MatchingBand.cpp
     simplification/imaiiri.cpp
+    DTW/dtw.cpp
 )
 
 add_library(TrajectoryClustering_lib STATIC ${SOURCE_FILES} ${HEADER_FILES})
