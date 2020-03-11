@@ -233,6 +233,6 @@ Points compute_matching<ParamMetric::LInfinity_NoShortcuts>(const Cell& cell, co
 }
 
 template<>
-distance_t integrate_linear_dist<ParamMetric::LInfinity_NoShortcuts>(const Cell& cell, const Point& s, const Point& t) {
+distance_t integrate_linear_dist<ParamMetric::LInfinity_NoShortcuts>(const Cell& /*cell*/, const Point& s, const Point& t) {
     return std::max(std::abs(t.x - s.x), std::abs(t.y - s.y));
 }

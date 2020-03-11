@@ -9,7 +9,7 @@ namespace ExpressionML {
         std::ostream& os;
 
     public:
-        explicit Writer(std::ostream& os) : os(os) {};
+        explicit Writer(std::ostream& o) : os(o) {}
 
         void open() {
             os << "<?xml version='1.0'?>"

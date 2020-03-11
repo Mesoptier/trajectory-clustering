@@ -14,7 +14,7 @@ namespace {
     void build(size_t n, size_t k, const SymmetricMatrix& d, double& td, std::vector<size_t>& medoids) {
         // 1.
         td = INFINITY;
-        medoids.push_back(-1);
+        medoids.push_back(std::numeric_limits<size_t>::max());
 
         // 2.
         for (size_t xj = 0; xj < n; ++xj) {
@@ -42,7 +42,7 @@ namespace {
         for (size_t i = 1; i < k; ++i) {
             // 7.
             double delta_td_best = INFINITY;
-            size_t x_best = -1;
+            size_t x_best = std::numeric_limits<size_t>::max();
             // 8.
             for (size_t xj = 0; xj < n; ++xj) {
                 if (contains(medoids, xj)) continue;
@@ -100,8 +100,8 @@ namespace {
         while (true) {
             // 2.
             double delta_td_best = INFINITY;
-            size_t m_best = -1;
-            size_t x_best = -1;
+            size_t m_best = std::numeric_limits<size_t>::max();
+            size_t x_best = std::numeric_limits<size_t>::max();
             // 3.
             for (size_t mi : medoids) {
                 // 4.

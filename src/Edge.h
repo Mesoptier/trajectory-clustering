@@ -18,15 +18,12 @@ public:
 
     Line line;
 
-    Edge(const Point& first, const Point& second):
-        first(first), second(second), line(Line::fromTwoPoints(first, second)),
-        diff(second - first), length(norm(diff)) {}
+    Edge(const Point& f, const Point& s):
+        first(f), second(s), diff(s - f), length(norm(diff)),
+        line(Line::fromTwoPoints(f, s)) {}
 
     /**
      * Get the Point that lies distance `d` along the edge.
-     *
-     * @param d
-     * @return
      */
     Point interpolate_at(distance_t d) const {
 //        assert(0 <= d && d <= length);

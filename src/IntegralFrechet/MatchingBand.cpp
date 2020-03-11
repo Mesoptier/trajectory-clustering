@@ -54,7 +54,7 @@ MatchingBand::MatchingBand(const Curve& curve_x, const Curve& curve_y, const Poi
     PointID min_x_incl = 0;
     PointID min_x_excl = 0;
     PointID max_x = 0;
-    while (max_x + 1 < curve_x.size() && curve_x.curve_length(p.x, max_x + 1) <= radius) {
+    while (max_x + 1 < curve_x.size() && curve_x.curve_length(static_cast<PointID::IDType>(p.x), max_x + 1) <= radius) {
         max_x += 1;
     }
 
@@ -62,7 +62,7 @@ MatchingBand::MatchingBand(const Curve& curve_x, const Curve& curve_y, const Poi
     PointID min_y_incl = 0;
     PointID min_y_excl = 0;
     PointID max_y = 0;
-    while (max_y + 1 < curve_y.size() && curve_y.curve_length(p.y, max_y + 1) <= radius) {
+    while (max_y + 1 < curve_y.size() && curve_y.curve_length(static_cast<PointID::IDType>(p.y), max_y + 1) <= radius) {
         max_y += 1;
     }
 
