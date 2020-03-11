@@ -27,9 +27,44 @@ struct PolynomialPiece
 };
 
 template<size_t D>
+std::vector<double> find_intersections(const PolynomialPiece<D>& f, const PolynomialPiece<D>& g) {
+    std::vector<double> result;
+    const std::vector<double> intersections = find_intersections(f.polynomial, g.polynomial);
+    for (auto x : intersections) {
+        if (f.interval.contains(x) && g.interval.contains(x)) {
+            result.push_back(x);
+        }
+    }
+    return result;
+}
+
+template<size_t D>
 struct PiecewisePolynomial
 {
     std::vector<PolynomialPiece<D>> pieces;
+
+    PiecewisePolynomial() = default;
+    PiecewisePolynomial(const std::vector<PolynomialPiece<D>>& pieces) : pieces(pieces) {
+        for (size_t i = 1; i < pieces.size(); ++i) {
+            const PolynomialPiece<D>& p1 = pieces[i - 1];
+            const PolynomialPiece<D>& p2 = pieces[i];
+            // Verify that piece intervals line up
+            assert(p1.interval.max == p2.interval.min);
+            // Verify that pieces connect
+            assert(p1.polynomial(p1.interval.max) == p2.polynomial(p2.interval.min));
+        }
+    }
+
+    bool empty() const {
+        return pieces.empty();
+    }
+
+    Interval interval() const {
+        return {
+            pieces.front().interval.min,
+            pieces.back().interval.max,
+        };
+    }
 
     friend std::ostream& operator<<(std::ostream& os, const PiecewisePolynomial& f) {
         os << "Piecewise[{";
@@ -344,4 +379,87 @@ PiecewisePolynomial<D> naive_lower_envelope(const std::vector<PolynomialPiece<D>
     }
 
     return {result_pieces};
+}
+
+template<size_t D>
+void fast_lower_envelope(PiecewisePolynomial<D>& left, const PiecewisePolynomial<D>& right) {
+    // Early return for trivial cases
+    if (left.empty()) {
+        left.pieces.assign(right.pieces.begin(), right.pieces.end());
+        return;
+    }
+    if (right.empty()) {
+        return;
+    }
+    if (left.interval().max == right.interval().min) {
+        left.pieces.insert(left.pieces.end(), right.pieces.begin(), right.pieces.end());
+        return;
+    }
+
+    // Verify that `left` is actually to the left of `right`
+    assert(left.interval().min <= right.interval().min);
+    assert(left.interval().max <= right.interval().max);
+    // Verify that `left` and `right` have some overlap
+    assert(left.interval().max > right.interval().min);
+
+    // Find the rightmost piece in `right` which overlaps with the rightmost piece in `left`
+    using PieceIterator = typename std::vector<PolynomialPiece<D>>::const_reverse_iterator;
+    PieceIterator right_it = std::lower_bound(
+        right.pieces.rbegin(),
+        right.pieces.rend(),
+        left.interval().max,
+        [](const PolynomialPiece<D>& piece, double x) {
+            return piece.interval.min >= x;
+        }
+    );
+
+    // Find the point (X) where RIGHT is no longer lower than LEFT. This point must lie in the range where the intervals
+    // of LEFT and RIGHT overlap. If no such point is found (i.e. either LEFT or RIGHT is always lower) we return the
+    // lowest. Otherwise we split LEFT and RIGHT at X and fuse them together.
+
+    double x = left.interval().max;
+
+    while (!left.empty() && right_it != right.pieces.rend()) {
+        const auto& left_back = left.pieces.back();
+
+        assert(left_back.polynomial(x) >= right_it->polynomial(x));
+
+        if (left_back.polynomial(x) == right_it->polynomial(x)) {
+            return;
+        }
+
+        // Check intersections
+        const auto intersections = find_intersections(left_back, *right_it);
+
+        // Verify that there is at most one intersection between the two functions
+        assert(intersections.size() <= 1);
+
+        if (!intersections.empty()) {
+            // Found an intersection between two pieces
+            double root = intersections.front();
+
+            // Shrink last piece of `left`
+            left.pieces.back() = PolynomialPiece<D>({ left_back.interval.min, root }, left_back.polynomial);
+
+            // Add first piece from `right`
+            left.pieces.push_back(PolynomialPiece<D>({ root, right_it->interval.max }, right_it->polynomial));
+            left.pieces.insert(left.pieces.end(), right_it.base(), right.pieces.end());
+
+            return;
+        }
+
+        if (left_back.interval.min == right_it->interval.min) {
+            x = left_back.interval.min;
+            left.pieces.erase(left.pieces.end() - 1);
+            right_it++;
+        } else if (left_back.interval.min < right_it->interval.min) {
+            x = right_it->interval.min;
+            right_it++;
+        } else { // left_back.interval.min > right_it->interval.min
+            x = left_back.interval.min;
+            left.pieces.erase(left.pieces.end() - 1);
+        }
+    }
+
+    throw std::logic_error("unresolved case");
 }

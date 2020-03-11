@@ -248,7 +248,7 @@ int main() {
     std::cout << "\t" << bottom_to_right_4(sx, sy, tx, ty) << ",\n";
     std::cout << "\t" << bottom_to_right_5(sx, sy, tx, ty) << ",\n";
     std::cout << "\t" << bottom_to_right_6(sx, sy, tx, ty) << ",\n";
-    std::cout << "}\n";
+    std::cout << "} -> " << bottom_to_right(sx, sy, tx, ty) << "\n";
 
     std::cout << "TOP = {\n";
     std::cout << "\t" << bottom_to_top_1(sx, sy, tx, ty) << ",\n";

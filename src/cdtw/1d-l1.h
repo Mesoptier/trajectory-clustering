@@ -66,8 +66,8 @@ PiecewisePolynomial<2> bottom_to_right_2(double sx, double sy, double tx, double
 
 PiecewisePolynomial<2> bottom_to_right_3(double sx, double sy, double tx, double ty) {
     // Via valley
-    // X below valley
-    // Y above valley
+    // X above valley
+    // Y below valley
 
     BivariatePolynomial<2> h({{
         {{(sy * sy) / 2 + (tx * tx) / 2, -tx, 1./2}},
@@ -75,8 +75,8 @@ PiecewisePolynomial<2> bottom_to_right_3(double sx, double sy, double tx, double
         {{1./2, 0, 0}},
     }});
 
-    // Y in cell + Y above valley
-    Interval y_interval{std::clamp(tx, sy, ty), ty};
+    // Y in cell + Y below valley
+    Interval y_interval{sy, std::clamp(tx, sy, ty)};
 
     std::vector<Polynomial<1>> left_constraints;
     std::vector<Polynomial<1>> right_constraints;
@@ -93,8 +93,8 @@ PiecewisePolynomial<2> bottom_to_right_3(double sx, double sy, double tx, double
 
 PiecewisePolynomial<2> bottom_to_right_4(double sx, double sy, double tx, double ty) {
     // Via valley
-    // X above valley
-    // Y below valley
+    // X below valley
+    // Y above valley
 
     BivariatePolynomial<2> h({{
         {{(sy * sy) / 2 + (tx * tx) / 2, -tx, 1./2}},
@@ -102,8 +102,8 @@ PiecewisePolynomial<2> bottom_to_right_4(double sx, double sy, double tx, double
         {{1./2, 0, 0}},
     }});
 
-    // Y in cell + Y below valley
-    Interval y_interval{sy, std::clamp(tx, sy, ty)};
+    // Y in cell + Y above valley
+    Interval y_interval{std::clamp(tx, sy, ty), ty};
 
     std::vector<Polynomial<1>> left_constraints;
     std::vector<Polynomial<1>> right_constraints;
@@ -180,6 +180,22 @@ PiecewisePolynomial<2> bottom_to_right_6(double sx, double sy, double tx, double
     right_constraints.push_back(Polynomial<1>({sy, 0}));
 
     return find_minimum(h, y_interval, left_constraints, right_constraints);
+}
+
+PiecewisePolynomial<2> bottom_to_right(double sx, double sy, double tx, double ty) {
+    auto result = bottom_to_right_1(sx, sy, tx, ty);
+//    std::cout << " ... " << result << '\n';
+    fast_lower_envelope(result, bottom_to_right_2(sx, sy, tx, ty));
+//    std::cout << " ... " << result << '\n';
+    fast_lower_envelope(result, bottom_to_right_3(sx, sy, tx, ty));
+//    std::cout << " ... " << result << '\n';
+    fast_lower_envelope(result, bottom_to_right_4(sx, sy, tx, ty));
+//    std::cout << " ... " << result << '\n';
+    fast_lower_envelope(result, bottom_to_right_5(sx, sy, tx, ty));
+//    std::cout << " ... " << result << '\n';
+    fast_lower_envelope(result, bottom_to_right_6(sx, sy, tx, ty));
+//    std::cout << " ... " << result << '\n';
+    return result;
 }
 
 PiecewisePolynomial<2> bottom_to_top_1(double sx, double sy, double tx, double ty) {
