@@ -16,6 +16,7 @@
 #include "src/clustering/clustering_algs.h"
 #include "src/clustering/center_algs.h"
 #include "src/greedy_l_simplification.h"
+#include "src/distance_functions.h"
 
 //
 // I/O helpers
@@ -362,13 +363,13 @@ void test_clustering_algs() {
     std::cout << "read curves...\n";
     std::cout << curves.size() << "\n";
 
-    Clustering gonzalez_clustering = runGonzalez(curves, 26, 5);
+    Clustering gonzalez_clustering = runGonzalez(curves, 26, 5, integral_frechet);
     std::cout << "finshed gonzalez...\n";
 
-    Clustering single_linkage_clustering = singleLinkage(curves, 26, 5);
+    Clustering single_linkage_clustering = singleLinkage(curves, 26, 5, integral_frechet);
     std::cout << "finished single linkage...\n";
 
-    Clustering complete_linkage_clustering = completeLinkage(curves, 26, 5);
+    Clustering complete_linkage_clustering = completeLinkage(curves, 26, 5, integral_frechet);
     std::cout << "finished complete linkage...\n";
 
     distance_t gonzalez_sum = 0;
@@ -415,7 +416,7 @@ void test_center_algs() {
     std::cout << IntegralFrechet(Curve("", {curve.get_points()[6], curve.get_points()[7], curve.get_points()[8]}), segment, ParamMetric::LInfinity_NoShortcuts, 100)
     .compute_matching().cost << "\n";*/
 
-    Clustering clustering = runGonzalez(curves, 1, 10);
+    Clustering clustering = runGonzalez(curves, 1, 10, integral_frechet);
     std::cout << "computed initial cluster center...\n";
     // clustering[0].center_curve = curves[0].simplify(true);
 
@@ -450,8 +451,6 @@ void test_center_algs() {
         script << "\"cluster/matching" + std::to_string(i) + ".txt\" with linespoints ls 1 lt rgb \"blue\", ";
     }
 
-    
-
     int improvement_count = 0;
     while (calcFSACenters(curves, clustering, 10, C2CDist::Median)) {
         std::cout << "found new center!!\n";
@@ -469,13 +468,11 @@ void test_center_algs() {
     improved_cluster.close();
     script << "\"cluster/improved_cluster.txt\" with linespoints ls 3 lw 3 lt rgb \"red\"";
     script.close();
-
 }
 
 void test_pam_with_centering() {
     Curves curves = sample_curves(read_curves("data/characters/data"), 30);
-    
-    Clustering clustering = pam_with_centering(curves, 10, 10);
+    Clustering clustering = pam_with_centering(curves, 10, 10, integral_frechet);
 }
 
 int main() {
@@ -491,8 +488,8 @@ int main() {
     // evaluate_frechet_simplifications();
     // test_clustering();
     // write_simplifications();
-    // test_clustering_algs();
+    test_clustering_algs();
     // test_center_algs();
-    test_pam_with_centering();
+    // test_pam_with_centering();
     return 0;
 }
