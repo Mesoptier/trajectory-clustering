@@ -4,7 +4,7 @@
 
 #define FILE_ERROR(filename) throw std::runtime_error("Failed to open file " + filename)
 
-void io::read_curve(const std::string& filename, Curve& curve, int header_size) {
+void io::read_curve(const std::string& filename, Curve& curve, int /*header_size */) {
     std::ifstream file(filename);
     if (!file.is_open()) {
         FILE_ERROR(filename);

@@ -1,4 +1,5 @@
 #include "Cell.h"
+#include "metrics/include.h"
 
 std::pair<Point, Point> Cell::interpolate_at(const Point& p) const {
     return {
@@ -7,10 +8,10 @@ std::pair<Point, Point> Cell::interpolate_at(const Point& p) const {
     };
 }
 
-Cell Cell::subcell(const Point& s, const Point& t) const {
-    const auto[s1, s2] = interpolate_at(s);
-    const auto[t1, t2] = interpolate_at(t);
-    return {s1, s2, t1, t2};
+Cell Cell::subcell(const Point& start, const Point& end) const {
+    const auto[start1, start2] = interpolate_at(start);
+    const auto[end1, end2] = interpolate_at(end);
+    return {start1, start2, end1, end2};
 }
 
 // TODO: Move methods out of Cell namespace

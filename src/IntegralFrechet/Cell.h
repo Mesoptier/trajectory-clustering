@@ -1,4 +1,5 @@
-#pragma once
+#ifndef CELL
+#define CELL
 
 #include "../geom.h"
 #include "metrics.h"
@@ -30,12 +31,10 @@ struct Cell
     Line ell_h;
     Line ell_v;
 
-    Cell(const Point& s1, const Point& s2, const Point& t1, const Point& t2) :
-        s1(s1), s2(s2), t1(t1), t2(t2),
-        len1(s1.dist(t1)),
-        len2(s2.dist(t2)),
-        s({0, 0}),
-        t({len1, len2})
+    Cell(const Point& start1, const Point& start2,
+            const Point& end1, const Point& end2):
+        s1(start1), s2(start2), t1(end1), t2(end2),
+        len1(s1.dist(t1)), len2(s2.dist(t2)), s({0, 0}), t({len1, len2})
     {
         if (!(approx_equal(s1, t1) || approx_equal(s2, t2))) {
             const auto l1 = Line::fromTwoPoints(s1, t1);
@@ -63,9 +62,6 @@ struct Cell
     /**
      * Get points in image space corresponding to the given point in
      * parameter space.
-     *
-     * @param p
-     * @return
      */
     [[nodiscard]]
     std::pair<Point, Point> interpolate_at(const Point& p) const;
@@ -75,8 +71,8 @@ struct Cell
      *
      * @param s Bottom-left corner (in coordinates relative to this cell) of the subcell.
      * @param t Top-right corner (in coordinates relative to this cell) of the subcell.
-     * @return
      */
     [[nodiscard]]
     Cell subcell(const Point& s, const Point& t) const;
 };
+#endif

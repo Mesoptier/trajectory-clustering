@@ -5,9 +5,9 @@
 
 Curve::Curve(std::string name) : m_name(std::move(name)) {}
 
-Curve::Curve(const Points& points) : m_name("name"), points(points) {}
+Curve::Curve(const Points& pts) : m_name(""), points(pts) {}
 
-Curve::Curve(std::string name, const Points& points): m_name(std::move(name)), points(points) {
+Curve::Curve(std::string name, const Points& pts): m_name(std::move(name)), points(pts) {
     if (points.empty()) {
         return;
     }
@@ -15,7 +15,7 @@ Curve::Curve(std::string name, const Points& points): m_name(std::move(name)), p
     prefix_length.reserve(points.size());
     prefix_length.push_back(0);
 
-    for (int i = 1; i < points.size(); ++i) {
+    for (size_t i = 1; i < points.size(); ++i) {
         auto segment_distance = points[i - 1].dist(points[i]);
         prefix_length.push_back(prefix_length.back() + segment_distance);
     }
@@ -48,6 +48,13 @@ Point Curve::interpolate_at(const CPoint& p) const {
         : points[p.getPoint()] * (1. - p.getFraction()) + points[p.getPoint() + 1] * p.getFraction();
 }
 
+Curve Curve::slice(PointID i, PointID j) const {
+    using dtype = decltype(points.begin())::difference_type;
+    Points subpoints(points.begin() + static_cast<dtype>(i),
+                     points.begin() + static_cast<dtype>(j) + 1);
+    return Curve("", subpoints);
+}
+
 distance_t Curve::get_fraction(PointID id, distance_t dist) const {
     assert((id < points.size() - 1) || (id == points.size() - 1 && dist == 0.));
     assert(dist == 0. || (0. < dist && dist <= curve_length(id, id + 1) + ABS_TOL));
@@ -59,8 +66,7 @@ CPoint Curve::get_cpoint(PointID id, distance_t dist) const {
 }
 
 CPoint Curve::get_cpoint_after(distance_t dist, PointID after_id) const {
-    if (curve_length(after_id) > dist)
-        std::cerr << "stuff";
+    assert(curve_length(after_id) <= dist);
 
     while (after_id + 1 < size() && curve_length(after_id + 1) < dist) {
         ++after_id;
