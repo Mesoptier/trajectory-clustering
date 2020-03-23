@@ -198,7 +198,7 @@ PiecewisePolynomial<2> bottom_to_right(double sx, double sy, double tx, double t
     return result;
 }
 
-PiecewisePolynomial<2> bottom_to_top_1(double sx, double sy, double tx, double ty) {
+PiecewisePolynomial<2> bottom_to_top_6(double sx, double sy, double tx, double ty) {
     // Not via valley
     // A below valley
     // B below valley
@@ -231,7 +231,7 @@ PiecewisePolynomial<2> bottom_to_top_1(double sx, double sy, double tx, double t
     return find_minimum(h, b_interval, left_constraints, right_constraints);
 }
 
-PiecewisePolynomial<2> bottom_to_top_2(double sx, double sy, double tx, double ty) {
+PiecewisePolynomial<2> bottom_to_top_5(double sx, double sy, double tx, double ty) {
     // Via valley
     // A below valley
     // B below valley
@@ -264,7 +264,7 @@ PiecewisePolynomial<2> bottom_to_top_2(double sx, double sy, double tx, double t
     return find_minimum(h, b_interval, left_constraints, right_constraints);
 }
 
-PiecewisePolynomial<2> bottom_to_top_3(double sx, double sy, double tx, double ty) {
+PiecewisePolynomial<2> bottom_to_top_4(double sx, double sy, double tx, double ty) {
     // Via valley
     // A below valley
     // B above valley
@@ -297,7 +297,7 @@ PiecewisePolynomial<2> bottom_to_top_3(double sx, double sy, double tx, double t
     return find_minimum(h, b_interval, left_constraints, right_constraints);
 }
 
-PiecewisePolynomial<2> bottom_to_top_4(double sx, double sy, double tx, double ty) {
+PiecewisePolynomial<2> bottom_to_top_3(double sx, double sy, double tx, double ty) {
     // Via valley
     // A above valley
     // B below valley
@@ -327,7 +327,7 @@ PiecewisePolynomial<2> bottom_to_top_4(double sx, double sy, double tx, double t
     return find_minimum(h, b_interval, left_constraints, right_constraints);
 }
 
-PiecewisePolynomial<2> bottom_to_top_5(double sx, double sy, double tx, double ty) {
+PiecewisePolynomial<2> bottom_to_top_2(double sx, double sy, double tx, double ty) {
     // Via valley
     // A above valley
     // B above valley
@@ -357,7 +357,7 @@ PiecewisePolynomial<2> bottom_to_top_5(double sx, double sy, double tx, double t
     return find_minimum(h, b_interval, left_constraints, right_constraints);
 }
 
-PiecewisePolynomial<2> bottom_to_top_6(double sx, double sy, double tx, double ty) {
+PiecewisePolynomial<2> bottom_to_top_1(double sx, double sy, double tx, double ty) {
     // Not via valley
     // A above valley
     // B above valley
@@ -385,6 +385,16 @@ PiecewisePolynomial<2> bottom_to_top_6(double sx, double sy, double tx, double t
     right_constraints.push_back(Polynomial<1>({sy, 0}));
 
     return find_minimum(h, b_interval, left_constraints, right_constraints);
+}
+
+PiecewisePolynomial<2> bottom_to_top(double sx, double sy, double tx, double ty) {
+    auto result = bottom_to_top_1(sx, sy, tx, ty);
+    fast_lower_envelope(result, bottom_to_top_2(sx, sy, tx, ty));
+    fast_lower_envelope(result, bottom_to_top_3(sx, sy, tx, ty));
+    fast_lower_envelope(result, bottom_to_top_4(sx, sy, tx, ty));
+    fast_lower_envelope(result, bottom_to_top_5(sx, sy, tx, ty));
+    fast_lower_envelope(result, bottom_to_top_6(sx, sy, tx, ty));
+    return result;
 }
 
 #endif //TRAJECTORY_CLUSTERING_1D_L1_H
