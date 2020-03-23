@@ -8,8 +8,10 @@
 
 #include "util.h"
 #include "id.h"
+#include "SymmetricMatrix.h"
 
 using distance_t = double;
+using SymmetricMatrix = SymmetricMatrixT<distance_t>;
 
 enum class Norm {
     L1,
@@ -26,7 +28,7 @@ struct Point {
     distance_t y;
 
     Point() = default;
-    Point(distance_t x, distance_t y) : x(x), y(y) {}
+    Point(distance_t dx, distance_t dy) : x(dx), y(dy) {}
 
     Point& operator-=(const Point& point);
     Point operator-(const Point& point) const;
@@ -72,11 +74,6 @@ namespace ImplicitEdge {
 
     /**
      * Get the point that lies `dist` along the edge.
-     *
-     * @param s
-     * @param t
-     * @param dist
-     * @return
      */
     Point interpolate_at(const Point& s, const Point& t, distance_t dist);
 
@@ -95,7 +92,7 @@ BFDirection getMonotoneDirection(const Point& a, const Point &b);
 
 struct MonotoneComparator {
     BFDirection direction;
-    explicit MonotoneComparator(BFDirection direction): direction(direction) {}
+    explicit MonotoneComparator(BFDirection dir): direction(dir) {}
     bool operator()(const Point& a, const Point& b);
 };
 
@@ -106,8 +103,8 @@ struct Line
 
     Line() = default;
 
-    Line(const Point& origin, const Point& direction)
-        : origin(origin), direction(normalise(direction)) {}
+    Line(const Point& o, const Point& d)
+        : origin(o), direction(normalise(d)) {}
 
     /**
      * Create line from two points that lie on the line.
@@ -230,15 +227,16 @@ private:
         }
     }
 public:
-    CPoint(PointID point, distance_t fraction) : point(point), fraction(fraction) {
+    CPoint(PointID p, distance_t fr) : point(p), fraction(fr) {
         normalize();
     }
     CPoint() : point(PointID::invalid_value), fraction(0.) {}
+    // CPoint(CPoint const&) = default;
 
     PointID getPoint() const { return point; }
     distance_t getFraction() const { return fraction; }
-    distance_t convert() const { return (distance_t) point + fraction; }
-    void setPoint(PointID point) { this->point = point; }
+    distance_t convert() const { return static_cast<distance_t>(point) + fraction; }
+    void setPoint(PointID p) { point = p; }
     void setFraction(distance_t frac) {
         fraction = frac;
         normalize();
@@ -308,7 +306,7 @@ public:
     }
     std::string to_string() const {
         std::stringstream stream;
-        stream << std::fixed << std::setprecision(10) << (double) point + fraction;
+        stream << std::fixed << std::setprecision(10) << static_cast<distance_t>(point) + fraction;
         return stream.str();
     }
 

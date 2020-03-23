@@ -1,4 +1,5 @@
-#pragma once
+#ifndef IDTYPE
+#define IDTYPE
 
 #include <cstdint>
 #include <functional>
@@ -8,24 +9,23 @@
 // mixed. The template parameter T is just there to assure this behavior.
 // Additionally, we have a member function which can check for validity.
 template <typename T>
-struct ID
-{
+struct ID {
 public:
-	using IDType = uint32_t;
+	using IDType = std::uint64_t;
 	static constexpr IDType invalid_value = std::numeric_limits<IDType>::max();
 
-	ID(IDType id = invalid_value) : id(id) {}
+	ID(IDType nid = invalid_value) : id(nid) {}
 
 	operator IDType() const { return id; }
-	IDType operator+(ID<T> other) const { return id + other.id; }
-	IDType operator+(int offset) const { return id + offset; }
-	IDType operator+(size_t offset) const { return id + offset; }
-	IDType operator-(ID<T> other) const { return id - other.id; }
-	IDType operator-(int offset) const { return id - offset; }
-	IDType operator/(int div) const { return id/div; }
+	// IDType operator+(ID<T> other) const { return id + other.id; }
+	// IDType operator+(int offset) const { return id + offset; }
+	// IDType operator+(size_t offset) const { return id + offset; }
+	// IDType operator-(ID<T> other) const { return id - other.id; }
+	// IDType operator-(int offset) const { return id - offset; }
+	// IDType operator/(int div) const { return id/div; }
 	IDType operator+=(ID<T> other) { return id += other.id; }
 	IDType operator-=(ID<T> other) { return id -= other.id; }
-	IDType operator=(ID<T> other) { return id = other.id; }
+	// IDType operator=(ID<T> other) { return id = other.id; }
 	IDType operator++() { return ++id; }
 	IDType operator--() { return --id; }
 	// FIXME:
@@ -43,15 +43,14 @@ private:
 // define custom hash function to be able to use IDs with maps/sets
 namespace std
 {
-
-template <typename T>
-struct hash<ID<T>>
-{
-	using IDType = typename ID<T>::IDType;
-	std::size_t operator()(ID<T> const& id) const noexcept
+	template <typename T>
+	struct hash<ID<T>>
 	{
-		return std::hash<IDType>()(id);
-	}
-};
-
+		using IDType = typename ID<T>::IDType;
+		std::size_t operator()(ID<T> const& id) const noexcept
+		{
+			return std::hash<IDType>()(id);
+		}
+	};
 } // std
+#endif

@@ -12,12 +12,11 @@
 class IntegralFrechet
 {
 private:
-    const Curve curve1;
-    const Curve curve2;
-
-    const ParamMetric param_metric;
+    const Curve& curve1;
+    const Curve& curve2;
     const distance_t  resolution;
     const MatchingBand* const band;
+    const ParamMetric param_metric;
 
     Cell get_cell(const CPosition& s, const CPosition& t) const;
 
@@ -27,26 +26,18 @@ private:
     /**
      * Compute the cost of the optimal matching from the bottom-left corner to
      * the top-right corner of the cell.
-     *
-     * @param cell
-     * @return
      */
     distance_t cost(const Cell& cell, const Point& s, const Point& t) const;
 
 public:
 
-    IntegralFrechet(
-        const Curve& curve1,
-        const Curve& curve2,
-        ParamMetric param_metric,
-        distance_t resolution,
-        const MatchingBand* band = nullptr
-    );
+    IntegralFrechet(const Curve& c1, const Curve& c2, ParamMetric metric,
+        distance_t res, const MatchingBand* b = nullptr);
 
     struct MatchingResult {
         distance_t cost;
         Points matching;
-        shortest_path_algs::SearchStat search_stat;
+        SearchStat search_stat;
     };
 
     MatchingResult compute_matching();

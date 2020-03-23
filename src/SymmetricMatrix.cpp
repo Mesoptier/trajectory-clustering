@@ -1,15 +1,8 @@
 #include "SymmetricMatrix.h"
+#include "geom.h"
 
-void SymmetricMatrix::write(std::ofstream& file, unsigned int precision) const {
-    file << "%%MatrixMarket matrix array real symmetric\n";
-    file << n << ' ' << n << '\n';
-    file.precision(precision);
-    for (double value : data) {
-        file << value << '\n';
-    }
-}
-
-SymmetricMatrix SymmetricMatrix::read(std::ifstream& file) {
+template<typename T>
+SymmetricMatrixT<T> SymmetricMatrixT<T>::read(std::ifstream& file) {
     // Parse header
     std::string line;
     std::getline(file, line);
@@ -25,10 +18,23 @@ SymmetricMatrix SymmetricMatrix::read(std::ifstream& file) {
     }
 
     // Parse values
-    SymmetricMatrix matrix(n);
+    SymmetricMatrixT<T> matrix(n);
     for (auto& value : matrix.data) {
         file >> value;
     }
 
     return matrix;
 }
+
+template<typename T>
+void SymmetricMatrixT<T>::write(std::ofstream& file, unsigned int precision) const {
+    file << "%%MatrixMarket matrix array real symmetric\n";
+    file << n << ' ' << n << '\n';
+    file.precision(precision);
+    for (T value : data) {
+        file << value << '\n';
+    }
+}
+
+template
+class SymmetricMatrixT<distance_t>;
