@@ -49,3 +49,4 @@ distance_t DTW::cost() const {
 const std::vector<std::pair<PointID, PointID>>& DTW::matching() const {
     return m_matching;
 }
+

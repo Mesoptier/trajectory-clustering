@@ -16,6 +16,10 @@ set(SOURCE_FILES
     curve_simplification.cpp
     clustering/center_algs.cpp
     simplification/imaiiri.cpp
+    Frechet/frechet_light.cpp
+    Frechet/frechet_matching.cpp
+    filter.cpp
+    clustering/center_clustering_algs.cpp
     DTW/dtw.cpp
 )
 
