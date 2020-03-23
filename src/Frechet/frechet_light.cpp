@@ -1,7 +1,7 @@
 #include "frechet_light.h"
 
-#include "defs.h"
-#include "filter.h"
+#include "../defs.h"
+#include "../filter.h"
 
 #include <algorithm>
 
@@ -971,13 +971,14 @@ Certificate& FrechetLight::computeCertificate() {
 
 	//TODO test handling of special cases!
 	//special cases:
-	if (curve1.front().dist_sqr(curve2.front()) > dist_sqr) { 
+	if (curve1.front().dist_sqr(curve2.front()) > dist_sqr) {
 		cert.setAnswer(false);
 		cert.addPoint({ CPoint(0, 0.), CPoint(0, 0.) });
 		cert.validate();
 		return cert;
        	}
 	if (curve1.back().dist_sqr(curve2.back()) > dist_sqr) { 
+		distance_t dist = curve1.back().dist_sqr(curve2.back());
 		cert.setAnswer(false);
 		cert.addPoint({ CPoint(curve1.size()-1, 0.), CPoint(curve2.size()-1, 0.) });
 		cert.validate();

@@ -9,6 +9,7 @@ class Curve {
     // Total arc length of the curve up to the i-th point
     std::vector<distance_t> prefix_length;
 
+
 public:
     Curve() = default;
     explicit Curve(std::string name);
@@ -83,5 +84,18 @@ public:
      * FIXME: Super crappy!
      */
     Curve simplify(bool maintain_lengths) const;
+
+    Curve naive_l_simplification(int l) const;
+
+    struct ExtremePoints { distance_t min_x, min_y, max_x, max_y; };
+	ExtremePoints const& getExtremePoints() const;
+
+    distance_t getUpperBoundDistance(Curve const& other) const;
+
+private:
+        ExtremePoints extreme_points = {
+		std::numeric_limits<distance_t>::max(), std::numeric_limits<distance_t>::max(),
+		std::numeric_limits<distance_t>::lowest(), std::numeric_limits<distance_t>::lowest()
+	};
 
 };

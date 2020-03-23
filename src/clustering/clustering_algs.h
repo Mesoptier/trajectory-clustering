@@ -15,18 +15,21 @@ enum class ClusterAlg {
 	SingleLinkage,
 	CompleteLinkage,
 	Gonzalez,
+	Pam
 };
 std::string toString(ClusterAlg cluster_alg);
 
-Clustering computeClustering(Curves const& curves, int k, int l, ClusterAlg cluster_alg, distance_t(*dist_func)(Curve, Curve));
+Clustering computeClustering(Curves const& curves, int k, int l, ClusterAlg cluster_alg, distance_t(*dist_func)(Curve, Curve), bool naive_simplification=false);
 
-Clustering singleLinkage(Curves const& curves, int k, int l, distance_t(*dist_func)(Curve, Curve));
-Clustering completeLinkage(Curves const& curves, int k, int l, distance_t(*dist_func)(Curve, Curve));
-Clustering runGonzalez(Curves const& curves, int k, int l, distance_t(*dist_func)(Curve, Curve));
+Clustering singleLinkage(Curves const& curves, int k, int l, distance_t(*dist_func)(Curve, Curve), bool naive_simplification);
+Clustering completeLinkage(Curves const& curves, int k, int l, distance_t(*dist_func)(Curve, Curve), bool naive_simplification);
+Clustering runGonzalez(Curves const& curves, int k, int l, distance_t(*dist_func)(Curve, Curve), bool naive_simplification);
 
 // assign curves to closest clusters
 void updateClustering(Curves const& curves, Clustering& clustering, distance_t(*dist_func)(Curve, Curve));
 
 distance_t calcDiameter(Curves const& curves, CurveIDs const& curve_ids, distance_t(*dist_func)(Curve, Curve));
 
-Clustering pam_with_centering(Curves const& curves, int k, int l, distance_t(*dist_func)(Curve, Curve));
+Clustering pam_with_simplifications(Curves const& curves, int k, int l, distance_t(*dist_func)(Curve, Curve), std::string matrix_file_name="pigeon_matrix.txt");
+
+Clustering pam_with_centering(Curves const& curves, int k, int l, distance_t(*dist_func)(Curve, Curve), std::string matrix_file_name);

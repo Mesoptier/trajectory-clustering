@@ -16,6 +16,11 @@ set(SOURCE_FILES
     random.cpp
     curve_simplification.cpp
     clustering/center_algs.cpp
+    Frechet/frechet_light.cpp
+    Frechet/frechet_matching.cpp
+    filter.cpp
+    clustering/center_clustering_algs.cpp
+    DTW/dtw.cpp
 )
 
 add_library(TrajectoryClustering_lib STATIC ${SOURCE_FILES} ${HEADER_FILES})

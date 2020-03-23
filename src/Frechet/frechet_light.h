@@ -1,13 +1,13 @@
 #pragma once
 
-#include "defs.h"
-#include "filter.h"
+#include "../defs.h"
+#include "../filter.h"
 #include "frechet_abstract.h"
 #include "frechet_light_types.h"
-#include "geometry_basics.h"
-#include "id.h"
-#include "curve.h"
-#include "certificate.h"
+#include "../geom.h"
+#include "../id.h"
+#include "../Curve.h"
+#include "../certificate.h"
 
 #include <array>
 #include <vector>

@@ -1,9 +1,9 @@
 #include "center_algs.h"
 
 //#include "curve_simplification.h"
-//#include "frechet_light.h"
-//#include "frechet_matching.h"
-//#include "geometric_algs.h"
+#include "../Frechet/frechet_light.h"
+#include "../Frechet/frechet_matching.h"
+#include "../geom.h"
 #include "../IntegralFrechet/IntegralFrechet.h"
 
 #include <limits>
@@ -59,14 +59,14 @@ Point mean_of_points(Points points) {
 	return Point(x_mean, y_mean);
 }
 
-bool calcKXCenters(Curves const& curves, Clustering& clustering, int l, C2CDist c2c_dist)
+bool calcKXCenters(Curves const& curves, Clustering& clustering, int l, C2CDist c2c_dist, distance_t(*dist_func)(Curve, Curve))
 {
 	bool found_new_center = false;
 
 	// compute cluster costs in case they haven't been computed yet
 	for (auto& cluster: clustering) {
 		if (cluster.cost == std::numeric_limits<distance_t>::max()) {
-			cluster.cost = calcC2CDist(curves, cluster.center_curve, cluster.curve_ids, c2c_dist);
+			cluster.cost = calcC2CDist(curves, cluster.center_curve, cluster.curve_ids, c2c_dist, dist_func);
 		}
 	}
 
@@ -74,7 +74,7 @@ bool calcKXCenters(Curves const& curves, Clustering& clustering, int l, C2CDist 
 		for (CurveID curve_id1: cluster.curve_ids) {
 			// auto simplified_curve = simplify(curves[curve_id1], l);
 			auto simplified_curve = curves[curve_id1].simplify(true);
-			auto dist = calcC2CDist(curves, simplified_curve, cluster.curve_ids, c2c_dist);
+			auto dist = calcC2CDist(curves, simplified_curve, cluster.curve_ids, c2c_dist, dist_func);
 			if (dist < cluster.cost) {
 				cluster.center_curve = simplified_curve;
 				cluster.cost = dist;
@@ -93,22 +93,24 @@ std::string toString(CenterAlg center_alg) {
 	case CenterAlg::kMedian: return "kMedian";
 	case CenterAlg::kMeans: return "kMeans";
 	case CenterAlg::kCenter: return "kCenter";
-	case CenterAlg::FSA: return "FSA";
+	case CenterAlg::fCenter: return "fCenter";
+	case CenterAlg::fMean: return "fMean";
 	}
 	ERROR("Unknown center_alg.");
 }
 
 distance_t calcC2CDist(
-	Curves const& curves, Curve const& center_curve, CurveIDs const& curve_ids, C2CDist c2c_dist)
+	Curves const& curves, Curve const& center_curve, CurveIDs const& curve_ids, C2CDist c2c_dist, distance_t(*dist_func)(Curve, Curve))
 {
 	// FrechetLight frechet_light;
 
 	distance_t dist = 0;
 	for (auto curve_id: curve_ids) {
 		// auto curve_dist = frechet_light.calcDistance(center_curve, curves[curve_id]);
-		auto curve_dist = IntegralFrechet(center_curve, curves[curve_id], ParamMetric::LInfinity_NoShortcuts, 1, nullptr)
-		.compute_matching()
-		.cost;
+		// auto curve_dist = IntegralFrechet(center_curve, curves[curve_id], ParamMetric::LInfinity_NoShortcuts, 1, nullptr)
+		// .compute_matching()
+		// .cost;
+		auto curve_dist = dist_func(center_curve, curves[curve_id]);
 
 		switch (c2c_dist) {
 		case C2CDist::Median:
@@ -126,42 +128,52 @@ distance_t calcC2CDist(
 	return dist;
 }
 
-bool computerCenters(Curves const& curves, Clustering& clustering, int l, CenterAlg center_alg)
+bool computerCenters(Curves const& curves, Clustering& clustering, int l, CenterAlg center_alg, distance_t(*dist_func)(Curve, Curve))
 {
 	switch (center_alg) {
 	case CenterAlg::kMedian:
-		// return calcKMedianCenters(curves, clustering, l);
+		return calcKMedianCenters(curves, clustering, l, dist_func);
 		false;
 	case CenterAlg::kMeans:
-		// return calcKMeansCenters(curves, clustering, l);
+		return calcKMeansCenters(curves, clustering, l, dist_func);
 		return false;
 	case CenterAlg::kCenter:
-		// return calcKCenterCenters(curves, clustering, l);
+		return calcKCenterCenters(curves, clustering, l, dist_func);
 		return false;
-	case CenterAlg::FSA:
-		return calcFSACenters(curves, clustering, l);
+	case CenterAlg::fCenter:
+		return calcFSACenters(curves, clustering, l, dist_func, C2CDist::Max, CenterCurveUpdateMethod::frechetCentering);
+	case CenterAlg::fMean:
+		return calcFSACenters(curves, clustering, l, dist_func, C2CDist::Median, CenterCurveUpdateMethod::frechetMean);
 	}
 
 	ERROR("No matching center_alg enum passed.");
 }
 
-bool calcKMedianCenters(Curves const& curves, Clustering& clustering, int l)
+bool calcKMedianCenters(Curves const& curves, Clustering& clustering, int l, distance_t(*dist_func)(Curve, Curve))
 {
-	return calcKXCenters(curves, clustering, l, C2CDist::Median);
+	return calcKXCenters(curves, clustering, l, C2CDist::Median, dist_func);
 }
 
-bool calcKMeansCenters(Curves const& curves, Clustering& clustering, int l)
+bool calcKMeansCenters(Curves const& curves, Clustering& clustering, int l, distance_t(*dist_func)(Curve, Curve))
 {
-	return calcKXCenters(curves, clustering, l, C2CDist::Mean);
+	return calcKXCenters(curves, clustering, l, C2CDist::Mean, dist_func);
 }
 
-bool calcKCenterCenters(Curves const& curves, Clustering& clustering, int l)
+bool calcKCenterCenters(Curves const& curves, Clustering& clustering, int l, distance_t(*dist_func)(Curve, Curve))
 {
-	return calcKXCenters(curves, clustering, l, C2CDist::Max);
+	return calcKXCenters(curves, clustering, l, C2CDist::Max, dist_func);
+}
+
+bool frechetCentering (Curves const& curves, Clustering& clustering, int l, C2CDist c2c_dist, distance_t(*dist_func)(Curve, Curve)) {
+	return calcFSACenters(curves, clustering, l, dist_func, c2c_dist, CenterCurveUpdateMethod::frechetCentering);
+}
+
+bool frerchetMean(Curves const& curves, Clustering& clustering, int l, C2CDist c2c_dist, distance_t(*dist_func)(Curve, Curve)) {
+	return calcFSACenters(curves, clustering, l, dist_func, c2c_dist, CenterCurveUpdateMethod::frechetMean);
 }
 
 // TODO: There is some unnecessary pushing around of data here. Fix that to increase performance.
-bool calcFSACenters(Curves const& curves, Clustering& clustering, int l, C2CDist c2c_dist)
+bool calcFSACenters(Curves const& curves, Clustering& clustering, int l, distance_t(*dist_func)(Curve, Curve), C2CDist c2c_dist, CenterCurveUpdateMethod method)
 {
 	bool found_new_center = false;
 	// FrechetLight frechet_light;
@@ -169,7 +181,7 @@ bool calcFSACenters(Curves const& curves, Clustering& clustering, int l, C2CDist
 	// compute cluster costs in case they haven't been computed yet
 	for (auto& cluster: clustering) {
 		if (cluster.cost == std::numeric_limits<distance_t>::max()) {
-			cluster.cost = calcC2CDist(curves, cluster.center_curve, cluster.curve_ids, c2c_dist);
+			cluster.cost = calcC2CDist(curves, cluster.center_curve, cluster.curve_ids, c2c_dist, dist_func);
 		}
 	}
 
@@ -181,12 +193,33 @@ bool calcFSACenters(Curves const& curves, Clustering& clustering, int l, C2CDist
 		for (auto curve_id: cluster.curve_ids) {
 			auto const& curve = curves[curve_id];
 			// auto matching = calcMatching(cluster.center_curve, curve);
-			auto matching = IntegralFrechet(cluster.center_curve, curve, ParamMetric::LInfinity_NoShortcuts, 1, nullptr)
-			.compute_matching()
-			.matching;
+			// auto matching = IntegralFrechet(cluster.center_curve, curve, ParamMetric::LInfinity_NoShortcuts, 1, nullptr)
+			// .compute_matching()
+			// .matching;
 
-			Points matching_points = matching_to_points(matching, cluster.center_curve, curve);
-			matchings.push_back(std::move(matching_points));
+			// auto matching = method == frechetCentering ? 
+			// calcMatching(cluster.center_curve, curve) :
+			// IntegralFrechet(cluster.center_curve, curve, ParamMetric::LInfinity_NoShortcuts, 1, nullptr)
+			// .compute_matching()
+			// .matching;
+
+			// Points matching_points = matching_to_points(matching, cluster.center_curve, curve);
+			// matchings.push_back(std::move(matching_points));
+
+			switch (method) {
+				case CenterCurveUpdateMethod::frechetCentering:
+					matchings.push_back(calcMatching(cluster.center_curve, curve));
+				case CenterCurveUpdateMethod::frechetMean:
+					matchings.push_back(
+						matching_to_points(
+							IntegralFrechet(cluster.center_curve, curve, ParamMetric::LInfinity_NoShortcuts, 1, nullptr)
+							.compute_matching()
+							.matching,
+							cluster.center_curve,
+							curve
+						)
+					);
+			}
 		}
 
 		for (PointID point_id = 0; point_id < center_curve.size(); ++point_id) {
@@ -194,15 +227,23 @@ bool calcFSACenters(Curves const& curves, Clustering& clustering, int l, C2CDist
 			for (auto const& matching: matchings) {
 				matching_points.push_back(matching[point_id]);
 			}
+
+			switch (method) {
+				case CenterCurveUpdateMethod::frechetCentering: 
+					new_center_curve.push_back(calcMinEnclosingCircle(matching_points).center);
+					break;
+				case CenterCurveUpdateMethod::frechetMean:  
+					new_center_curve.push_back(mean_of_points(matching_points));
+					break;
+			};
+
 			// auto min_enclosing_circle = calcMinEnclosingCircle(matching_points);
 			// new_center_curve.push_back(min_enclosing_circle.center);
-			new_center_curve.push_back(mean_of_points(matching_points));
+			// new_center_curve.push_back(mean_of_points(matching_points));
 		}
 
 		if (center_curve != new_center_curve) {
-			auto new_dist = calcC2CDist(curves, new_center_curve, cluster.curve_ids, c2c_dist);
-			std::cout << "new idst: " << new_dist << "\n";
-			std::cout << "cluster cost: " << cluster.cost << "\n";
+			auto new_dist = calcC2CDist(curves, new_center_curve, cluster.curve_ids, c2c_dist, dist_func);
 			if (new_dist < cluster.cost) {
 				cluster.center_curve = std::move(new_center_curve);
 				cluster.cost = new_dist;
@@ -217,7 +258,6 @@ bool calcFSACenters(Curves const& curves, Clustering& clustering, int l, C2CDist
 Points matching_of_vertices(Curve curve_1, Curve curve_2) {
 		auto matching = IntegralFrechet(curve_1, curve_2, ParamMetric::LInfinity_NoShortcuts, 1, nullptr)
 		.compute_matching().matching;
-
 		return matching_to_points(matching, curve_1, curve_2);
 	}
 

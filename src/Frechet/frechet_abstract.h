@@ -1,8 +1,8 @@
 #pragma once
 
-#include "geometry_basics.h"
-#include "certificate.h"
-#include "curve.h"
+#include "../geom.h"
+#include "../certificate.h"
+#include "../Curve.h"
 
 #include <array>
 

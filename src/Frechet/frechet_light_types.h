@@ -1,8 +1,8 @@
 #pragma once
 
-#include "geometry_basics.h"
-#include "id.h"
-#include "curve.h"
+#include "../geom.h"
+#include "../id.h"
+#include "../Curve.h"
 
 #include <vector>
 

@@ -4,7 +4,7 @@
 #include "../union_find.h"
 #include <limits>
 #include "../IntegralFrechet/IntegralFrechet.h"
-// #include "../curve_simplification.h"
+#include "../curve_simplification.h"
 
 namespace
 {
@@ -26,7 +26,7 @@ distance_t compute_integral_frechet_distance(Curve curve_1, Curve curve_2) {
 
 // TODO: Computes all distances, not only one per pair.
 template <typename Comp>
-Clustering linkage(Curves const& curves, int k, int l, Comp comp, distance_t(*dist_func)(Curve, Curve))
+Clustering linkage(Curves const& curves, int k, int l, Comp comp, distance_t(*dist_func)(Curve, Curve), bool naive_simplification)
 {
 	// compute all pairwise Fréchet distances
 	// FrechetLight frechet_light;
@@ -119,34 +119,35 @@ std::string toString(ClusterAlg cluster_alg) {
 	// ERROR("Unknown cluster_alg.");
 }
 
-Clustering computeClustering(Curves const& curves, int k, int l, ClusterAlg cluster_alg, distance_t(*dist_func)(Curve, Curve))
+Clustering computeClustering(Curves const& curves, int k, int l, ClusterAlg cluster_alg, distance_t(*dist_func)(Curve, Curve), bool naive_simplification)
 {
 	switch (cluster_alg) {
 	case ClusterAlg::SingleLinkage:
-		return singleLinkage(curves, k, l, dist_func);
+		return singleLinkage(curves, k, l, dist_func, naive_simplification);
 	case ClusterAlg::CompleteLinkage:
-		return completeLinkage(curves, k, l, dist_func);
+		return completeLinkage(curves, k, l, dist_func, naive_simplification);
 	case ClusterAlg::Gonzalez:
-		return runGonzalez(curves, k, l, dist_func);
+		return runGonzalez(curves, k, l, dist_func, naive_simplification);
+	case ClusterAlg::Pam:
+		return pam_with_simplifications(curves, k, l, dist_func);
 	}
-
 	
 	// ERROR("No matching cluster_alg enum passed.");
 }
 
-Clustering singleLinkage(Curves const& curves, int k, int l, distance_t(*dist_func)(Curve, Curve))
+Clustering singleLinkage(Curves const& curves, int k, int l, distance_t(*dist_func)(Curve, Curve), bool naive_simplification)
 {
 	auto min = [](distance_t a, distance_t b) { return std::min<distance_t>(a,b); };
-	return linkage(curves, k, l, min, dist_func);
+	return linkage(curves, k, l, min, dist_func, naive_simplification);
 }
 
-Clustering completeLinkage(Curves const& curves, int k, int l, distance_t(*dist_func)(Curve, Curve))
+Clustering completeLinkage(Curves const& curves, int k, int l, distance_t(*dist_func)(Curve, Curve), bool naive_simplification)
 {
 	auto max = [](distance_t a, distance_t b) { return std::max<distance_t>(a,b); };
-	return linkage(curves, k, l, max, dist_func);
+	return linkage(curves, k, l, max, dist_func, naive_simplification);
 }
 
-Clustering runGonzalez(Curves const& curves, int k, int l, distance_t(*dist_func)(Curve, Curve))
+Clustering runGonzalez(Curves const& curves, int k, int l, distance_t(*dist_func)(Curve, Curve), bool naive_simplification)
 {
 	Clustering result;
 
@@ -183,7 +184,10 @@ Clustering runGonzalez(Curves const& curves, int k, int l, distance_t(*dist_func
 		auto center_it = std::max_element(distances_to_center.begin(), distances_to_center.end());
 		auto center_id = std::distance(distances_to_center.begin(), center_it);
 		// auto center_curve = simplify(curves[center_id], l);
-		Curve center_curve = curves[center_id].simplify(true);
+		Curve center_curve = naive_simplification ? 
+		curves[center_id].simplify(true) : 
+		simplify(curves[center_id], l, dist_func);
+		
 		result.push_back({{}, center_curve});
 		for (CurveID curve_id = 0; curve_id < curves.size(); ++curve_id) {
 			auto& current_dist = distances_to_center[curve_id];
@@ -265,7 +269,30 @@ distance_t calcDiameter(Curves const& curves, CurveIDs const& curve_ids, distanc
 	return max_distance;
 }
 
-Clustering pam_with_centering(Curves const& curves, int k, int l, distance_t(*dist_func)(Curve, Curve)) {
+Clustering pam_with_simplifications(Curves const& curves, int k, int l, distance_t(*dist_func)(Curve, Curve), std::string matrix_file_name) {
+	Curves simplifications = Curves();
+	for (auto curve: curves) {
+		simplifications.push_back(curve.simplify(true));
+	}
+
+	CurveSimpMatrix distance_matrix = matrix_file_name == "" ? 
+	CurveSimpMatrix(curves, simplifications, dist_func) :
+	CurveSimpMatrix(matrix_file_name);
+
+	std::vector<size_t> initial_centers = clustering::pam_simp::compute(curves.size(), k, distance_matrix);
+
+	Clustering clustering = Clustering();
+
+	for (auto center_id: initial_centers) {
+		std::cout << curves[center_id].name() << "\n";
+		clustering.push_back({{}, simplifications[center_id], 0});
+	}
+
+	updateClustering(curves, clustering, dist_func);
+
+	return clustering;
+}
+Clustering pam_with_centering(Curves const& curves, int k, int l, distance_t(*dist_func)(Curve, Curve), std::string matrix_file_name) {
 	
 	Curves simplifications = Curves();
 	for (auto curve: curves) {
@@ -274,7 +301,12 @@ Clustering pam_with_centering(Curves const& curves, int k, int l, distance_t(*di
 
 	std::cout << "computed simplificactions... \n";
 
-	CurveSimpMatrix distance_matrix = CurveSimpMatrix(curves, simplifications, false);
+	CurveSimpMatrix distance_matrix = matrix_file_name == "" ? 
+	CurveSimpMatrix(curves, simplifications, dist_func) :
+	CurveSimpMatrix(matrix_file_name);
+
+	std::cout << "read distance matrix \n";
+
 
 	std::vector<size_t> initial_centers = clustering::pam_simp::compute(curves.size(), k, distance_matrix);
 
@@ -298,7 +330,7 @@ Clustering pam_with_centering(Curves const& curves, int k, int l, distance_t(*di
 
 	distance_t cost_after_pam = 0;
 	for (auto& cluster: clustering) {
-		cluster.cost = calcC2CDist(curves, cluster.center_curve, cluster.curve_ids, C2CDist::Median);
+		cluster.cost = calcC2CDist(curves, cluster.center_curve, cluster.curve_ids, C2CDist::Median, dist_func);
 		cost_after_pam += cluster.cost;
 	}
 
@@ -306,17 +338,16 @@ Clustering pam_with_centering(Curves const& curves, int k, int l, distance_t(*di
 
 	std::cout << clustering[0].cost << "\n";
 
-	calcFSACenters(curves, clustering, l, C2CDist::Median);
+	calcFSACenters(curves, clustering, l, dist_func, C2CDist::Median, CenterCurveUpdateMethod::frechetMean);
 
 	std::cout << "updated centers\n";
 
-	for (auto cluster: clustering) {
-		updateClustering(curves, clustering, dist_func);
-	}
+	updateClustering(curves, clustering, dist_func);
+
 
 	distance_t cost_after_centering = 0;
 	for (auto& cluster: clustering) {
-		cost_after_centering += calcC2CDist(curves, cluster.center_curve, cluster.curve_ids, C2CDist::Median);
+		cost_after_centering += calcC2CDist(curves, cluster.center_curve, cluster.curve_ids, C2CDist::Median, dist_func);
 	}
 
 	std::cout << "cost after centering: " << cost_after_centering << "\n";
