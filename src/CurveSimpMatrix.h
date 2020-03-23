@@ -16,56 +16,55 @@ class CurveSimpMatrix {
             std::fstream file;
             file.open(file_name);
             read(file);
+            file.close();
         }
 
-        CurveSimpMatrix(Curves const& curves, Curves const& simplifications, bool speed_up) {
+        CurveSimpMatrix(Curves const& curves, Curves const& simplifications, distance_t(*dist_func)(Curve, Curve)) {
             using szt = Curves::size_type;
-            
             if (curves.size() != simplifications.size())
                 throw std::runtime_error("There must be the same number of curves and simplifications in CurveSimpMatrix constructor");
 
             matrix = std::vector<std::vector<distance_t>>();
 
+
             for (szt i = 0; i < curves.size(); ++i) {
+                std::cout << curves[i].get_points().size() << "\n";
+                // std::cout << i << "\n";
                 matrix.push_back(std::vector<distance_t>());
                 for (szt j = 0; j < curves.size(); ++j) {
-                    if (!speed_up) {
-                            matrix.back().push_back(
-                            IntegralFrechet(curves[i], simplifications[j], ParamMetric::LInfinity_NoShortcuts, 1, nullptr)
-                            .compute_matching()
-                            .cost
-                        );
-                    } else {
-
-                        const auto result_alt = IntegralFrechet(curves[i].simplify(true), simplifications[j], ParamMetric::LInfinity_NoShortcuts, 10, nullptr).compute_matching();
-                        const auto band = MatchingBand(curves[i], simplifications[j], result_alt.matching, 1);
-                        const auto result = IntegralFrechet(curves[i], simplifications[j], ParamMetric::LInfinity_NoShortcuts, 1, &band).compute_matching();
-
-                        matrix.back().push_back(result.cost);
-
+                    // std::cout << "\t" << i << ", " << j << "\n";
+                    if (i == j) {
+                        matrix.back().push_back(0);
+                    }
+                    else {
+                        matrix.back().push_back(dist_func(curves[i], simplifications[j]));
                     }
                 }
             }
-
         }
 
         distance_t at(std::size_t i, std::size_t j) const {
             return matrix[i][j];
         }
 
-        void write(std::ofstream& file) {
+        void write(std::string path) {
+            std::ofstream file;
+            file.open(path, std::fstream::out | std::fstream::trunc);
             for (auto row: matrix) {
                 for (auto distance: row) {
                     file << distance << " ";
                 }
                 file << "\n";
             }
+
+            file.close();
         }
 
         void read(std::fstream& file) {
             matrix = std::vector<std::vector<distance_t>>();
-
-            for (std::string line; std::getline(file, line);) {
+            std::string line;
+            int i = 0;
+            while (std::getline(file, line)) {
                 matrix.push_back(std::vector<distance_t>());
                 std::istringstream tokenStream(line);
                 std::string distance;

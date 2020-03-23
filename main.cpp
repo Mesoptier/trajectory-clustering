@@ -10,6 +10,7 @@
 #include "src/clustering/pam.h"
 #include "src/IntegralFrechet/MatchingBand.h"
 #include "src/greedy_simplification.h"
+#include "src/curve_simplification.h"
 // #include "src/clustering/clustering.h"
 #include "src/CurveSimpMatrix.h"
 #include "src/clustering/pam_with_simplifications.h"
@@ -18,6 +19,8 @@
 #include "src/greedy_l_simplification.h"
 #include "src/simplification/imaiiri.h"
 #include "src/DTW/dtw.h"
+#include "src/distance_functions.h"
+#include "src/experiments.h"
 
 namespace {
 //
@@ -363,13 +366,13 @@ void test_clustering_algs() {
     std::cout << "read curves...\n";
     std::cout << curves.size() << "\n";
 
-    Clustering gonzalez_clustering = runGonzalez(curves, 26, 5);
+    Clustering gonzalez_clustering = runGonzalez(curves, 26, 5, integral_frechet, true);
     std::cout << "finshed gonzalez...\n";
 
-    Clustering single_linkage_clustering = singleLinkage(curves, 26, 5);
+    Clustering single_linkage_clustering = singleLinkage(curves, 26, 5, integral_frechet, true);
     std::cout << "finished single linkage...\n";
 
-    Clustering complete_linkage_clustering = completeLinkage(curves, 26, 5);
+    Clustering complete_linkage_clustering = completeLinkage(curves, 26, 5, integral_frechet, true);
     std::cout << "finished complete linkage...\n";
 
     distance_t gonzalez_sum = 0;
@@ -406,6 +409,19 @@ void test_clustering_algs() {
     std::cout << "complete linkage: " << complete_linkage_sum << "\n";
 }
 
+distance_t evaluate_clustering(Clustering clustering, Curves curves, distance_t(*dist_func)(Curve, Curve)) {
+
+    distance_t cost = 0;
+
+    for (auto cluster: clustering) {
+        for (auto curve_id: cluster.curve_ids) {
+            cost += dist_func(curves[curve_id], cluster.center_curve);
+        }
+    }
+
+    return cost;
+}
+
 void test_center_algs() {
     Curves curves = read_curves("data/characters/data");
     curves = Curves(curves.begin(), curves.begin() + 26);
@@ -416,7 +432,7 @@ void test_center_algs() {
     std::cout << IntegralFrechet(Curve("", {curve.get_points()[6], curve.get_points()[7], curve.get_points()[8]}), segment, ParamMetric::LInfinity_NoShortcuts, 100)
     .compute_matching().cost << "\n";*/
 
-    Clustering clustering = runGonzalez(curves, 1, 10);
+    Clustering clustering = runGonzalez(curves, 1, 10, integral_frechet, true);
     std::cout << "computed initial cluster center...\n";
     // clustering[0].center_curve = curves[0].simplify(true);
 
@@ -451,10 +467,8 @@ void test_center_algs() {
         script << "\"cluster/matching" + std::to_string(i) + ".txt\" with linespoints ls 1 lt rgb \"blue\", ";
     }
 
-    
-
     int improvement_count = 0;
-    while (calcFSACenters(curves, clustering, 10, C2CDist::Median)) {
+    while (calcFSACenters(curves, clustering, 10, average_frechet, C2CDist::Median, CenterCurveUpdateMethod::frechetMean)) {
         std::cout << "found new center!!\n";
         improvement_count++;
     }
@@ -470,13 +484,56 @@ void test_center_algs() {
     improved_cluster.close();
     script << "\"cluster/improved_cluster.txt\" with linespoints ls 3 lw 3 lt rgb \"red\"";
     script.close();
-
 }
 
 void test_pam_with_centering() {
     Curves curves = sample_curves(read_curves("data/characters/data"), 30);
-    
-    Clustering clustering = pam_with_centering(curves, 10, 10);
+    Clustering clustering = pam_with_centering(curves, 10, 10, integral_frechet, "");
+}
+
+void test_frechet() {
+    Curves curves = read_curves("data/characters/data");
+    curves = sample_curves(curves, 50);
+
+
+    Curves simplifications = Curves();
+    for (auto& curve: curves) {
+        std::cout << curve.name() << "\n";
+        simplifications.push_back(
+            simplify(curve, 10, frechet)
+        );
+    }
+    // Clustering pam_clustering = pam_with_centering(curves, 10, 10, average_frechet, "characters_matrix.txt");
+    // Clustering gonzalez_clustering = runGonzalez(curves, 10, 10, frechet, true);
+
+    // std::cout << "cost of pam clustering...\n";
+    // std::cout << evaluate_clustering(pam_clustering, curves, average_frechet) << "\n";
+
+    // std::cout << "cost of gonzalez clustering...\n";
+    // std::cout << evaluate_clustering(gonzalez_clustering, curves, average_frechet) << "\n";
+}
+
+void compute_curve_simp_matrix() {
+    Curves curves = read_data();
+    Curves simplifications = Curves();
+
+    for (auto curve: curves) {
+        simplifications.push_back(
+            curve.naive_l_simplification(5)
+        );
+
+        std::cout << simplifications.back().get_points().size() << "\n";
+    }
+
+    std::cout << "computed simplifications...\n";
+
+    CurveSimpMatrix matrix = CurveSimpMatrix(curves, simplifications, average_frechet);
+    matrix.write("pigeon_matrix.txt");
+}
+
+void run_experiments() {
+    Curves curves = read_data();
+    std::cout << curves.size() << "\n";
 }
 }
 
@@ -503,6 +560,12 @@ int main() {
 
     // const auto distance_matrix = read_matrix("data/out/distance_matrix.mtx");
     // compute_clusters(distance_matrix, 19); // "characters" has 19 classes
+
+    // test_frechet();
+    // compute_curve_simp_matrix();
+    // run_experiments();
+    preliminary_experiments();
+
 {
     auto start_time = std::chrono::high_resolution_clock::now();
     auto ret = simplification::imai_iri::simplify(curves[0], 5);
@@ -528,9 +591,5 @@ int main() {
         std::cout << " (" << p.first << ", " << p.second << ")";
     std::cout << std::endl;
 }
-
-    
-    // experiment_with_or_without_bands();
-    // experiment_visualize_band();
     return 0;
 }

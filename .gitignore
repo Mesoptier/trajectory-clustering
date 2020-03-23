@@ -13,3 +13,6 @@ out/
 cluster
 benchmark_stats.csv
 data/
+
+characters_matrix.txt
+pigeon_matrix.txt

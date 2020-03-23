@@ -71,6 +71,7 @@ Curve read_pigeon_curve(const std::string& filename) {
 
 std::vector<Curve> io::read_pigeon_curves(const std::string& directory) {
     const auto index_filename = directory + "/dataset.txt";
+    std::cout << index_filename << "\n";
     std::ifstream index(index_filename);
 
     std::vector<Curve> curves;

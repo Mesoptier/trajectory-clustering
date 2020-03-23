@@ -65,5 +65,4 @@ public:
      */
     const std::vector<std::pair<PointID, PointID>>& matching() const;
 };
-
 #endif
