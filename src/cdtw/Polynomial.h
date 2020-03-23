@@ -50,6 +50,7 @@ struct Polynomial
     // Arithmetic operators
     //
 
+    // Polynomial + Polynomial (of same degree)
     Polynomial<D>& operator+=(const Polynomial<D>& rhs) {
         for (size_t d = 0; d <= D; ++d) {
             coefficients[d] += rhs.coefficients[d];
@@ -59,6 +60,16 @@ struct Polynomial
     friend Polynomial<D> operator+(Polynomial<D> lhs, const Polynomial<D>& rhs) {
         lhs += rhs;
         return lhs;
+    }
+
+    // Polynomial + constant
+    Polynomial<D>& operator+=(double c) {
+        coefficients[0] += c;
+        return *this;
+    }
+    friend Polynomial<D> operator+(Polynomial<D> f, double c) {
+        f += c;
+        return f;
     }
 
     Polynomial<D>& operator-=(const Polynomial<D>& rhs) {

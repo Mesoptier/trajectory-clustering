@@ -16,6 +16,7 @@ using SymmetricMatrix = SymmetricMatrixT<distance_t>;
 enum class Norm {
     L1,
     L2,
+    L2Squared,
     LInf,
 };
 

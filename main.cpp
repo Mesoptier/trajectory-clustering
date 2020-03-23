@@ -257,30 +257,34 @@ int main() {
     // the ellipses (though in 1D these ellipses are degenerate). The cell is then translated in this space to have the
     // correct height function.
 
-    // Bottom-left corner of cell
-    double sx = -5;
-    double sy = 0;
-    // Top-right corner of cell
-    double tx = 5;
-    double ty = 10;
-
-    std::cout << "RIGHT = {\n";
-    std::cout << "\t" << bottom_to_right_1(sx, sy, tx, ty) << ",\n";
-    std::cout << "\t" << bottom_to_right_2(sx, sy, tx, ty) << ",\n";
-    std::cout << "\t" << bottom_to_right_3(sx, sy, tx, ty) << ",\n";
-    std::cout << "\t" << bottom_to_right_4(sx, sy, tx, ty) << ",\n";
-    std::cout << "\t" << bottom_to_right_5(sx, sy, tx, ty) << ",\n";
-    std::cout << "\t" << bottom_to_right_6(sx, sy, tx, ty) << ",\n";
-    std::cout << "} -> " << bottom_to_right(sx, sy, tx, ty) << "\n";
-
-    std::cout << "TOP = {\n";
-    std::cout << "\t" << bottom_to_top_1(sx, sy, tx, ty) << ",\n";
-    std::cout << "\t" << bottom_to_top_2(sx, sy, tx, ty) << ",\n";
-    std::cout << "\t" << bottom_to_top_3(sx, sy, tx, ty) << ",\n";
-    std::cout << "\t" << bottom_to_top_4(sx, sy, tx, ty) << ",\n";
-    std::cout << "\t" << bottom_to_top_5(sx, sy, tx, ty) << ",\n";
-    std::cout << "\t" << bottom_to_top_6(sx, sy, tx, ty) << ",\n";
-    std::cout << "} -> " << bottom_to_top(sx, sy, tx, ty) << "\n";
+    Curve curve1("curve1", {{0, 0}, {1, 0}, {2, 0}});
+    Curve curve2("curve2", {{3, 0}, {1, 0}, {4, 0}, {1, 0}});
+    CDTW<1, Norm::L1, Norm::L1> cdtw(curve1, curve2);
+//
+//    // Bottom-left corner of cell
+//    double sx = -5;
+//    double sy = 0;
+//    // Top-right corner of cell
+//    double tx = 5;
+//    double ty = 10;
+//
+//    std::cout << "RIGHT = {\n";
+//    std::cout << "\t" << bottom_to_right_1(sx, sy, tx, ty) << ",\n";
+//    std::cout << "\t" << bottom_to_right_2(sx, sy, tx, ty) << ",\n";
+//    std::cout << "\t" << bottom_to_right_3(sx, sy, tx, ty) << ",\n";
+//    std::cout << "\t" << bottom_to_right_4(sx, sy, tx, ty) << ",\n";
+//    std::cout << "\t" << bottom_to_right_5(sx, sy, tx, ty) << ",\n";
+//    std::cout << "\t" << bottom_to_right_6(sx, sy, tx, ty) << ",\n";
+//    std::cout << "} -> " << bottom_to_right(sx, sy, tx, ty) << "\n";
+//
+//    std::cout << "TOP = {\n";
+//    std::cout << "\t" << bottom_to_top_1(sx, sy, tx, ty) << ",\n";
+//    std::cout << "\t" << bottom_to_top_2(sx, sy, tx, ty) << ",\n";
+//    std::cout << "\t" << bottom_to_top_3(sx, sy, tx, ty) << ",\n";
+//    std::cout << "\t" << bottom_to_top_4(sx, sy, tx, ty) << ",\n";
+//    std::cout << "\t" << bottom_to_top_5(sx, sy, tx, ty) << ",\n";
+//    std::cout << "\t" << bottom_to_top_6(sx, sy, tx, ty) << ",\n";
+//    std::cout << "} -> " << bottom_to_top(sx, sy, tx, ty) << "\n";
 
     return 0;
 }

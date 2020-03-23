@@ -20,6 +20,23 @@ struct PolynomialPiece
     PolynomialPiece(const Interval& interval, const Polynomial<D>& polynomial) :
         interval(interval), polynomial(polynomial) {}
 
+    //
+    // Arithmetic operators
+    //
+
+    PolynomialPiece<D>& operator+=(double c) {
+        polynomial += c;
+        return *this;
+    }
+    friend PolynomialPiece<D> operator+(PolynomialPiece<D> f, double c) {
+        f += c;
+        return f;
+    }
+
+    //
+    // Stream output operator
+    //
+
     friend std::ostream& operator<<(std::ostream& os, const PolynomialPiece& piece) {
         os << "{ " << piece.polynomial << ", " << piece.interval << " }";
         return os;
@@ -65,6 +82,25 @@ struct PiecewisePolynomial
             pieces.back().interval.max,
         };
     }
+
+    //
+    // Arithmetic operators
+    //
+
+    PiecewisePolynomial<D>& operator+=(double c) {
+        for (PolynomialPiece<D>& piece : pieces) {
+            piece += c;
+        }
+        return *this;
+    }
+    friend PiecewisePolynomial<D> operator+(PiecewisePolynomial<D> f, double c) {
+        f += c;
+        return f;
+    }
+
+    //
+    // Stream output operator
+    //
 
     friend std::ostream& operator<<(std::ostream& os, const PiecewisePolynomial& f) {
         os << "Piecewise[{";
@@ -462,4 +498,91 @@ void fast_lower_envelope(PiecewisePolynomial<D>& left, const PiecewisePolynomial
     }
 
     throw std::logic_error("unresolved case");
+}
+
+template<size_t dimension, Norm image_norm, Norm param_norm>
+class CDTW
+{
+    static const size_t D =
+        (dimension == 1 && image_norm == Norm::L1 && param_norm == Norm::L1) ? 2 :
+        (dimension == 1 && image_norm == Norm::L2Squared && param_norm == Norm::L1) ? 3 :
+        0;
+
+    struct Entry
+    {
+        // Functions along x- and y-axis respectively
+        PiecewisePolynomial<D> bottom;
+        PiecewisePolynomial<D> left;
+    };
+
+    // Dynamic program
+    std::vector<std::vector<Entry>> in_functions;
+
+    // Result
+    PiecewisePolynomial<D> out_top;
+    PiecewisePolynomial<D> out_right;
+
+    // Internal methods
+    PiecewisePolynomial<D> base_bottom(const Cell& cell) const;
+
+public:
+    CDTW(const Curve& curve1, const Curve& curve2);
+};
+
+template<size_t dimension, Norm image_norm, Norm param_norm>
+CDTW<dimension, image_norm, param_norm>::CDTW(const Curve& curve1, const Curve& curve2) :
+    in_functions(curve1.size() - 1, std::vector<Entry>(curve2.size() - 1))
+{
+    // TODO: Simplify cell structs?
+
+    // Initialize bottom base in_functions
+    {
+        double c = 0;
+        for (size_t i = 0; i + 1 < curve1.size(); ++i) {
+            Cell cell(curve1[i], curve2[0], curve1[i + 1], curve2[1]);
+            PiecewisePolynomial<D> f = base_bottom(cell) + c;
+            in_functions[i][0].bottom = f;
+            c = f.pieces.back().polynomial(f.pieces.back().interval.max); // TODO: Create and use back_value() instead
+
+            std::cout << f << '\n';
+        }
+    }
+
+    for (size_t i = 0; i + 1 < curve1.size(); ++i) {
+        for (size_t j = 0; j + 1 < curve2.size(); ++j) {
+            // In-functions along bottom/left are given
+            // Compute out-functions along top/right
+            // Depending on current row/column:
+            //  - set out-functions as in-function for next cell
+            //  - or append to out_top/out_right
+        }
+    }
+}
+
+//
+// 1D + L1 image norm + L1 param norm
+// TODO: Move to 1d-l1-l1.h
+//
+
+template<>
+PiecewisePolynomial<2> CDTW<1, Norm::L1, Norm::L1>::base_bottom(const Cell& cell) const {
+    // TODO: Clean this up; sx, sy, tx, ty are assumed to be coordinates in a space where (0,0) is the ellipse center
+    double sx = cell.s.x - cell.mid.x;
+    double sy = cell.s.y - cell.mid.y;
+    double tx = cell.t.x - cell.mid.x;
+
+    if (sx >= sy) {
+        return PiecewisePolynomial<2>({
+            {{sx + cell.mid.x, tx + cell.mid.x}, Polynomial<2>({-(sx * sx) / 2 + sx * sy, -sy, 1. / 2})}
+        });
+    } else if (sy >= tx) {
+        return PiecewisePolynomial<2>({
+            {{sx + cell.mid.x, tx + cell.mid.x}, Polynomial<2>({(sx * sx) / 2 - sx * sy, sy, -1. / 2})}
+        });
+    } else { // sx < sy < tx
+        return PiecewisePolynomial<2>({
+            {{sx + cell.mid.x, sy + cell.mid.x}, Polynomial<2>({(sx * sx) / 2 - sx * sy, sy, -1. / 2})},
+            {{sy + cell.mid.x, tx + cell.mid.x}, Polynomial<2>({(sx * sx) / 2 - sx * sy + sy * sy, -sy, 1. / 2})}
+        });
+    }
 }
