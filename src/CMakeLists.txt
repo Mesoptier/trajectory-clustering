@@ -13,7 +13,6 @@ set(SOURCE_FILES
     clustering/pam_with_simplifications.cpp
     IntegralFrechet/MatchingBand.cpp
     clustering/clustering_algs.cpp
-    random.cpp
     curve_simplification.cpp
     clustering/center_algs.cpp
     simplification/imaiiri.cpp

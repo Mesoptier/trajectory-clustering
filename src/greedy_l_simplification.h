@@ -2,7 +2,7 @@
 
 #include "greedy_simplification.h"
 
-Curve greedy_l_simplification(Curve const& curve, int l) {
+Curve greedy_l_simplification(Curve const& curve, std::size_t l) {
 
     distance_t epsilon = 1e-8;
     distance_t min = 0;
@@ -16,7 +16,7 @@ Curve greedy_l_simplification(Curve const& curve, int l) {
         std::cout << max-min << "\n";
 		auto split = (max + min)/2.;
 		simplified_curve = greedy_simplification(curve, split);
-		if ((int)simplified_curve.size() <= l) {
+		if (simplified_curve.size() <= l) {
 			max = split;
 		}
 		else {

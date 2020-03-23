@@ -19,15 +19,16 @@ class CurveSimpMatrix {
         }
 
         CurveSimpMatrix(Curves const& curves, Curves const& simplifications, bool speed_up) {
+            using szt = Curves::size_type;
             
             if (curves.size() != simplifications.size())
                 throw std::runtime_error("There must be the same number of curves and simplifications in CurveSimpMatrix constructor");
 
             matrix = std::vector<std::vector<distance_t>>();
 
-            for (int i = 0; i < curves.size(); ++i) {
+            for (szt i = 0; i < curves.size(); ++i) {
                 matrix.push_back(std::vector<distance_t>());
-                for (int j = 0; j < curves.size(); ++j) {
+                for (szt j = 0; j < curves.size(); ++j) {
                     if (!speed_up) {
                             matrix.back().push_back(
                             IntegralFrechet(curves[i], simplifications[j], ParamMetric::LInfinity_NoShortcuts, 1, nullptr)
@@ -46,9 +47,9 @@ class CurveSimpMatrix {
                 }
             }
 
-        };
+        }
 
-        distance_t at(int i, int j) const {
+        distance_t at(std::size_t i, std::size_t j) const {
             return matrix[i][j];
         }
 

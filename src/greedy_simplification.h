@@ -14,12 +14,12 @@ Curve greedy_simplification(Curve const& curve, distance_t budget) {
     
     Curve simplification(curve.name());
     Points points = curve.get_points();
-    std::vector<int> indices = {0};
-    int last_index = 0;
-    int size = points.size();
+    std::vector<std::size_t> indices = {0};
+    std::size_t last_index = 0;
+    auto size = points.size();
 
     while (last_index < size-1) {
-        for (int i = last_index+1; i < size; ++i) {
+        for (auto i = last_index+1; i < size; ++i) {
             if (i == size - 1) {
                 indices.push_back(i);
                 last_index = size-1;
@@ -29,8 +29,16 @@ Curve greedy_simplification(Curve const& curve, distance_t budget) {
 
                 Curve edge("edge", {points[last_index], points[i]});
                 Curve next_edge("next_edge", {points[last_index], points[i+1]});
-                Curve subcurve("subcurve", Points(points.begin() + last_index, points.begin() + i + 1));
-                Curve next_subcurve("next_subcurve", Points(points.begin() + last_index, points.begin() + i + 2));
+                auto i_diff = static_cast<
+                    decltype(points.begin())::difference_type>(i);
+                auto last_index_diff = static_cast<
+                    decltype(points.begin())::difference_type>(last_index);
+                Curve subcurve("subcurve", Points(
+                    points.begin() + last_index_diff,
+                    points.begin() + i_diff + 1));
+                Curve next_subcurve("next_subcurve", Points(
+                    points.begin() + last_index_diff,
+                    points.begin() + i_diff + 2));
                 
 
                 distance_t edge_dist;

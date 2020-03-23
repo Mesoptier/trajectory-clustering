@@ -224,11 +224,11 @@ void experiment_visualize_band() {
     std::cout << "matching (alt) cost: " << result_alt.cost << '\n';
 }
 
-std::vector<Curve> sample_curves(std::vector<Curve> curves, int period) {
+std::vector<Curve> sample_curves(std::vector<Curve> curves, unsigned period) {
 
     std::vector<Curve> samples = std::vector<Curve>();
 
-    for (int i = 0; i < curves.size(); ++i) {
+    for (std::size_t i = 0; i < curves.size(); ++i) {
         if (i % period == 0) {
             samples.push_back(curves[i]);
         }
@@ -240,10 +240,10 @@ std::vector<Curve> sample_curves(std::vector<Curve> curves, int period) {
 void evaluate_greedy_simplification() {
     std::vector<Curve> curves = sample_curves(read_curves("data/characters/data"), 20);
 
-    std::vector<int> greedy_node_count = std::vector<int>();
-    std::vector<double> greedy_integral_distance = std::vector<double>();
-    std::vector<int> benchmark_node_count = std::vector<int>();
-    std::vector<double> benchmark_integral_distance = std::vector<double>();
+    std::vector<std::size_t> greedy_node_count;
+    std::vector<distance_t> greedy_integral_distance;
+    std::vector<std::size_t> benchmark_node_count;
+    std::vector<distance_t> benchmark_integral_distance;
 
     std::fstream greedy;
     greedy.open("greedy_stats.txt", std::fstream::out | std::fstream::trunc);
@@ -289,7 +289,7 @@ void evaluate_frechet_simplifications() {
     std::fstream frechet_stats;
     frechet_stats.open("frechet_stats.csv", std::fstream::out | std::fstream::trunc);
 
-    for (int i = 0; i < curves.size(); ++i) {
+    for (std::size_t i = 0; i < curves.size(); ++i) {
 
         Curve original_curve = curves[i];
         Curve simplification = simplifications[i];
@@ -332,7 +332,7 @@ void write_simplifications() {
     std::fstream regular_dataset_file;
     regular_dataset_file.open("regular_simplifications/dataset.txt", std::fstream::out | std::fstream::trunc);
 
-    for (int i = 0; i < curves.size(); ++i) {
+    for (std::size_t i = 0; i < curves.size(); ++i) {
 
         greedy_dataset_file << "greedy_simplifications/gs-" + std::to_string(i) + ".txt" << "\n";        
         std::fstream greedy_simp;
@@ -424,7 +424,7 @@ void test_center_algs() {
     script.open("gnuplot_script.txt", std::fstream::out | std::fstream::trunc);
 
     script << "plot ";
-    for (int i = 0; i < curves.size(); ++i) {
+    for (std::size_t i = 0; i < curves.size(); ++i) {
         Curve curve = curves[i];
         script << "\"" << curve.name() + "\" with linespoints ls 0.7 lt rgb \"black\" ps 0.01, ";
     }
@@ -438,12 +438,12 @@ void test_center_algs() {
 
     script << "\"cluster/initial_center.txt\" with linespoints ls 2 lw 3 lt rgb \"green\", ";
 
-    for (int i = 0; i < curves.size(); ++i) {
+    for (std::size_t i = 0; i < curves.size(); ++i) {
         Curve curve = curves[i];
         Points matching = matching_of_vertices(clustering[0].center_curve, curve);
         std::fstream vertices;
         vertices.open("cluster/matching" + std::to_string(i) + ".txt", std::fstream::out | std::fstream::trunc);
-        for (int j = 0; j < matching.size(); ++j) {
+        for (std::size_t j = 0; j < matching.size(); ++j) {
             vertices << matching[j].x << " " << matching[j].y << "\n";
             vertices << clustering[0].center_curve.get_points()[j].x << " " << clustering[0].center_curve.get_points()[j].y << "\n\n";
         }
