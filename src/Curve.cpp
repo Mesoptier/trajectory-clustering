@@ -111,6 +111,10 @@ Curve Curve::simplify(bool maintain_lengths) const {
             if (maintain_lengths) {
                 other.points.push_back(points[i]);
                 other.prefix_length.push_back(prefix_length[i]);
+				other.extreme_points.min_x = std::min(other.extreme_points.min_x, points[i].x);
+				other.extreme_points.min_y = std::min(other.extreme_points.min_y, points[i].y);
+				other.extreme_points.max_x = std::max(other.extreme_points.max_x, points[i].x);
+				other.extreme_points.max_y = std::max(other.extreme_points.max_y, points[i].y);
             } else {
                 other.push_back(points[i]);
             }
