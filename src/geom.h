@@ -141,8 +141,9 @@ struct Line
     Point operator()(distance_t t) const {
         return origin + direction * t;
     }
+
     distance_t operator()(const Point& p) const {
-        if (abs(direction.x) > 0.707) {
+        if (std::abs(direction.x) > 0.707) {
             return (p.x - origin.x) / (direction.x);
         } else {
             return (p.y - origin.y) / (direction.y);

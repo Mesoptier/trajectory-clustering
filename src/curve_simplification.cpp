@@ -40,12 +40,12 @@ Curve simplify(Curve const& curve, distance_t distance)
 } // end anonymous namespace
 
 // triest to find an l-simplification with a small distance
-Curve simplify(Curve const& curve, int l)
+Curve simplify(Curve const& curve, std::size_t l)
 {
 	static constexpr distance_t epsilon = 1e-8;
 
 	assert(l >= 2);
-	if ((int)curve.size() < l) { return curve; }
+	if (curve.size() < l) { return curve; }
 
 	distance_t min = 0.;
 	// distance_t max = curve.getUpperBoundDistance(curve);
@@ -55,7 +55,7 @@ Curve simplify(Curve const& curve, int l)
 	while (max-min > epsilon) {
 		auto split = (max + min)/2.;
 		simplified_curve = simplify(curve, split);
-		if ((int)simplified_curve.size() <= l) {
+		if (simplified_curve.size() <= l) {
 			max = split;
 		}
 		else {

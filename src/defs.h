@@ -3,6 +3,7 @@
 // #define MEASURE
 // #include "measurement_tool.h"
 
+#include <cstdlib>
 #include <iostream>
 
 // helper macro

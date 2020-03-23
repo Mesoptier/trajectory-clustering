@@ -20,11 +20,11 @@ Points matching_to_points(Points param_space_path, Curve curve_1, Curve curve_2)
 		x_coords.push_back(p.x);
 	}
 
-	for (int i = 1; i < curve_1.size(); ++i) {
+	for (std::size_t i = 1; i < curve_1.size(); ++i) {
 		distance_t arc_length = curve_1.curve_length(i);
 
 		auto it =  std::lower_bound(x_coords.begin(), x_coords.end(), arc_length);
-		int index = std::distance(x_coords.begin(), it);
+		auto index = static_cast<std::size_t>(std::distance(x_coords.begin(), it));
 
 		curve_2_lengths.push_back(param_space_path[index].y);
 	}
@@ -59,7 +59,7 @@ Point mean_of_points(Points points) {
 	return Point(x_mean, y_mean);
 }
 
-bool calcKXCenters(Curves const& curves, Clustering& clustering, int l, C2CDist c2c_dist)
+bool calcKXCenters(Curves const& curves, Clustering& clustering, int /* l */, C2CDist c2c_dist)
 {
 	bool found_new_center = false;
 
@@ -126,12 +126,13 @@ distance_t calcC2CDist(
 	return dist;
 }
 
+namespace {
 bool computerCenters(Curves const& curves, Clustering& clustering, int l, CenterAlg center_alg)
 {
 	switch (center_alg) {
 	case CenterAlg::kMedian:
 		// return calcKMedianCenters(curves, clustering, l);
-		false;
+		return false;
 	case CenterAlg::kMeans:
 		// return calcKMeansCenters(curves, clustering, l);
 		return false;
@@ -161,7 +162,7 @@ bool calcKCenterCenters(Curves const& curves, Clustering& clustering, int l)
 }
 
 // TODO: There is some unnecessary pushing around of data here. Fix that to increase performance.
-bool calcFSACenters(Curves const& curves, Clustering& clustering, int l, C2CDist c2c_dist)
+bool calcFSACenters(Curves const& curves, Clustering& clustering, int /* l */, C2CDist c2c_dist)
 {
 	bool found_new_center = false;
 	// FrechetLight frechet_light;
@@ -212,6 +213,7 @@ bool calcFSACenters(Curves const& curves, Clustering& clustering, int l, C2CDist
 	}
 
 	return found_new_center;
+}
 }
 
 Points matching_of_vertices(Curve curve_1, Curve curve_2) {

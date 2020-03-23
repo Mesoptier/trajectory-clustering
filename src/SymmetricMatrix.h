@@ -1,5 +1,5 @@
-#ifndef SYMMETRICMATRIX
-#define SYMMETRICMATRIX
+#ifndef SYMMETRICMATRIXH
+#define SYMMETRICMATRIXH
 
 #include <vector>
 #include <fstream>
