@@ -318,6 +318,7 @@ void FrechetLight::getReachableIntervals(BoxData& data)
 	CInterval const empty;
 
 	assert(box.max1 > box.min1 && box.max2 > box.min2);
+	assert(data.outputs.id1.valid() || data.outputs.id2.valid());
 
 	firstinterval1 = (inputs.begin1 != inputs.end1) ? &*inputs.begin1 : &empty;
 	firstinterval2 = (inputs.begin2 != inputs.end2) ? &*inputs.begin2 : &empty;
@@ -378,11 +379,11 @@ inline void FrechetLight::boxShrinkingRule(BoxData& data)
 		if (firstinterval2->is_empty() && firstinterval1->begin > box.min1) {
 			auto old_min1 = box.min1;
 
+			assert(firstinterval1->begin <= box.max1);
 			min1_frac = firstinterval1->begin.getFraction();
 			box.min1 = firstinterval1->begin.getPoint();
-			assert(box.min1 <= box.max1);
-			if (box.min1 == box.max1) {
-				box.min1 = box.max1 - 1;
+			if (firstinterval1->begin.getFraction() == 0.) {
+				--box.min1;
 				min1_frac = 1.;
 			}
 
@@ -396,11 +397,11 @@ inline void FrechetLight::boxShrinkingRule(BoxData& data)
 		else if (firstinterval1->is_empty() && firstinterval2->begin > box.min2) {
 			auto old_min2 = box.min2;
 
+			assert(firstinterval2->begin <= box.max2);
 			min2_frac = firstinterval2->begin.getFraction();
 			box.min2 = firstinterval2->begin.getPoint();
-			assert(box.min2 <= box.max2);
-			if (box.min2 == box.max2) {
-				box.min2 = box.max2 - 1;
+			if (firstinterval2->begin.getFraction() == 0.) {
+				--box.min2;
 				min2_frac = 1.;
 			}
 
