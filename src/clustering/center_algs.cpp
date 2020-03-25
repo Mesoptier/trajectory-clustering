@@ -59,7 +59,7 @@ Point mean_of_points(Points points) {
 	return Point(x_mean, y_mean);
 }
 
-bool calcKXCenters(Curves const& curves, Clustering& clustering, int /* l */, C2CDist c2c_dist, distance_t(*dist_func)(Curve, Curve))
+bool calcKXCenters(Curves const& curves, Clustering& clustering, int l, C2CDist c2c_dist, distance_t(*dist_func)(Curve, Curve))
 {
 	bool found_new_center = false;
 
@@ -73,7 +73,7 @@ bool calcKXCenters(Curves const& curves, Clustering& clustering, int /* l */, C2
 	for (auto& cluster: clustering) {
 		for (CurveID curve_id1: cluster.curve_ids) {
 			// auto simplified_curve = simplify(curves[curve_id1], l);
-			auto simplified_curve = curves[curve_id1].simplify(true);
+			auto simplified_curve = curves[curve_id1].naive_l_simplification(l);
 			auto dist = calcC2CDist(curves, simplified_curve, cluster.curve_ids, c2c_dist, dist_func);
 			if (dist < cluster.cost) {
 				cluster.center_curve = simplified_curve;

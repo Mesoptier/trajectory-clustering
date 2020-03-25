@@ -10,23 +10,23 @@ namespace
 {
 
 
-distance_t compute_integral_frechet_distance(Curve curve_1, Curve curve_2) {
-	/*const auto result_alt = IntegralFrechet(curve_1.simplify(true), curve_2, ParamMetric::LInfinity_NoShortcuts, 10, nullptr).compute_matching();
-    const auto band = MatchingBand(curve_1, curve_2, result_alt.matching, 1);
-	const auto result = IntegralFrechet(curve_1, curve_1, ParamMetric::LInfinity_NoShortcuts, 1, &band).compute_matching();
-	return result.cost;*/
+// distance_t compute_integral_frechet_distance(Curve curve_1, Curve curve_2) {
+// 	/*const auto result_alt = IntegralFrechet(curve_1.simplify(true), curve_2, ParamMetric::LInfinity_NoShortcuts, 10, nullptr).compute_matching();
+//     const auto band = MatchingBand(curve_1, curve_2, result_alt.matching, 1);
+// 	const auto result = IntegralFrechet(curve_1, curve_1, ParamMetric::LInfinity_NoShortcuts, 1, &band).compute_matching();
+// 	return result.cost;*/
 	
-	distance_t cost = IntegralFrechet(
-        curve_1, curve_2, ParamMetric::LInfinity_NoShortcuts, 1, nullptr
-    ).compute_matching()
-    .cost;
-    return cost;
-}
+// 	distance_t cost = IntegralFrechet(
+//         curve_1, curve_2, ParamMetric::LInfinity_NoShortcuts, 1, nullptr
+//     ).compute_matching()
+//     .cost;
+//     return cost;
+// }
 
 
 // TODO: Computes all distances, not only one per pair.
 template <typename Comp>
-Clustering linkage(Curves const& curves, std::size_t k, int /* l */, Comp comp, distance_t(*dist_func)(Curve, Curve), bool naive_simplification)
+Clustering linkage(Curves const& curves, std::size_t k, int l, Comp comp, distance_t(*dist_func)(Curve, Curve), bool naive_simplification)
 {
 	// compute all pairwise Fréchet distances
 	// FrechetLight frechet_light;
@@ -100,7 +100,7 @@ Clustering linkage(Curves const& curves, std::size_t k, int /* l */, Comp comp, 
 	// but at least we supply some centers.
 	for (auto curve_id: union_find.getRoots()) {
 		auto cl_id = to_cluster_id[curve_id];
-		result[cl_id].center_curve = curves[curve_id].simplify(true);
+		result[cl_id].center_curve = curves[curve_id].naive_l_simplification(l);
 		// result[cluster_id].center_curve = simplify(curves[curve_id], l);
 	}
 
@@ -161,7 +161,7 @@ Clustering runGonzalez(Curves const& curves, std::size_t k, int l, distance_t(*d
 
 	// add as center and update closest distances to center
 	// auto center_curve = simplify(curves[center_id], l);
-	auto center_curve = curves[center_id].simplify(true);
+	auto center_curve = curves[center_id].naive_l_simplification(l);
 	
 	result.push_back({{}, center_curve});
 	for (CurveID curve_id = 0; curve_id < curves.size(); ++curve_id) {
@@ -185,7 +185,7 @@ Clustering runGonzalez(Curves const& curves, std::size_t k, int l, distance_t(*d
 		auto cid = static_cast<std::size_t>(std::distance(distances_to_center.begin(), center_it));
 		// auto center_curve = simplify(curves[center_id], l);
 		Curve cent_curve = naive_simplification ? 
-		curves[cid].simplify(true) : 
+		curves[cid].naive_l_simplification(l) : 
 		simplify(curves[cid], l, dist_func);
 		
 		result.push_back({{}, cent_curve});
@@ -267,7 +267,7 @@ distance_t calcDiameter(Curves const& curves, CurveIDs const& /* curve_ids */, d
 Clustering pam_with_simplifications(Curves const& curves, std::size_t k, int l, distance_t(*dist_func)(Curve, Curve), std::string matrix_file_name) {
 	Curves simplifications = Curves();
 	for (auto curve: curves) {
-		simplifications.push_back(curve.simplify(true));
+		simplifications.push_back(curve.naive_l_simplification(l));
 	}
 
 	CurveSimpMatrix distance_matrix = matrix_file_name == "" ? 
@@ -292,7 +292,7 @@ Clustering pam_with_centering(Curves const& curves, std::size_t k, int l, distan
 	
 	Curves simplifications = Curves();
 	for (auto curve: curves) {
-		simplifications.push_back(curve.simplify(true));
+		simplifications.push_back(curve.naive_l_simplification(l));
 	}
 
 	std::cout << "computed simplificactions... \n";

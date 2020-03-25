@@ -16,6 +16,40 @@ Curves read_data() {
     return simplified_curves;
 }
 
+void plot(Clustering& clustering, Curves& curves, std::string script_name) {
+    std::fstream script;
+    script.open(script_name, std::fstream::out | std::fstream::trunc);
+    script << "plot ";
+    for (int i = 0; i < curves.size(); ++i) {
+        Curve curve = curves[i];
+        std::fstream curve_file;
+        curve_file.open("curves/curve_" + std::to_string(i) + ".txt", std::fstream::out | std::fstream::trunc);
+
+        for (auto& point: curve.get_points()) {
+            curve_file << point.x << " " << point.y << " \n";
+        }
+        curve_file.close();
+
+        script << "\"" << "curves/curve_" + std::to_string(i) + ".txt" + "\" with linespoints ls 1 lw 0.5 lt rgb \"black\" ps 0.01, ";
+    }
+
+    std::vector<std::string> colors = {"red", "green", "blue", "yellow", "purple"};
+
+    for (int i = 0; i < clustering.size(); ++i) {
+        Cluster cluster = clustering[i];
+        std::fstream cluster_center_file;
+        cluster_center_file.open("curves/center_" + std::to_string(i) + ".txt", std::fstream::out | std::fstream::trunc);
+        for (auto& point: cluster.center_curve.get_points()) {
+            cluster_center_file << point.x << " " << point.y << " \n";
+        }
+
+        cluster_center_file.close();
+        script << "\"" << "curves/center_" + std::to_string(i) + ".txt" + "\" with linespoints ls 1 lw 2 lt rgb \"" + colors[i] +"\", ";
+    }
+
+    script.close();
+}
+
 void preliminary_experiments() {
     Curves curves = read_data();
     std::cout << curves.size() << "\n";
@@ -24,5 +58,4 @@ void preliminary_experiments() {
 		ClusterAlg::CompleteLinkage, ClusterAlg::Gonzalez, ClusterAlg::Pam};
 
     Clustering gonzalez_frechet = computeCenterClustering(curves, 5, 10, ClusterAlg::Gonzalez, CenterAlg::fCenter, frechet, 1);
-    std::cout << gonzalez_frechet.size() << "\n";
 }
