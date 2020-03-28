@@ -128,21 +128,20 @@ CPoint Curve::get_cpoint_after(distance_t dist, PointID after_id) const {
     return get_cpoint(after_id, dist - curve_length(after_id));
 }
 
-Curve Curve::simplify(bool maintain_lengths) const {
-    Curve other(m_name);
+SimplifiedCurve Curve::simplify() const {
+    const size_t k = 10;
 
-    for (size_t i = 0; i < points.size(); ++i) {
-        if (i % 10 == 0 || i == points.size() - 1) {
-            if (maintain_lengths) {
-                other.points.push_back(points[i]);
-                other.prefix_length.push_back(prefix_length[i]);
-            } else {
-                other.push_back(points[i]);
-            }
+    Curve curve(m_name);
+    std::vector<PointID> original_points;
+
+    for (PointID i = 0; i < points.size(); ++i) {
+        if (i % k == 0 || i + 1 == points.size()) {
+            curve.push_back(points[i]);
+            original_points.push_back(i);
         }
     }
 
-    return other;
+    return {curve, original_points};
 }
 
 Curve Curve::naive_l_simplification(std::size_t l) const {

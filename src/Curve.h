@@ -5,6 +5,8 @@
 
 #include "Edge.h"
 
+struct SimplifiedCurve;
+
 class Curve {
     std::string m_name;
     Points points;
@@ -87,11 +89,7 @@ public:
 
     Point interpolate_at(const CPoint& point) const;
 
-    /**
-     * Get a coarsened version of the curve.
-     * FIXME: Super crappy!
-     */
-    Curve simplify(bool maintain_lengths) const;
+    SimplifiedCurve simplify() const;
 
     Curve naive_l_simplification(std::size_t l) const;
 
@@ -111,6 +109,17 @@ private:
         std::numeric_limits<distance_t>::lowest(),
         std::numeric_limits<distance_t>::lowest()
     };
+};
+
+struct SimplifiedCurve {
+    /**
+     * The simplified curve.
+     */
+    Curve curve;
+    /**
+     * Map from points in the simplified curve to points in the original curve.
+     */
+    std::vector<PointID> original_points;
 };
 
 using CurveID = ID<Curve>;
