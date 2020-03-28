@@ -15,7 +15,7 @@ distance_t df::integral_frechet(const Curve& curve_1, const Curve& curve_2) {
 
 distance_t df::integral_frechet_fast(const Curve& curve_1,
 		const Curve& curve_2) {
-    const auto result_alt = IntegralFrechet(curve_1.simplify(true), curve_2,
+    const auto result_alt = IntegralFrechet(curve_1.simplify().curve, curve_2,
     	ParamMetric::L1, 1, nullptr).compute_matching();
     const auto band = MatchingBand(curve_1, curve_2, result_alt.matching, 1);
     return IntegralFrechet(curve_1, curve_1, ParamMetric::L1, 1,&band)
