@@ -257,8 +257,8 @@ int main() {
     // the ellipses (though in 1D these ellipses are degenerate). The cell is then translated in this space to have the
     // correct height function.
 
-    Curve curve1("curve1", {{0, 0}, {1, 0}, {2, 0}});
-    Curve curve2("curve2", {{3, 0}, {1, 0}, {4, 0}, {1, 0}});
+    Curve curve1("curve1", {{0, 0}, {6, 0}});
+    Curve curve2("curve2", {{1, 0}, {8, 0}, {5, 0}});
     CDTW<1, Norm::L1, Norm::L1> cdtw(curve1, curve2);
 //
 //    // Bottom-left corner of cell

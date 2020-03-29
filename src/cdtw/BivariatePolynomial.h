@@ -49,6 +49,38 @@ struct BivariatePolynomial
         }
         return result;
     }
+
+    /**
+     * Sum this function with a function in x.
+     * Returns f(x, y) + g(x).
+     */
+    BivariatePolynomial<D> add_x(const Polynomial<D>& g) const {
+        auto result = *this;
+        for (size_t dx = 0; dx <= D; ++dx) {
+            result.coefficients[dx][0] += g.coefficients[dx];
+        }
+        return result;
+    }
+
+    BivariatePolynomial<D> translate_xy(double x, double y) const;
+
+    //
+    // Arithmetic operators
+    //
+
+    // BivariatePolynomial + BivariatePolynomial (of same degree)
+    BivariatePolynomial<D>& operator+=(const BivariatePolynomial<D>& rhs) {
+        for (size_t dx = 0; dx <= D; ++dx) {
+            for (size_t dy = 0; dy <= D; ++dy) {
+                coefficients[dx][dy] += rhs.coefficients[dx][dy];
+            }
+        }
+        return *this;
+    }
+    friend BivariatePolynomial<D> operator+(BivariatePolynomial<D> lhs, const BivariatePolynomial<D>& rhs) {
+        lhs += rhs;
+        return lhs;
+    }
 };
 
 /**
@@ -65,6 +97,32 @@ std::vector<Polynomial<1>> find_roots_y(const BivariatePolynomial<1>& f) {
     return {
         Polynomial<1>({-c00 / c10, -c01 / c10})
     };
+}
+
+template<>
+BivariatePolynomial<2> BivariatePolynomial<2>::translate_xy(double cx, double cy) const {
+    auto c00 = coefficients[0][0];
+    auto c01 = coefficients[0][1];
+    auto c02 = coefficients[0][2];
+    auto c10 = coefficients[1][0];
+    auto c20 = coefficients[2][0];
+    auto c11 = coefficients[1][1];
+
+    return BivariatePolynomial<2>({{
+        {{c00 - c10*cx + c20*cx*cx - c01*cy + c11*cx*cy + c02*cy*cy, c01 - c11*cx - 2*c02*cy, c02}},
+        {{c10 - 2*c20*cx - c11*cy, c11, 0}},
+        {{c20, 0, 0}},
+    }});
+}
+
+template<size_t D>
+std::ostream& operator<<(std::ostream& os, const BivariatePolynomial<D>& p) {
+    for (size_t dx = 0; dx < D; ++dx) {
+        for (size_t dy = 0; dy < D; ++dy) {
+            os << p.coefficients[dx][dy] << "*x^" << dx << "*y^" << dy;
+        }
+    }
+    return os;
 }
 
 #endif //TRAJECTORY_CLUSTERING_BIVARIATEPOLYNOMIAL_H

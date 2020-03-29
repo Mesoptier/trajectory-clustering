@@ -46,6 +46,8 @@ struct Polynomial
         return !this->derivative().changes_sign_at(x);
     }
 
+    Polynomial<D> translate_xy(double cx, double cy) const;
+
     //
     // Arithmetic operators
     //
@@ -196,5 +198,12 @@ std::vector<double> find_intersections(const Polynomial<D>& f, const Polynomial<
     return find_roots(f - g);
 }
 
+template<>
+Polynomial<1> Polynomial<1>::translate_xy(double cx, double cy) const {
+    auto c0 = coefficients[0];
+    auto c1 = coefficients[1];
+
+    return Polynomial<1>({c0 + cy - c1 * cx, c1});
+}
 
 #endif //TRAJECTORY_CLUSTERING_POLYNOMIAL_H

@@ -7,111 +7,12 @@
 #include <iostream>
 #include <set>
 #include <algorithm>
+
 #include "Interval.h"
 #include "Polynomial.h"
+#include "PiecewisePolynomial.h"
 #include "BivariatePolynomial.h"
-
-template<size_t D>
-struct PolynomialPiece
-{
-    Interval interval;
-    Polynomial<D> polynomial;
-
-    PolynomialPiece(const Interval& interval, const Polynomial<D>& polynomial) :
-        interval(interval), polynomial(polynomial) {}
-
-    //
-    // Arithmetic operators
-    //
-
-    PolynomialPiece<D>& operator+=(double c) {
-        polynomial += c;
-        return *this;
-    }
-    friend PolynomialPiece<D> operator+(PolynomialPiece<D> f, double c) {
-        f += c;
-        return f;
-    }
-
-    //
-    // Stream output operator
-    //
-
-    friend std::ostream& operator<<(std::ostream& os, const PolynomialPiece& piece) {
-        os << "{ " << piece.polynomial << ", " << piece.interval << " }";
-        return os;
-    }
-};
-
-template<size_t D>
-std::vector<double> find_intersections(const PolynomialPiece<D>& f, const PolynomialPiece<D>& g) {
-    std::vector<double> result;
-    const std::vector<double> intersections = find_intersections(f.polynomial, g.polynomial);
-    for (auto x : intersections) {
-        if (f.interval.contains(x) && g.interval.contains(x)) {
-            result.push_back(x);
-        }
-    }
-    return result;
-}
-
-template<size_t D>
-struct PiecewisePolynomial
-{
-    std::vector<PolynomialPiece<D>> pieces;
-
-    PiecewisePolynomial() = default;
-    PiecewisePolynomial(const std::vector<PolynomialPiece<D>>& pieces) : pieces(pieces) {
-        for (size_t i = 1; i < pieces.size(); ++i) {
-            const PolynomialPiece<D>& p1 = pieces[i - 1];
-            const PolynomialPiece<D>& p2 = pieces[i];
-            // Verify that piece intervals line up
-            assert(p1.interval.max == p2.interval.min);
-            // Verify that pieces connect
-            assert(p1.polynomial(p1.interval.max) == p2.polynomial(p2.interval.min));
-        }
-    }
-
-    bool empty() const {
-        return pieces.empty();
-    }
-
-    Interval interval() const {
-        return {
-            pieces.front().interval.min,
-            pieces.back().interval.max,
-        };
-    }
-
-    //
-    // Arithmetic operators
-    //
-
-    PiecewisePolynomial<D>& operator+=(double c) {
-        for (PolynomialPiece<D>& piece : pieces) {
-            piece += c;
-        }
-        return *this;
-    }
-    friend PiecewisePolynomial<D> operator+(PiecewisePolynomial<D> f, double c) {
-        f += c;
-        return f;
-    }
-
-    //
-    // Stream output operator
-    //
-
-    friend std::ostream& operator<<(std::ostream& os, const PiecewisePolynomial& f) {
-        os << "Piecewise[{";
-        for (size_t i = 0; i < f.pieces.size(); ++i) {
-            if (i != 0) os << ",";
-            os << f.pieces[i];
-        }
-        os << "}, None]";
-        return os;
-    }
-};
+#include "ConstrainedBivariatePolynomial.h"
 
 /**
  * Given a bivariate polynomial function H(x,y) computes a univariate piecewise polynomial that returns for each Y
@@ -434,7 +335,7 @@ void fast_lower_envelope(PiecewisePolynomial<D>& left, const PiecewisePolynomial
 
     // Verify that `left` is actually to the left of `right`
     assert(left.interval().min <= right.interval().min);
-    assert(left.interval().max <= right.interval().max);
+// FIXME: assert(left.interval().max <= right.interval().max);
     // Verify that `left` and `right` have some overlap
     assert(left.interval().max > right.interval().min);
 
@@ -448,6 +349,7 @@ void fast_lower_envelope(PiecewisePolynomial<D>& left, const PiecewisePolynomial
             return piece.interval.min >= x;
         }
     );
+
 
     // Find the point (X) where RIGHT is no longer lower than LEFT. This point must lie in the range where the intervals
     // of LEFT and RIGHT overlap. If no such point is found (i.e. either LEFT or RIGHT is always lower) we return the
@@ -523,7 +425,11 @@ class CDTW
     PiecewisePolynomial<D> out_right;
 
     // Internal methods
+    PiecewisePolynomial<D> bottom_to_right(const PiecewisePolynomial<D>& in, const Cell& cell) const;
+
+    // Internal methods specific to each case
     PiecewisePolynomial<D> base_bottom(const Cell& cell) const;
+    std::vector<ConstrainedBivariatePolynomial<D>> bottom_to_right_costs(const Cell& cell) const;
 
 public:
     CDTW(const Curve& curve1, const Curve& curve2);
@@ -539,15 +445,27 @@ CDTW<dimension, image_norm, param_norm>::CDTW(const Curve& curve1, const Curve& 
     {
         double c = 0;
         for (size_t i = 0; i + 1 < curve1.size(); ++i) {
-            Cell cell(curve1[i], curve2[0], curve1[i + 1], curve2[1]);
-            PiecewisePolynomial<D> f = base_bottom(cell) + c;
+            const Cell cell(curve1[i], curve2[0], curve1[i + 1], curve2[1]);
+            const PiecewisePolynomial<D> f = base_bottom(cell) + c;
             in_functions[i][0].bottom = f;
             c = f.pieces.back().polynomial(f.pieces.back().interval.max); // TODO: Create and use back_value() instead
-
             std::cout << f << '\n';
         }
     }
 
+    // Initialize left base in_functions
+    {
+        double c = 0;
+        for (size_t i = 0; i + 1 < curve2.size(); ++i) {
+            // Note: this cell is transposed
+            const Cell cell(curve2[i], curve1[0], curve2[i + 1], curve1[1]);
+            const PiecewisePolynomial<D> f = base_bottom(cell) + c;
+            in_functions[0][i].left = f;
+            c = f.pieces.back().polynomial(f.pieces.back().interval.max); // TODO: Create and use back_value() instead
+        }
+    }
+
+    // Dynamic program
     for (size_t i = 0; i + 1 < curve1.size(); ++i) {
         for (size_t j = 0; j + 1 < curve2.size(); ++j) {
             // In-functions along bottom/left are given
@@ -555,34 +473,76 @@ CDTW<dimension, image_norm, param_norm>::CDTW(const Curve& curve1, const Curve& 
             // Depending on current row/column:
             //  - set out-functions as in-function for next cell
             //  - or append to out_top/out_right
+
+            std::cout << i << ' ' << j << '\n';
+
+            // In-functions
+            PiecewisePolynomial<D> bottom_in = in_functions[i][j].bottom;
+            PiecewisePolynomial<D> left_in = in_functions[i][j].left;
+
+//            std::cout << bottom_in << '\n' << left_in << '\n';
+
+            assert(!bottom_in.empty());
+            assert(!left_in.empty());
+
+            // Cell and transposed cell
+            const Cell cell(curve1[i], curve2[j], curve1[i + 1], curve2[j + 1]);
+            const Cell cell_t(curve2[j], curve1[i], curve2[j + 1], curve1[i + 1]);
+
+            // Compute right
+            PiecewisePolynomial<D> right_out = bottom_to_right(bottom_in, cell);
+//            fast_lower_envelope(right_out, bottom_to_top(left_in, cell_t));
+            if (i + 2 < curve1.size()) {
+                in_functions[i + 1][j].left = right_out;
+            }
+
+            // Compute top
+            PiecewisePolynomial<D> top_out = bottom_to_right(left_in, cell_t);
+//            fast_lower_envelope(top_out, bottom_to_top(bottom_in, cell));
+            if (j + 2 < curve2.size()) {
+                in_functions[i][j + 1].bottom = top_out;
+            }
+
+            std::cout << top_out << '\n' << right_out << '\n';
         }
     }
 }
 
-//
-// 1D + L1 image norm + L1 param norm
-// TODO: Move to 1d-l1-l1.h
-//
+template<size_t dimension, Norm image_norm, Norm param_norm>
+PiecewisePolynomial<CDTW<dimension, image_norm, param_norm>::D>
+CDTW<dimension, image_norm, param_norm>::bottom_to_right(const PiecewisePolynomial<D>& in, const Cell& cell) const {
+    PiecewisePolynomial<D> out;
 
-template<>
-PiecewisePolynomial<2> CDTW<1, Norm::L1, Norm::L1>::base_bottom(const Cell& cell) const {
-    // TODO: Clean this up; sx, sy, tx, ty are assumed to be coordinates in a space where (0,0) is the ellipse center
-    double sx = cell.s.x - cell.mid.x;
-    double sy = cell.s.y - cell.mid.y;
-    double tx = cell.t.x - cell.mid.x;
+    // Cell-cost functions for each type of path, constrained to valid paths.
+    const std::vector<ConstrainedBivariatePolynomial<D>> cell_costs = bottom_to_right_costs(cell);
 
-    if (sx >= sy) {
-        return PiecewisePolynomial<2>({
-            {{sx + cell.mid.x, tx + cell.mid.x}, Polynomial<2>({-(sx * sx) / 2 + sx * sy, -sy, 1. / 2})}
-        });
-    } else if (sy >= tx) {
-        return PiecewisePolynomial<2>({
-            {{sx + cell.mid.x, tx + cell.mid.x}, Polynomial<2>({(sx * sx) / 2 - sx * sy, sy, -1. / 2})}
-        });
-    } else { // sx < sy < tx
-        return PiecewisePolynomial<2>({
-            {{sx + cell.mid.x, sy + cell.mid.x}, Polynomial<2>({(sx * sx) / 2 - sx * sy, sy, -1. / 2})},
-            {{sy + cell.mid.x, tx + cell.mid.x}, Polynomial<2>({(sx * sx) / 2 - sx * sy + sy * sy, -sy, 1. / 2})}
-        });
+    // Walk through the in-pieces in reverse order. Because the first value in the out-function "originates from" the
+    // last value in the in-function.
+    auto it = in.pieces.rbegin();
+    const auto end = in.pieces.rend();
+    while (it != end) {
+        const PolynomialPiece<D>& in_cost = *it;
+
+        for (const auto& cell_cost : cell_costs) {
+            // Sum in_cost and cell_cost to get total cost to 'right'
+            const auto total_cost = cell_cost.add_x(in_cost);
+
+            // Find minimum w.r.t. y
+            // TODO: make find_minimum accept ConstrainedBivariatePolynomial
+            const auto min_total_cost = find_minimum(
+                total_cost.f,
+                total_cost.y_interval,
+                total_cost.left_constraints,
+                total_cost.right_constraints
+            );
+
+//            std::cout << "Piecewise[{" << cell_cost << "}, None]," << std::endl;
+//            std::cout << "Piecewise[{" << total_cost << "}, None]," << std::endl;
+
+            // Combine with out using fast_lower_envelope
+            fast_lower_envelope(out, min_total_cost);
+        }
+        ++it;
     }
+    return out;
 }
