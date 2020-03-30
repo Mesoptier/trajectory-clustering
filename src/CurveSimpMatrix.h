@@ -28,11 +28,9 @@ class CurveSimpMatrix {
 
 
             for (szt i = 0; i < curves.size(); ++i) {
-                std::cout << curves[i].get_points().size() << "\n";
-                // std::cout << i << "\n";
+                std::cout << i << "\n";
                 matrix.push_back(std::vector<distance_t>());
                 for (szt j = 0; j < curves.size(); ++j) {
-                    // std::cout << "\t" << i << ", " << j << "\n";
                     if (i == j) {
                         matrix.back().push_back(0);
                     }

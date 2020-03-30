@@ -2,6 +2,7 @@
 #include <algorithm>
 #include <iostream>
 #include <map>
+#include "../random.h"
 #include "pam_with_simplifications.h"
 
 
@@ -188,8 +189,8 @@ namespace clustering::pam_simp {
 
         std::sort(medoids.begin(), medoids.end());
 
-        std::cout << "td: " << td << '\n';
-        std::cout << "medoids: ";
+        // std::cout << "td: " << td << '\n';
+        // std::cout << "medoids: ";
         for (auto m : medoids) {
             std::cout << m << ' ';
         }

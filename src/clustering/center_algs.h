@@ -2,6 +2,7 @@
 
 #include "../basic_types.h"
 #include "../defs.h"
+#include "../DTW/dtw.h"
 
 #include <string>
 
@@ -12,12 +13,14 @@ enum class CenterAlg {
 	kMeans,
 	kCenter,
 	fCenter,
-	fMean
+	fMean,
+	dtwMean
 };
 
 enum class CenterCurveUpdateMethod {
 	frechetCentering,
 	frechetMean,
+	dtwMean
 };
 
 std::string toString(CenterAlg center_alg);
