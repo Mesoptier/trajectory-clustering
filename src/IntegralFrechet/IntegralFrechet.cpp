@@ -22,6 +22,10 @@ Cell IntegralFrechet::get_cell(const CPosition& s, const CPosition& t) const {
     const auto s2 = curve2.interpolate_at(s[1]);
     const auto t1 = curve1.interpolate_at(t[0]);
     const auto t2 = curve2.interpolate_at(t[1]);
+    // std::cout << s1 << "\n" << s2 << "\n" << t1 << "\n" << t2 << "\n";
+    // std::cout << s[0] << "\n" << t[0] << "\n";
+    // std::cout << s1 << "\n" << t1 << "\n"; 
+    // std::cout << s1.dist_sqr(t1) << "\n";
     return {s1, s2, t1, t2};
 }
 
@@ -152,6 +156,11 @@ void IntegralFrechet::get_neighbors(const Node& node, std::vector<Node>& neighbo
         // Number of nodes along horizontal/vertical boundaries
         const size_t n_h = static_cast<size_t>(std::ceil(full_cell.len1 / resolution)) + 1;
         const size_t n_v = static_cast<size_t>(std::ceil(full_cell.len2 / resolution)) + 1;
+
+        if (n_h == 1) {
+            std::cout << curve1.get_points() << "\n";
+            std::cout << curve2.get_points() << "\n";
+        }
 
         // TODO: Add intersections of ell_h/ell_v/ell_m with cell boundaries (and of adjacent cells)
         // Cell boundary lines

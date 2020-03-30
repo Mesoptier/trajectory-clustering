@@ -519,7 +519,7 @@ void compute_curve_simp_matrix() {
 
     for (auto curve: curves) {
         simplifications.push_back(
-            curve.naive_l_simplification(5)
+            curve.naive_l_simplification(10)
         );
 
         std::cout << simplifications.back().get_points().size() << "\n";
@@ -531,10 +531,6 @@ void compute_curve_simp_matrix() {
     matrix.write("pigeon_matrix.txt");
 }
 
-void run_experiments() {
-    Curves curves = read_data();
-    std::cout << curves.size() << "\n";
-}
 }
 
 int main() {
@@ -554,7 +550,7 @@ int main() {
     // test_center_algs();
     // test_pam_with_centering();
 
-    const auto curves = read_curves("data/characters/data");
+    // const auto curves = read_curves("data/characters/data");
     // const auto dm = compute_distance_matrix(curves);
     // export_matrix(dm, "data/out/distance_matrix.mtx");
 
@@ -566,30 +562,32 @@ int main() {
     // run_experiments();
     preliminary_experiments();
 
-{
-    auto start_time = std::chrono::high_resolution_clock::now();
-    auto ret = simplification::imai_iri::simplify(curves[0], 5);
-    auto end_time = std::chrono::high_resolution_clock::now();
-    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time).count();
-    std::cout << "Time: " << duration << "ms\n";
-    std::cout << "Cost: " << ret.first << "\n";
-    std::cout << "Curve:";
-    for (const auto& p: ret.second.get_points())
-        std::cout << " " << p;
-    std::cout << "\n";
-    std::cout << "Length: " << ret.second.size() << std::endl;
-}
-{
-    auto start_time = std::chrono::high_resolution_clock::now();
-    DTW distance(curves[0], curves[1]);
-    auto end_time = std::chrono::high_resolution_clock::now();
-    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time).count();
-    std::cout << "Time: " << duration << "ms\n";
-    std::cout << "Cost: " << distance.cost() << "\n";
-    std::cout << "Matching:";
-    for (const auto& p: distance.matching())
-        std::cout << " (" << p.first << ", " << p.second << ")";
-    std::cout << std::endl;
-}
+    // Curve curve1 = Curve({{-13.519655, 518.2176}, {-13.4540596224652, 518.171459590597}, {-13.4312466704293, 518.128483280568}, {-13.3730548740233, 518.11155638744}, {-13.3532487713532, 518.103879442256}, {-13.3012273722711, 518.081146702316}, {-13.2822606164468, 518.062349118219}, {-13.2407413511353, 518.010277368733}, {-13.2249619456808, 517.946611346145}, {-13.2343869456808, 517.908641346145}, {-13.2343869456808, 517.908641346145}, {-13.2343869456808, 517.908641346145}, {-13.1726447645511, 517.82374300373}});
+    // std::cout << approx_equal(curve1[curve1.size()-2], curve1[curve1.size()-3]) << "\n";
+// {
+//     auto start_time = std::chrono::high_resolution_clock::now();
+//     auto ret = simplification::imai_iri::simplify(curves[0], 5);
+//     auto end_time = std::chrono::high_resolution_clock::now();
+//     auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time).count();
+//     std::cout << "Time: " << duration << "ms\n";
+//     std::cout << "Cost: " << ret.first << "\n";
+//     std::cout << "Curve:";
+//     for (const auto& p: ret.second.get_points())
+//         std::cout << " " << p;
+//     std::cout << "\n";
+//     std::cout << "Length: " << ret.second.size() << std::endl;
+// }
+// {
+//     auto start_time = std::chrono::high_resolution_clock::now();
+//     DTW distance(curves[0], curves[1]);
+//     auto end_time = std::chrono::high_resolution_clock::now();
+//     auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time).count();
+//     std::cout << "Time: " << duration << "ms\n";
+//     std::cout << "Cost: " << distance.cost() << "\n";
+//     std::cout << "Matching:";
+//     for (const auto& p: distance.matching())
+//         std::cout << " (" << p.first << ", " << p.second << ")";
+//     std::cout << std::endl;
+// }
     return 0;
 }

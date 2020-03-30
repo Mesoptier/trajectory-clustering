@@ -51,6 +51,7 @@ Curve read_pigeon_curve(const std::string& filename) {
     std::getline(file, line);
     std::string x_string, y_string;
 
+    int index = 0;
     while (std::getline(file, line)) {
         if (line.length() > 10) {
             std::istringstream tokenStream(line);
@@ -59,11 +60,11 @@ Curve read_pigeon_curve(const std::string& filename) {
             distance_t x = std::stod(x_string);
             distance_t y = std::stod(y_string);
 
-            if (!curve.empty() && approx_equal(curve.back(), {x, y})) {
+            if (!curve.empty() && curve.back().dist_sqr({x, y}) < 1e-18) {
                 continue;
-            }
-
+            }   
             curve.push_back({x, y});
+            index++;
         }
     }
     return curve;

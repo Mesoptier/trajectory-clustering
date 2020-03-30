@@ -9,21 +9,6 @@
 namespace
 {
 
-
-// distance_t compute_integral_frechet_distance(Curve curve_1, Curve curve_2) {
-// 	/*const auto result_alt = IntegralFrechet(curve_1.simplify(true), curve_2, ParamMetric::LInfinity_NoShortcuts, 10, nullptr).compute_matching();
-//     const auto band = MatchingBand(curve_1, curve_2, result_alt.matching, 1);
-// 	const auto result = IntegralFrechet(curve_1, curve_1, ParamMetric::LInfinity_NoShortcuts, 1, &band).compute_matching();
-// 	return result.cost;*/
-	
-// 	distance_t cost = IntegralFrechet(
-//         curve_1, curve_2, ParamMetric::LInfinity_NoShortcuts, 1, nullptr
-//     ).compute_matching()
-//     .cost;
-//     return cost;
-// }
-
-
 // TODO: Computes all distances, not only one per pair.
 template <typename Comp>
 Clustering linkage(Curves const& curves, std::size_t k, int l, Comp comp, distance_t(*dist_func)(Curve, Curve), bool naive_simplification)
@@ -119,7 +104,9 @@ std::string toString(ClusterAlg cluster_alg) {
 	// ERROR("Unknown cluster_alg.");
 }
 
-Clustering computeClustering(Curves const& curves, std::size_t k, int l, ClusterAlg cluster_alg, distance_t(*dist_func)(Curve, Curve), bool naive_simplification)
+Clustering computeClustering(
+	Curves const& curves, std::size_t k, int l, ClusterAlg cluster_alg, distance_t(*dist_func)(Curve, Curve), std::string dist_matrix, 
+	bool naive_simplification)
 {
 	switch (cluster_alg) {
 	case ClusterAlg::SingleLinkage:
@@ -129,7 +116,7 @@ Clustering computeClustering(Curves const& curves, std::size_t k, int l, Cluster
 	case ClusterAlg::Gonzalez:
 		return runGonzalez(curves, k, l, dist_func, naive_simplification);
 	case ClusterAlg::Pam:
-		return pam_with_simplifications(curves, k, l, dist_func);
+		return pam_with_simplifications(curves, k, l, dist_func, dist_matrix);
 	}
 	
 	// ERROR("No matching cluster_alg enum passed.");
@@ -349,4 +336,14 @@ Clustering pam_with_centering(Curves const& curves, std::size_t k, int l, distan
 	std::cout << "cost after centering: " << cost_after_centering << "\n";
 
 	return clustering;
+}
+
+distance_t kMedianCost(Curves const& curves, Clustering const& clustering, distance_t(*dist_func)(Curve, Curve)) {
+	distance_t cost = 0;
+
+	for (auto& cluster: clustering) {
+		cost += calcC2CDist(curves, cluster.center_curve, cluster.curve_ids, C2CDist::Median, dist_func);
+	}
+
+	return cost;
 }

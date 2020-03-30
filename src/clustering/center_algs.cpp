@@ -31,10 +31,14 @@ Points matching_to_points(Points param_space_path, Curve curve_1, Curve curve_2)
 
 
 	// Find the points on curve_2 corresponding to the sequence of arc lengths
-
 	Points points = Points();
 
 	for (auto length: curve_2_lengths) {
+		if (length > curve_2.curve_length()) {
+			// std::cout << length - curve_2.curve_length() << "\n";
+			length = curve_2.curve_length();
+		}
+		assert(length <= curve_2.curve_length());
 		CPoint cpoint = curve_2.get_cpoint_after(length);
 		Point point = curve_2.interpolate_at(cpoint);
 		points.push_back(point);
@@ -141,6 +145,8 @@ bool computerCenters(Curves const& curves, Clustering& clustering, int l, Center
 		return calcFSACenters(curves, clustering, l, dist_func, C2CDist::Max, CenterCurveUpdateMethod::frechetCentering);
 	case CenterAlg::fMean:
 		return calcFSACenters(curves, clustering, l, dist_func, C2CDist::Median, CenterCurveUpdateMethod::frechetMean);
+	case CenterAlg::dtwMean:
+		return calcFSACenters(curves, clustering, l, dist_func, C2CDist::Median, CenterCurveUpdateMethod::dtwMean);
 	}
 
 	ERROR("No matching center_alg enum passed.");
@@ -206,6 +212,7 @@ bool calcFSACenters(Curves const& curves, Clustering& clustering, int /* l */, d
 			switch (method) {
 				case CenterCurveUpdateMethod::frechetCentering:
 					matchings.push_back(calcMatching(cluster.center_curve, curve));
+					break;
 				case CenterCurveUpdateMethod::frechetMean:
 					matchings.push_back(
 						matching_to_points(
@@ -216,6 +223,18 @@ bool calcFSACenters(Curves const& curves, Clustering& clustering, int /* l */, d
 							curve
 						)
 					);
+					break;
+				case CenterCurveUpdateMethod::dtwMean:
+					auto dtw_matching = DTW(cluster.center_curve, curve).matching();
+					Points matching = Points();
+					int index = 0;
+					for (int i = 0; i < cluster.center_curve.get_points().size(); ++i) {
+						while (i != dtw_matching[index].first) {
+							index++;
+						}
+						matching.push_back(curve[index]);
+					}
+					break;
 			}
 		}
 
@@ -225,18 +244,23 @@ bool calcFSACenters(Curves const& curves, Clustering& clustering, int /* l */, d
 				matching_points.push_back(matching[point_id]);
 			}
 
+			Point new_point;
+
 			switch (method) {
-				case CenterCurveUpdateMethod::frechetCentering: 
-					new_center_curve.push_back(calcMinEnclosingCircle(matching_points).center);
+				case CenterCurveUpdateMethod::frechetCentering:
+					new_point = calcMinEnclosingCircle(matching_points).center;
 					break;
-				case CenterCurveUpdateMethod::frechetMean:  
-					new_center_curve.push_back(mean_of_points(matching_points));
+				case CenterCurveUpdateMethod::frechetMean:
+					new_point = mean_of_points(matching_points);
+					break;
+				case CenterCurveUpdateMethod::dtwMean:
+					new_point = mean_of_points(matching_points);
 					break;
 			}
 
-			// auto min_enclosing_circle = calcMinEnclosingCircle(matching_points);
-			// new_center_curve.push_back(min_enclosing_circle.center);
-			// new_center_curve.push_back(mean_of_points(matching_points));
+			if (new_center_curve.get_points().empty() || !approx_equal(new_point, new_center_curve.get_points().back())) {
+				new_center_curve.push_back(new_point);
+			}
 		}
 
 		if (center_curve != new_center_curve) {
@@ -248,7 +272,13 @@ bool calcFSACenters(Curves const& curves, Clustering& clustering, int /* l */, d
 			}
 		} 
 	}
-
+	
+	if (found_new_center) {
+		std::cout << "found new center\n";
+	}
+	else {
+		std::cout << "no new center... :( \n";
+	}
 	return found_new_center;
 }
 

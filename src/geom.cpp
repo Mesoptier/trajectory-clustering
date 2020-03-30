@@ -186,6 +186,10 @@ bool Line::includesPoint(const Point& point) const {
 }
 
 Point intersect(const Line& line1, const Line& line2) {
+	// std::cout << line1.origin << "\n";
+	// std::cout << line1.direction << "\n";
+	// std::cout << line2.origin << "\n";
+	// std::cout << line2.direction << "\n";
     const auto t1 = perp(line2.origin - line1.origin, line2.direction) / perp(line1.direction, line2.direction);
     assert(line1.includesPoint(line1(t1)));
     assert(line2.includesPoint(line1(t1)));
