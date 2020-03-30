@@ -84,5 +84,5 @@ SimplifiedCurve Curve::simplify() const {
         }
     }
 
-    return {curve, original_points};
+    return {std::move(curve), std::move(original_points)};
 }
