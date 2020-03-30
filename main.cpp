@@ -147,13 +147,17 @@ void reparametrize_matching(Points& matching, const Curve& c1, const SimplifiedC
 
         const auto cp1 = c1_s.curve.get_cpoint_after(p.x, prev_id1);
         prev_id1 = cp1.getPoint();
-        p.x = c1.curve_length(c1_s.original_points[cp1.getPoint()]) * (1 - cp1.getFraction())
-            + (cp1.getFraction() == 0 ? 0 : c1.curve_length(c1_s.original_points[cp1.getPoint() + 1]) * (cp1.getFraction()));
+        p.x = c1.curve_length(c1_s.original_points[cp1.getPoint()]) * (1 - cp1.getFraction());
+		if (cp1.getFraction() != 0) {
+        	p.x += c1.curve_length(c1_s.original_points[cp1.getPoint() + 1]) * cp1.getFraction();
+		}
 
         const auto cp2 = c2_s.curve.get_cpoint_after(p.y, prev_id2);
         prev_id2 = cp2.getPoint();
-        p.y = c2.curve_length(c2_s.original_points[cp2.getPoint()]) * (1 - cp2.getFraction())
-            + (cp2.getFraction() == 0 ? 0 : c2.curve_length(c2_s.original_points[cp2.getPoint() + 1]) * (cp2.getFraction()));
+        p.y = c2.curve_length(c2_s.original_points[cp2.getPoint()]) * (1 - cp2.getFraction());
+		if (cp2.getFraction() != 0) {
+			p.y += c2.curve_length(c2_s.original_points[cp2.getPoint() + 1]) * cp2.getFraction();
+		}
     }
 }
 
