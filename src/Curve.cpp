@@ -141,7 +141,7 @@ SimplifiedCurve Curve::simplify() const {
         }
     }
 
-    return {curve, original_points};
+    return {std::move(curve), std::move(original_points)};
 }
 
 Curve Curve::naive_l_simplification(std::size_t l) const {
