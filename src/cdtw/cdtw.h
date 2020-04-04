@@ -435,8 +435,8 @@ class CDTW
     template<class Iterator>
     PiecewisePolynomial<D> propagate(
         const std::vector<ConstrainedBivariatePolynomial<D>>& cell_costs,
-        Iterator& pieces_it,
-        const Iterator& pieces_end
+        Iterator pieces_it,
+        Iterator pieces_end
     ) const;
     PiecewisePolynomial<D> bottom_to_right(const PiecewisePolynomial<D>& in, const Cell& cell) const;
     PiecewisePolynomial<D> bottom_to_top(const PiecewisePolynomial<D>& in, const Cell& cell) const;
@@ -533,28 +533,12 @@ CDTW<dimension, image_norm, param_norm>::CDTW(const Curve& curve1, const Curve& 
 }
 
 template<size_t dimension, Norm image_norm, Norm param_norm>
-PiecewisePolynomial<CDTW<dimension, image_norm, param_norm>::D>
-CDTW<dimension, image_norm, param_norm>::bottom_to_right(const PiecewisePolynomial<D>& in, const Cell& cell) const {
-    PiecewisePolynomial<D> result;
-
-    // Cell-cost functions for each type of path, constrained to valid paths.
-    const std::vector<ConstrainedBivariatePolynomial<D>> cell_costs = bottom_to_right_costs(cell);
-
-    // Walk through the in-pieces in reverse order. Because the first value in the out-function "originates from" the
-    // last value in the in-function.
-    auto it = in.pieces.rbegin();
-    const auto end = in.pieces.rend();
-
-    return propagate(cell_costs, it, end);
-}
-
-template<size_t dimension, Norm image_norm, Norm param_norm>
 template<class Iterator>
 PiecewisePolynomial<CDTW<dimension, image_norm, param_norm>::D>
 CDTW<dimension, image_norm, param_norm>::propagate(
     const std::vector<ConstrainedBivariatePolynomial<D>>& cell_costs,
-    Iterator& pieces_it,
-    const Iterator& pieces_end
+    Iterator pieces_it,
+    const Iterator pieces_end
 ) const
 {
     PiecewisePolynomial<D> out_cost;
@@ -585,4 +569,18 @@ CDTW<dimension, image_norm, param_norm>::propagate(
         ++pieces_it;
     }
     return out_cost;
+}
+
+template<size_t dimension, Norm image_norm, Norm param_norm>
+PiecewisePolynomial<CDTW<dimension, image_norm, param_norm>::D>
+CDTW<dimension, image_norm, param_norm>::bottom_to_right(const PiecewisePolynomial<D>& in, const Cell& cell) const {
+    // Walk through the in-pieces in reverse order. Because the first value in the out-function "originates from" the
+    // last value in the in-function.
+    return propagate(bottom_to_right_costs(cell), in.pieces.rbegin(), in.pieces.crend());
+}
+
+template<size_t dimension, Norm image_norm, Norm param_norm>
+PiecewisePolynomial<CDTW<dimension, image_norm, param_norm>::D>
+CDTW<dimension, image_norm, param_norm>::bottom_to_top(const PiecewisePolynomial<D>& in, const Cell& cell) const {
+    return propagate(bottom_to_top_costs(cell), in.pieces.begin(), in.pieces.cend());
 }
