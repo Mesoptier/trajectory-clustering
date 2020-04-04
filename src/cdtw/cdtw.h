@@ -432,11 +432,19 @@ class CDTW
     PiecewisePolynomial<D> out_right;
 
     // Internal methods
+    template<class Iterator>
+    PiecewisePolynomial<D> propagate(
+        const std::vector<ConstrainedBivariatePolynomial<D>>& cell_costs,
+        Iterator& pieces_it,
+        const Iterator& pieces_end
+    ) const;
     PiecewisePolynomial<D> bottom_to_right(const PiecewisePolynomial<D>& in, const Cell& cell) const;
+    PiecewisePolynomial<D> bottom_to_top(const PiecewisePolynomial<D>& in, const Cell& cell) const;
 
     // Internal methods specific to each case
     PiecewisePolynomial<D> base_bottom(const Cell& cell) const;
     std::vector<ConstrainedBivariatePolynomial<D>> bottom_to_right_costs(const Cell& cell) const;
+    std::vector<ConstrainedBivariatePolynomial<D>> bottom_to_top_costs(const Cell& cell) const;
 
 public:
     CDTW(const Curve& curve1, const Curve& curve2);
@@ -536,32 +544,45 @@ CDTW<dimension, image_norm, param_norm>::bottom_to_right(const PiecewisePolynomi
     // last value in the in-function.
     auto it = in.pieces.rbegin();
     const auto end = in.pieces.rend();
-    while (it != end) {
-        const PolynomialPiece<D>& in_cost = *it;
 
-        // TODO: Move this to a separate method
+    return propagate(cell_costs, it, end);
+}
+
+template<size_t dimension, Norm image_norm, Norm param_norm>
+template<class Iterator>
+PiecewisePolynomial<CDTW<dimension, image_norm, param_norm>::D>
+CDTW<dimension, image_norm, param_norm>::propagate(
+    const std::vector<ConstrainedBivariatePolynomial<D>>& cell_costs,
+    Iterator& pieces_it,
+    const Iterator& pieces_end
+) const
+{
+    PiecewisePolynomial<D> out_cost;
+    while (pieces_it != pieces_end) {
+        // piece_in_cost: cost of optimal path from origin to point on in-boundary
+        const PolynomialPiece<D>& piece_in_cost = *pieces_it;
+
+        // piece_out_cost: cost of optimal path from origin to point on out-boundary
         PiecewisePolynomial<D> piece_out_cost;
-        {
-            for (const auto& cell_cost : cell_costs) {
-                // Sum in_cost and cell_cost to get total cost to 'right'
-                const auto total_cost = cell_cost.add_x(in_cost);
 
-                // Find minimum w.r.t. y
-                // TODO: make find_minimum accept ConstrainedBivariatePolynomial
-                const auto min_total_cost = find_minimum(
-                    total_cost.f,
-                    total_cost.y_interval,
-                    total_cost.left_constraints,
-                    total_cost.right_constraints
-                );
+        // cell_cost: cost of optimal path from point on in-boundary to point on out-boundary
+        for (const auto& cell_cost : cell_costs) {
+            // total_cost: cost of optimal path from origin through point on in-boundary to point on out-boundary
+            const auto total_cost = cell_cost.add_x(piece_in_cost);
 
-                fast_lower_envelope(piece_out_cost, min_total_cost);
-            }
+            const auto min_total_cost = find_minimum(
+                total_cost.f,
+                total_cost.y_interval,
+                total_cost.left_constraints,
+                total_cost.right_constraints
+            );
+
+            fast_lower_envelope(piece_out_cost, min_total_cost);
         }
 
-        fast_lower_envelope(result, piece_out_cost);
+        fast_lower_envelope(out_cost, piece_out_cost);
 
-        ++it;
+        ++pieces_it;
     }
-    return result;
+    return out_cost;
 }
