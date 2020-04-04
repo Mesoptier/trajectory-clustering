@@ -383,8 +383,12 @@ void fast_lower_envelope(PiecewisePolynomial<D>& left, const PiecewisePolynomial
             // Found an intersection between two pieces
             double root = intersections.front();
 
-            // Shrink last piece of `left`
-            left.pieces.back() = PolynomialPiece<D>({ left_back.interval.min, root }, left_back.polynomial);
+            // Shrink last piece of `left` or remove it if it would be empty
+            if (left_back.interval.min == root) {
+                left.pieces.pop_back();
+            } else {
+                left.pieces.back() = PolynomialPiece<D>({ left_back.interval.min, root }, left_back.polynomial);
+            }
 
             // Add first piece from `right`
             left.pieces.push_back(PolynomialPiece<D>({ root, right_it->interval.max }, right_it->polynomial));
