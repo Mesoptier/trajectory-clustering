@@ -9,13 +9,13 @@
 //
 
 /**
- * Compute the cost function from the origin of the given cell to a point along the bottom boundary of the cell.
+ * Compute the cost function from the origin of the given cell to a point A along the bottom boundary of the cell.
  * Note that you can compute a similar function along the left boundary by providing a transposed cell.
  *
  * Used as the base case in the CDTW dynamic program.
  *
  * @param cell
- * @return Piecewise polynomial over the domain 0 <= x <= cell.width.
+ * @return Piecewise polynomial over the domain 0 <= A <= cell.width.
  */
 template<>
 PiecewisePolynomial<2> CDTW<1, Norm::L1, Norm::L1>::base_bottom(const Cell& cell) const {
@@ -41,11 +41,11 @@ PiecewisePolynomial<2> CDTW<1, Norm::L1, Norm::L1>::base_bottom(const Cell& cell
 }
 
 /**
- * Compute the piecewise bivariate polynomial representing the cost of the optimal path between a point on the bottom
- * boundary and a point on the right boundary.
+ * Compute the piecewise bivariate polynomial representing the cost of the optimal path between a point A on the bottom
+ * boundary and a point B on the right boundary.
  *
  * @param cell
- * @return A piecewise bivariate polynomial over the domain 0 <= x <= cell.width and 0 <= y <= cell.height.
+ * @return A piecewise bivariate polynomial over the domain 0 <= A <= cell.width and 0 <=B <= cell.height.
  */
 template<>
 std::vector<ConstrainedBivariatePolynomial<2>>
@@ -63,93 +63,93 @@ CDTW<1, Norm::L1, Norm::L1>::bottom_to_right_costs(const Cell& cell) const {
 
     // 1.
     // Not via valley
-    // X below valley
-    // Y below valley
+    // A below valley
+    // B below valley
     costs.push_back(ConstrainedBivariatePolynomial<2>{
         BivariatePolynomial<2>({{
             {{(sy * sy) / 2 + (tx * tx) / 2, -tx, -1./2}},
             {{-sy, 2, 0}},
             {{-1./2, 0, 0}},
         }}),
-        // Y in cell + Y below valley
+        // B in cell + B below valley
         Interval{sy, std::clamp(tx, sy, ty)},
         {{
-            Polynomial<1>({sx, 0}), // X in cell
-            Polynomial<1>({sy, 0}), // X below valley
+            Polynomial<1>({sx, 0}), // A in cell
+            Polynomial<1>({sy, 0}), // A below valley
             Polynomial<1>({0, 1}), // Not via valley
         }},
         {{
-             Polynomial<1>({tx, 0}), // X in cell
+             Polynomial<1>({tx, 0}), // A in cell
         }}
     }.translate_xy(-sx, -sy));
 
     // 2.
     // Via valley
-    // X below valley
-    // Y below valley
+    // A below valley
+    // B below valley
     costs.push_back(ConstrainedBivariatePolynomial<2>{
         BivariatePolynomial<2>({{
             {{(sy * sy) / 2 + (tx * tx) / 2, -tx, 1./2}},
             {{-sy, 0, 0}},
             {{1./2, 0, 0}},
         }}),
-        // Y in cell + Y below valley
+        // B in cell + B below valley
         Interval{sy, std::clamp(tx, sy, ty)},
         {{
-            Polynomial<1>({sx, 0}), // X in cell
-            Polynomial<1>({sy, 0}), // X below valley
+            Polynomial<1>({sx, 0}), // A in cell
+            Polynomial<1>({sy, 0}), // A below valley
         }},
         {{
-             Polynomial<1>({tx, 0}), // X in cell
+             Polynomial<1>({tx, 0}), // A in cell
              Polynomial<1>({0, 1}), // Via valley
         }}
     }.translate_xy(-sx, -sy));
 
     // 3.
     // Via valley
-    // X above valley
-    // Y below valley
+    // A above valley
+    // B below valley
     costs.push_back(ConstrainedBivariatePolynomial<2>{
         BivariatePolynomial<2>({{
             {{(sy * sy) / 2 + (tx * tx) / 2, -tx, 1./2}},
             {{-sy, 0, 0}},
             {{1./2, 0, 0}},
         }}),
-        // Y in cell + Y below valley
+        // B in cell + B below valley
         Interval{sy, std::clamp(tx, sy, ty)},
         {{
-            Polynomial<1>({sx, 0}), // X in cell
+            Polynomial<1>({sx, 0}), // A in cell
         }},
         {{
-             Polynomial<1>({tx, 0}), // X in cell
-             Polynomial<1>({sy, 0}), // X above valley
+             Polynomial<1>({tx, 0}), // A in cell
+             Polynomial<1>({sy, 0}), // A above valley
         }}
     }.translate_xy(-sx, -sy));
 
     // 4.
     // Via valley
-    // X below valley
-    // Y above valley
+    // A below valley
+    // B above valley
     costs.push_back(ConstrainedBivariatePolynomial<2>{
         BivariatePolynomial<2>({{
             {{(sy * sy) / 2 + (tx * tx) / 2, -tx, 1./2}},
             {{-sy, 0, 0}},
             {{1./2, 0, 0}},
         }}),
-        // Y in cell + Y above valley
+        // B in cell + B above valley
         Interval{std::clamp(tx, sy, ty), ty},
         {{
-            Polynomial<1>({sx, 0}), // X in cell
-            Polynomial<1>({sy, 0}), // X below valley
+            Polynomial<1>({sx, 0}), // A in cell
+            Polynomial<1>({sy, 0}), // A below valley
         }},
         {{
-             Polynomial<1>({tx, 0}), // X in cell
+             Polynomial<1>({tx, 0}), // A in cell
         }}
     }.translate_xy(-sx, -sy));
 
     // 5. / 6.
-    // X above valley
-    // Y above valley
+    // A above valley
+    // B above valley
     if (tx > sy) { // Via valley
         costs.push_back(ConstrainedBivariatePolynomial<2>{
             BivariatePolynomial<2>({{
@@ -157,14 +157,14 @@ CDTW<1, Norm::L1, Norm::L1>::bottom_to_right_costs(const Cell& cell) const {
                 {{-sy, 0, 0}},
                 {{1./2, 0, 0}},
             }}),
-            // Y in cell + Y above valley
+            // B in cell + B above valley
             Interval{std::clamp(tx, sy, ty), ty},
             {{
-                Polynomial<1>({sx, 0}), // X in cell
+                Polynomial<1>({sx, 0}), // A in cell
             }},
             {{
-                 Polynomial<1>({tx, 0}), // X in cell
-                 Polynomial<1>({sy, 0}), // X above valley
+                 Polynomial<1>({tx, 0}), // A in cell
+                 Polynomial<1>({sy, 0}), // A above valley
             }}
         }.translate_xy(-sx, -sy));
     } else { // Not via valley
@@ -174,14 +174,14 @@ CDTW<1, Norm::L1, Norm::L1>::bottom_to_right_costs(const Cell& cell) const {
                 {{-sy, 0, 0}},
                 {{1./2, 0, 0}},
             }}),
-            // Y in cell + Y above valley
+            // B in cell + B above valley
             Interval{std::clamp(tx, sy, ty), ty},
             {{
-                Polynomial<1>({sx, 0}), // X in cell
+                Polynomial<1>({sx, 0}), // A in cell
             }},
             {{
-                 Polynomial<1>({tx, 0}), // X in cell
-                 Polynomial<1>({sy, 0}), // X above valley
+                 Polynomial<1>({tx, 0}), // A in cell
+                 Polynomial<1>({sy, 0}), // A above valley
             }}
         }.translate_xy(-sx, -sy));
     }
