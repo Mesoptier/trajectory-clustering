@@ -8,6 +8,15 @@
 // 1D + L1 image norm + L1 param norm
 //
 
+/**
+ * Compute the cost function from the origin of the given cell to a point along the bottom boundary of the cell.
+ * Note that you can compute a similar function along the left boundary by providing a transposed cell.
+ *
+ * Used as the base case in the CDTW dynamic program.
+ *
+ * @param cell
+ * @return Piecewise polynomial over the domain 0 <= x <= cell.width.
+ */
 template<>
 PiecewisePolynomial<2> CDTW<1, Norm::L1, Norm::L1>::base_bottom(const Cell& cell) const {
     // TODO: Clean this up; sx, sy, tx, ty are assumed to be coordinates in a space where (0,0) is the ellipse center
@@ -31,6 +40,13 @@ PiecewisePolynomial<2> CDTW<1, Norm::L1, Norm::L1>::base_bottom(const Cell& cell
     }
 }
 
+/**
+ * Compute the piecewise bivariate polynomial representing the cost of the optimal path between a point on the bottom
+ * boundary and a point on the right boundary.
+ *
+ * @param cell
+ * @return A piecewise bivariate polynomial over the domain 0 <= x <= cell.width and 0 <= y <= cell.height.
+ */
 template<>
 std::vector<ConstrainedBivariatePolynomial<2>>
 CDTW<1, Norm::L1, Norm::L1>::bottom_to_right_costs(const Cell& cell) const {
