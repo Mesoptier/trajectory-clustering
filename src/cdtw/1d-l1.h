@@ -34,7 +34,9 @@ PiecewisePolynomial<2> CDTW<1, Norm::L1, Norm::L1>::base_bottom(const Cell& cell
 template<>
 std::vector<ConstrainedBivariatePolynomial<2>>
 CDTW<1, Norm::L1, Norm::L1>::bottom_to_right_costs(const Cell& cell) const {
-    // Coordinates of the cell in a system where cell.mid lies on (0, 0)
+    // Coordinates of the cell in a system where cell.mid lies on (0, 0).
+    // This makes it much easier to formulate the bivariate polynomials and constraints, but does require us to
+    // translate the cell back such that (s.x, s.y) = (0, 0) using .translate_xy(-sx, -sy).
     double sx = cell.s.x - cell.mid.x;
     double sy = cell.s.y - cell.mid.y;
     double tx = cell.t.x - cell.mid.x;

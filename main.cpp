@@ -258,7 +258,7 @@ int main() {
     // correct height function.
 
     Curve curve1("curve1", {{0, 0}, {6, 0}});
-    Curve curve2("curve2", {{1, 0}, {8, 0}, {5, 0}});
+    Curve curve2("curve2", {{0, 0}, {8, 0}, {6, 0}});
     CDTW<1, Norm::L1, Norm::L1> cdtw(curve1, curve2);
 //
 //    // Bottom-left corner of cell

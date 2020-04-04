@@ -320,7 +320,7 @@ PiecewisePolynomial<D> naive_lower_envelope(const std::vector<PolynomialPiece<D>
 
 template<size_t D>
 void fast_lower_envelope(PiecewisePolynomial<D>& left, const PiecewisePolynomial<D>& right) {
-    // Early return for trivial cases
+    // Early return for empty cases
     if (left.empty()) {
         left.pieces.assign(right.pieces.begin(), right.pieces.end());
         return;
@@ -328,16 +328,23 @@ void fast_lower_envelope(PiecewisePolynomial<D>& left, const PiecewisePolynomial
     if (right.empty()) {
         return;
     }
-    if (left.interval().max == right.interval().min) {
-        left.pieces.insert(left.pieces.end(), right.pieces.begin(), right.pieces.end());
-        return;
-    }
 
     // Verify that `left` is actually to the left of `right`
     assert(left.interval().min <= right.interval().min);
-// FIXME: assert(left.interval().max <= right.interval().max);
+    assert(left.interval().max <= right.interval().max);
     // Verify that `left` and `right` have some overlap
-    assert(left.interval().max > right.interval().min);
+    assert(left.interval().max >= right.interval().min);
+
+    // Early return for trivial cases
+    if (left.interval().max == right.interval().min) {
+        assert(left.pieces.back().polynomial(left.interval().max)
+                   == right.pieces.front().polynomial(right.interval().min));
+        left.pieces.insert(left.pieces.end(), right.pieces.begin(), right.pieces.end());
+        return;
+    }
+    if (right.interval().max == left.interval().max && left.pieces.back().polynomial(left.interval().max) < right.pieces.back().polynomial(right.interval().max)) {
+        return;
+    }
 
     // Find the rightmost piece in `right` which overlaps with the rightmost piece in `left`
     using PieceIterator = typename std::vector<PolynomialPiece<D>>::const_reverse_iterator;
@@ -437,7 +444,7 @@ public:
 
 template<size_t dimension, Norm image_norm, Norm param_norm>
 CDTW<dimension, image_norm, param_norm>::CDTW(const Curve& curve1, const Curve& curve2) :
-    in_functions(curve1.size() - 1, std::vector<Entry>(curve2.size() - 1))
+    in_functions(curve1.size(), std::vector<Entry>(curve2.size()))
 {
     // TODO: Simplify cell structs?
 
@@ -449,7 +456,6 @@ CDTW<dimension, image_norm, param_norm>::CDTW(const Curve& curve1, const Curve& 
             const PiecewisePolynomial<D> f = base_bottom(cell) + c;
             in_functions[i][0].bottom = f;
             c = f.pieces.back().polynomial(f.pieces.back().interval.max); // TODO: Create and use back_value() instead
-            std::cout << f << '\n';
         }
     }
 
@@ -474,13 +480,9 @@ CDTW<dimension, image_norm, param_norm>::CDTW(const Curve& curve1, const Curve& 
             //  - set out-functions as in-function for next cell
             //  - or append to out_top/out_right
 
-            std::cout << i << ' ' << j << '\n';
-
             // In-functions
             PiecewisePolynomial<D> bottom_in = in_functions[i][j].bottom;
             PiecewisePolynomial<D> left_in = in_functions[i][j].left;
-
-//            std::cout << bottom_in << '\n' << left_in << '\n';
 
             assert(!bottom_in.empty());
             assert(!left_in.empty());
@@ -492,26 +494,40 @@ CDTW<dimension, image_norm, param_norm>::CDTW(const Curve& curve1, const Curve& 
             // Compute right
             PiecewisePolynomial<D> right_out = bottom_to_right(bottom_in, cell);
 //            fast_lower_envelope(right_out, bottom_to_top(left_in, cell_t));
-            if (i + 2 < curve1.size()) {
-                in_functions[i + 1][j].left = right_out;
-            }
+            in_functions[i + 1][j].left = right_out;
 
             // Compute top
             PiecewisePolynomial<D> top_out = bottom_to_right(left_in, cell_t);
 //            fast_lower_envelope(top_out, bottom_to_top(bottom_in, cell));
-            if (j + 2 < curve2.size()) {
-                in_functions[i][j + 1].bottom = top_out;
-            }
-
-            std::cout << top_out << '\n' << right_out << '\n';
+            in_functions[i][j + 1].bottom = top_out;
         }
     }
+
+    //
+    // Visualization
+    //
+
+    std::cout << "ParametricPlot3D[{";
+    for (size_t i = 0; i < curve1.size(); ++i) {
+        const double x = curve1.curve_length(i);
+
+        for (size_t j = 0; j < curve2.size(); ++j) {
+            const double y = curve2.curve_length(j);
+
+            std::cout << "{(x+" << x << "), " << y << ", " << in_functions[i][j].bottom << "},";
+            std::cout << "{" << x << ", (y+" << y << "), (" << in_functions[i][j].left << " /. x->y)},";
+        }
+    }
+    std::cout << "} // Evaluate,";
+    std::cout << "{x, 0, " << curve1.curve_length() << "},";
+    std::cout << "{y, 0, " << curve2.curve_length() << "},";
+    std::cout << "BoxRatios -> {Automatic, Automatic, 3}]" << std::endl;
 }
 
 template<size_t dimension, Norm image_norm, Norm param_norm>
 PiecewisePolynomial<CDTW<dimension, image_norm, param_norm>::D>
 CDTW<dimension, image_norm, param_norm>::bottom_to_right(const PiecewisePolynomial<D>& in, const Cell& cell) const {
-    PiecewisePolynomial<D> out;
+    PiecewisePolynomial<D> result;
 
     // Cell-cost functions for each type of path, constrained to valid paths.
     const std::vector<ConstrainedBivariatePolynomial<D>> cell_costs = bottom_to_right_costs(cell);
@@ -523,26 +539,29 @@ CDTW<dimension, image_norm, param_norm>::bottom_to_right(const PiecewisePolynomi
     while (it != end) {
         const PolynomialPiece<D>& in_cost = *it;
 
-        for (const auto& cell_cost : cell_costs) {
-            // Sum in_cost and cell_cost to get total cost to 'right'
-            const auto total_cost = cell_cost.add_x(in_cost);
+        // TODO: Move this to a separate method
+        PiecewisePolynomial<D> piece_out_cost;
+        {
+            for (const auto& cell_cost : cell_costs) {
+                // Sum in_cost and cell_cost to get total cost to 'right'
+                const auto total_cost = cell_cost.add_x(in_cost);
 
-            // Find minimum w.r.t. y
-            // TODO: make find_minimum accept ConstrainedBivariatePolynomial
-            const auto min_total_cost = find_minimum(
-                total_cost.f,
-                total_cost.y_interval,
-                total_cost.left_constraints,
-                total_cost.right_constraints
-            );
+                // Find minimum w.r.t. y
+                // TODO: make find_minimum accept ConstrainedBivariatePolynomial
+                const auto min_total_cost = find_minimum(
+                    total_cost.f,
+                    total_cost.y_interval,
+                    total_cost.left_constraints,
+                    total_cost.right_constraints
+                );
 
-//            std::cout << "Piecewise[{" << cell_cost << "}, None]," << std::endl;
-//            std::cout << "Piecewise[{" << total_cost << "}, None]," << std::endl;
-
-            // Combine with out using fast_lower_envelope
-            fast_lower_envelope(out, min_total_cost);
+                fast_lower_envelope(piece_out_cost, min_total_cost);
+            }
         }
+
+        fast_lower_envelope(result, piece_out_cost);
+
         ++it;
     }
-    return out;
+    return result;
 }

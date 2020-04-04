@@ -40,7 +40,7 @@ struct ConstrainedBivariatePolynomial
 
     friend std::ostream& operator<<(std::ostream& os, const ConstrainedBivariatePolynomial& polynomial) {
         os << "{(" << polynomial.f << "), ";
-        os << "(" << polynomial.y_interval << " /. x->y)";
+        os << "((" << polynomial.y_interval << ") /. x->y)";
         for (auto& c : polynomial.left_constraints) {
             os << " && ((" << c << ") /. x->y) <= x";
         }
