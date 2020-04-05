@@ -253,13 +253,13 @@ int main() {
 //    std::cout << std::endl;
 //}
 
-    // To simplify the expressions we assume that (0, 0) in the infinite parameter space corresponds to the "center" of
-    // the ellipses (though in 1D these ellipses are degenerate). The cell is then translated in this space to have the
-    // correct height function.
-
     Curve curve1("curve1", {{0, 0}, {6, 0}});
-    Curve curve2("curve2", {{0, 0}, {8, 0}, {6, 0}});
+    Curve curve2("curve2", {{0, 0}, {4, 0}, {6, 0}});
     CDTW<1, Norm::L1, Norm::L1> cdtw(curve1, curve2);
+
+    io::export_points("data/out/curve1.csv", curve1.get_points());
+    io::export_points("data/out/curve2.csv", curve2.get_points());
+
 //
 //    // Bottom-left corner of cell
 //    double sx = -5;

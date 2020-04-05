@@ -24,19 +24,19 @@ PiecewisePolynomial<2> CDTW<1, Norm::L1, Norm::L1>::base_bottom(const Cell& cell
     double sy = cell.s.y - cell.mid.y;
     double tx = cell.t.x - cell.mid.x;
 
-    if (sx >= sy) {
+    if (sy <= sx) {
         return PiecewisePolynomial<2>({
-            {{sx + cell.mid.x, tx + cell.mid.x}, Polynomial<2>({-(sx * sx) / 2 + sx * sy, -sy, 1. / 2})}
-        });
+            {{sx, tx}, Polynomial<2>({-(sx * sx) / 2 + sx * sy, -sy, 1. / 2})}
+        }).translate(-sx);
     } else if (sy >= tx) {
         return PiecewisePolynomial<2>({
-            {{sx + cell.mid.x, tx + cell.mid.x}, Polynomial<2>({(sx * sx) / 2 - sx * sy, sy, -1. / 2})}
-        });
+            {{sx, tx}, Polynomial<2>({(sx * sx) / 2 - sx * sy, sy, -1. / 2})}
+        }).translate(-sx);
     } else { // sx < sy < tx
         return PiecewisePolynomial<2>({
-            {{sx + cell.mid.x, sy + cell.mid.x}, Polynomial<2>({(sx * sx) / 2 - sx * sy, sy, -1. / 2})},
-            {{sy + cell.mid.x, tx + cell.mid.x}, Polynomial<2>({(sx * sx) / 2 - sx * sy + sy * sy, -sy, 1. / 2})}
-        });
+            {{sx, sy}, Polynomial<2>({(sx * sx) / 2 - sx * sy, sy, -1. / 2})},
+            {{sy, tx}, Polynomial<2>({(sx * sx) / 2 - sx * sy + sy * sy, -sy, 1. / 2})}
+        }).translate(-sx);
     }
 }
 
@@ -189,6 +189,163 @@ CDTW<1, Norm::L1, Norm::L1>::bottom_to_right_costs(const Cell& cell) const {
     return costs;
 }
 
+/**
+ * Compute the piecewise bivariate polynomial representing the cost of the optimal path between a point A on the bottom
+ * boundary and a point B on the top boundary.
+ *
+ * @param cell
+ * @return A piecewise bivariate polynomial over the domain 0 <= a <= b <= cell.width.
+ */
+template<>
+std::vector<ConstrainedBivariatePolynomial<2>>
+CDTW<1, Norm::L1, Norm::L1>::bottom_to_top_costs(const Cell& cell) const {
+    // Coordinates of the cell in a system where cell.mid lies on (0, 0).
+    // This makes it much easier to formulate the bivariate polynomials and constraints, but does require us to
+    // translate the cell back such that (s.x, s.y) = (0, 0) using .translate_xy(-sx, -sy).
+    double sx = cell.s.x - cell.mid.x;
+    double sy = cell.s.y - cell.mid.y;
+    double tx = cell.t.x - cell.mid.x;
+    double ty = cell.t.y - cell.mid.y;
+
+    std::vector<ConstrainedBivariatePolynomial<2>> costs;
+    costs.reserve(5);
+
+    // 1.
+    // Not via valley
+    // A above valley
+    // B above valley
+    costs.push_back(ConstrainedBivariatePolynomial<2>{
+        BivariatePolynomial<2>({{
+            {{(ty * ty) / 2 - (sy * sy) / 2, 2 * sy - ty, -1./2}},
+            {{-sy, 0, 0}},
+            {{1./2, 0, 0}},
+        }}),
+        // B in cell + B above valley + Not via valley
+        {sx, std::clamp(sy, sx, tx)},
+        {{
+             Polynomial<1>({sx, 0}), // A in cell
+        }},
+        {{
+             Polynomial<1>({tx, 0}), // A in cell
+             Polynomial<1>({0, 1}), // A <= B
+             Polynomial<1>({sy, 0}), // A above valley
+        }}
+    }.translate_xy(-sx, -sx));
+
+    // 2.
+    // Via valley
+    // A above valley
+    // B above valley
+    costs.push_back(ConstrainedBivariatePolynomial<2>{
+        BivariatePolynomial<2>({{
+            {{(sy * sy) / 2 + (ty * ty) / 2, -ty, 1./2}},
+            {{-sy, 0, 0}},
+            {{1./2, 0, 0}},
+        }}),
+        // B in cell + B above valley + Via valley
+        {std::clamp(sy, sx, tx), std::clamp(ty, sx, tx)},
+        {{
+             Polynomial<1>({sx, 0}), // A in cell
+         }},
+        {{
+             Polynomial<1>({tx, 0}), // A in cell
+             Polynomial<1>({0, 1}), // A <= B
+             Polynomial<1>({sy, 0}), // A above valley
+         }}
+    }.translate_xy(-sx, -sx));
+
+    // 3.
+    // Via valley
+    // A below valley
+    // B above valley
+    costs.push_back(ConstrainedBivariatePolynomial<2>{
+        BivariatePolynomial<2>({{
+            {{(sy * sy) / 2 + (ty * ty) / 2, -ty, 1./2}},
+            {{-sy, 0, 0}},
+            {{1./2, 0, 0}},
+        }}),
+        // B in cell + B above valley
+        {std::clamp(sy, sx, tx), std::clamp(ty, sx, tx)},
+        {{
+             Polynomial<1>({sx, 0}), // A in cell
+             Polynomial<1>({sy, 0}), // A below valley
+         }},
+        {{
+             Polynomial<1>({tx, 0}), // A in cell
+             Polynomial<1>({0, 1}), // A <= B
+         }}
+    }.translate_xy(-sx, -sx));
+
+    // 4.
+    // Via valley
+    // A above valley
+    // B below valley
+    costs.push_back(ConstrainedBivariatePolynomial<2>{
+        BivariatePolynomial<2>({{
+            {{(sy * sy) / 2 + (ty * ty) / 2, -ty, 1./2}},
+            {{-sy, 0, 0}},
+            {{1./2, 0, 0}},
+        }}),
+        // B in cell + B below valley
+        {std::clamp(ty, sx, tx), tx},
+        {{
+             Polynomial<1>({sx, 0}), // A in cell
+         }},
+        {{
+             Polynomial<1>({tx, 0}), // A in cell
+             Polynomial<1>({0, 1}), // A <= B
+             Polynomial<1>({sy, 0}), // A above valley
+         }}
+    }.translate_xy(-sx, -sx));
+
+    // 5.
+    // Via valley
+    // A below valley
+    // B below valley
+    costs.push_back(ConstrainedBivariatePolynomial<2>{
+        BivariatePolynomial<2>({{
+            {{(sy * sy) / 2 + (ty * ty) / 2, -ty, 1./2}},
+            {{-sy, 0, 0}},
+            {{1./2, 0, 0}},
+        }}),
+        // B in cell + B below valley
+        {std::clamp(ty, sx, tx), tx},
+        {{
+             Polynomial<1>({sx, 0}), // A in cell
+             Polynomial<1>({sy, 0}), // A below valley
+         }},
+        {{
+             Polynomial<1>({tx, 0}), // A in cell
+             Polynomial<1>({0, 1}), // A <= B
+             Polynomial<1>({ty, 0}), // Via valley
+         }}
+    }.translate_xy(-sx, -sx));
+
+    // 6.
+    // Not via valley
+    // A below valley
+    // B below valley
+    costs.push_back(ConstrainedBivariatePolynomial<2>{
+        BivariatePolynomial<2>({{
+            {{(sy * sy) / 2 - (ty * ty) / 2, -ty, 1./2}},
+            {{-sy + 2 * ty, 0, 0}},
+            {{-1./2, 0, 0}},
+        }}),
+        // B in cell + B below valley
+        {std::clamp(ty, sx, tx), tx},
+        {{
+             Polynomial<1>({sx, 0}), // A in cell
+             Polynomial<1>({ty, 0}), // A below valley + Not via valley
+         }},
+        {{
+             Polynomial<1>({tx, 0}), // A in cell
+             Polynomial<1>({0, 1}), // A <= B
+         }}
+    }.translate_xy(-sx, -sx));
+
+    return costs;
+}
+
 PiecewisePolynomial<2> bottom_to_top_6(double sx, double sy, double tx, double ty) {
     // Not via valley
     // A below valley
@@ -220,172 +377,6 @@ PiecewisePolynomial<2> bottom_to_top_6(double sx, double sy, double tx, double t
     left_constraints.push_back(Polynomial<1>({ty, 0}));
 
     return find_minimum(h, b_interval, left_constraints, right_constraints);
-}
-
-PiecewisePolynomial<2> bottom_to_top_5(double sx, double sy, double tx, double ty) {
-    // Via valley
-    // A below valley
-    // B below valley
-
-    BivariatePolynomial<2> h({{
-        {{(sy * sy) / 2 + (ty * ty) / 2, -ty, 1./2}},
-        {{-sy, 0, 0}},
-        {{1./2, 0, 0}},
-    }});
-
-    // B in cell + B below valley
-    Interval b_interval{std::clamp(ty, sx, tx), tx};
-
-    std::vector<Polynomial<1>> left_constraints;
-    std::vector<Polynomial<1>> right_constraints;
-
-    // A in cell
-    left_constraints.push_back(Polynomial<1>({sx, 0}));
-    right_constraints.push_back(Polynomial<1>({tx, 0}));
-
-    // B to the right of A
-    right_constraints.push_back(Polynomial<1>({0, 1}));
-
-    // A below valley
-    left_constraints.push_back(Polynomial<1>({sy, 0}));
-
-    // Via valley
-    left_constraints.push_back(Polynomial<1>({ty, 0}));
-
-    return find_minimum(h, b_interval, left_constraints, right_constraints);
-}
-
-PiecewisePolynomial<2> bottom_to_top_4(double sx, double sy, double tx, double ty) {
-    // Via valley
-    // A below valley
-    // B above valley
-
-    BivariatePolynomial<2> h({{
-        {{(sy * sy) / 2 + (ty * ty) / 2, -ty, 1./2}},
-        {{-sy, 0, 0}},
-        {{1./2, 0, 0}},
-    }});
-
-    // B in cell + B above valley
-    Interval b_interval{sx, std::clamp(ty, sx, tx)};
-
-    std::vector<Polynomial<1>> left_constraints;
-    std::vector<Polynomial<1>> right_constraints;
-
-    // A in cell
-    left_constraints.push_back(Polynomial<1>({sx, 0}));
-    right_constraints.push_back(Polynomial<1>({tx, 0}));
-
-    // B to the right of A
-    right_constraints.push_back(Polynomial<1>({0, 1}));
-
-    // A below valley
-    left_constraints.push_back(Polynomial<1>({sy, 0}));
-
-    // Via valley
-    right_constraints.push_back(Polynomial<1>({ty, 0}));
-
-    return find_minimum(h, b_interval, left_constraints, right_constraints);
-}
-
-PiecewisePolynomial<2> bottom_to_top_3(double sx, double sy, double tx, double ty) {
-    // Via valley
-    // A above valley
-    // B below valley
-
-    BivariatePolynomial<2> h({{
-        {{(sy * sy) / 2 + (ty * ty) / 2, -ty, 1./2}},
-        {{-sy, 0, 0}},
-        {{1./2, 0, 0}},
-    }});
-
-    // B in cell + B below valley
-    Interval b_interval{std::clamp(ty, sx, tx), tx};
-
-    std::vector<Polynomial<1>> left_constraints;
-    std::vector<Polynomial<1>> right_constraints;
-
-    // A in cell
-    left_constraints.push_back(Polynomial<1>({sx, 0}));
-    right_constraints.push_back(Polynomial<1>({tx, 0}));
-
-    // B to the right of A
-    right_constraints.push_back(Polynomial<1>({0, 1}));
-
-    // A above valley
-    right_constraints.push_back(Polynomial<1>({sy, 0}));
-
-    return find_minimum(h, b_interval, left_constraints, right_constraints);
-}
-
-PiecewisePolynomial<2> bottom_to_top_2(double sx, double sy, double tx, double ty) {
-    // Via valley
-    // A above valley
-    // B above valley
-
-    BivariatePolynomial<2> h({{
-        {{(sy * sy) / 2 + (ty * ty) / 2, -ty, 1./2}},
-        {{-sy, 0, 0}},
-        {{1./2, 0, 0}},
-    }});
-
-    // B in cell + B above valley + Via valley
-    Interval b_interval{std::clamp(sy, sx, tx), std::clamp(ty, sx, tx)};
-
-    std::vector<Polynomial<1>> left_constraints;
-    std::vector<Polynomial<1>> right_constraints;
-
-    // A in cell
-    left_constraints.push_back(Polynomial<1>({sx, 0}));
-    right_constraints.push_back(Polynomial<1>({tx, 0}));
-
-    // B to the right of A
-    right_constraints.push_back(Polynomial<1>({0, 1}));
-
-    // A above valley
-    right_constraints.push_back(Polynomial<1>({sy, 0}));
-
-    return find_minimum(h, b_interval, left_constraints, right_constraints);
-}
-
-PiecewisePolynomial<2> bottom_to_top_1(double sx, double sy, double tx, double ty) {
-    // Not via valley
-    // A above valley
-    // B above valley
-
-    BivariatePolynomial<2> h({{
-        {{(ty * ty) / 2 - (sy * sy) / 2, 2 * sy - ty, -1./2}},
-        {{-sy, 0, 0}},
-        {{1./2, 0, 0}},
-    }});
-
-    // B in cell + B above valley + Via valley
-    Interval b_interval{sx, std::clamp(sy, sx, tx)};
-
-    std::vector<Polynomial<1>> left_constraints;
-    std::vector<Polynomial<1>> right_constraints;
-
-    // A in cell
-    left_constraints.push_back(Polynomial<1>({sx, 0}));
-    right_constraints.push_back(Polynomial<1>({tx, 0}));
-
-    // B to the right of A
-    right_constraints.push_back(Polynomial<1>({0, 1}));
-
-    // A above valley
-    right_constraints.push_back(Polynomial<1>({sy, 0}));
-
-    return find_minimum(h, b_interval, left_constraints, right_constraints);
-}
-
-PiecewisePolynomial<2> bottom_to_top(double sx, double sy, double tx, double ty) {
-    auto result = bottom_to_top_1(sx, sy, tx, ty);
-    fast_lower_envelope(result, bottom_to_top_2(sx, sy, tx, ty));
-    fast_lower_envelope(result, bottom_to_top_3(sx, sy, tx, ty));
-    fast_lower_envelope(result, bottom_to_top_4(sx, sy, tx, ty));
-    fast_lower_envelope(result, bottom_to_top_5(sx, sy, tx, ty));
-    fast_lower_envelope(result, bottom_to_top_6(sx, sy, tx, ty));
-    return result;
 }
 
 #endif //TRAJECTORY_CLUSTERING_1D_L1_H

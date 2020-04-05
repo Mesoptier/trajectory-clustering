@@ -94,6 +94,10 @@ std::vector<Polynomial<1>> find_roots_y(const BivariatePolynomial<1>& f) {
     auto c01 = f.coefficients[0][1];
     auto c10 = f.coefficients[1][0];
 
+    if (c10 == 0) {
+        return {};
+    }
+
     return {
         Polynomial<1>({-c00 / c10, -c01 / c10})
     };

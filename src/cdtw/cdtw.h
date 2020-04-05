@@ -410,6 +410,12 @@ void fast_lower_envelope(PiecewisePolynomial<D>& left, const PiecewisePolynomial
         }
     }
 
+    // If left is empty, left and right were equal
+    if (left.empty()) {
+        left.pieces.assign(right.pieces.begin(), right.pieces.end());
+        return;
+    }
+
     throw std::logic_error("unresolved case");
 }
 
@@ -505,12 +511,12 @@ CDTW<dimension, image_norm, param_norm>::CDTW(const Curve& curve1, const Curve& 
 
             // Compute right
             PiecewisePolynomial<D> right_out = bottom_to_right(bottom_in, cell);
-//            fast_lower_envelope(right_out, bottom_to_top(left_in, cell_t));
+            fast_lower_envelope(right_out, bottom_to_top(left_in, cell_t));
             in_functions[i + 1][j].left = right_out;
 
             // Compute top
             PiecewisePolynomial<D> top_out = bottom_to_right(left_in, cell_t);
-//            fast_lower_envelope(top_out, bottom_to_top(bottom_in, cell));
+            fast_lower_envelope(top_out, bottom_to_top(bottom_in, cell));
             in_functions[i][j + 1].bottom = top_out;
         }
     }

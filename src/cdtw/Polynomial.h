@@ -206,4 +206,13 @@ Polynomial<1> Polynomial<1>::translate_xy(double cx, double cy) const {
     return Polynomial<1>({c0 + cy - c1 * cx, c1});
 }
 
+template<>
+Polynomial<2> Polynomial<2>::translate_xy(double cx, double cy) const {
+    auto c0 = coefficients[0];
+    auto c1 = coefficients[1];
+    auto c2 = coefficients[2];
+
+    return Polynomial<2>({c0 - c1 * cx + c2 * cx * cx + cy, c1 - 2 * c2 * cx, c2});
+}
+
 #endif //TRAJECTORY_CLUSTERING_POLYNOMIAL_H

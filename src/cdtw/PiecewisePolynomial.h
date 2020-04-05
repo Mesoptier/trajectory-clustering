@@ -13,6 +13,14 @@ struct PolynomialPiece
     PolynomialPiece(const Interval& interval, const Polynomial<D>& polynomial) :
         interval(interval), polynomial(polynomial) {}
 
+    PolynomialPiece<D> translate(double cx) const {
+        auto result = *this;
+        result.interval.min += cx;
+        result.interval.max += cx;
+        result.polynomial = result.polynomial.translate_xy(cx, 0);
+        return result;
+    }
+
     //
     // Arithmetic operators
     //
@@ -74,6 +82,14 @@ struct PiecewisePolynomial
             pieces.front().interval.min,
             pieces.back().interval.max,
         };
+    }
+
+    PiecewisePolynomial<D> translate(double cx) const {
+        auto result = *this;
+        for (auto& piece : result.pieces) {
+            piece = piece.translate(cx);
+        }
+        return result;
     }
 
     //
