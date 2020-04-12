@@ -253,8 +253,8 @@ int main() {
 //    std::cout << std::endl;
 //}
 
-    Curve curve1("curve1", {{0, 0}, {6, 0}});
-    Curve curve2("curve2", {{0, 0}, {4, 0}, {6, 0}});
+    Curve curve1("curve1", {{-5, 0}, {1, 0}, {6, 0}});
+    Curve curve2("curve2", {{0, 0}, {4, 0}, {6, 0}, {5, 0}});
     CDTW<1, Norm::L1, Norm::L1> cdtw(curve1, curve2);
 
     io::export_points("data/out/curve1.csv", curve1.get_points());
