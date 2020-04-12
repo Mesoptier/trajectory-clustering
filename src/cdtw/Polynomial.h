@@ -11,7 +11,7 @@ struct Polynomial
 {
     std::array<double, D + 1> coefficients;
 
-    Polynomial() = default;
+    Polynomial() : coefficients() {}
     explicit Polynomial(const std::array<double, D + 1>& coefficients) : coefficients(coefficients) {}
 
     /**
