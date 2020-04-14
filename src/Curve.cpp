@@ -87,3 +87,11 @@ Curve Curve::simplify(bool maintain_lengths) const {
 
     return other;
 }
+
+Curve Curve::to_1d() const {
+    Curve result(m_name);
+    for (const auto& p : points) {
+        result.push_back({p.x, 0});
+    }
+    return result;
+}

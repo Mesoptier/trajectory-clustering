@@ -78,4 +78,9 @@ public:
      * FIXME: Super crappy!
      */
     Curve simplify(bool maintain_lengths) const;
+
+    /**
+     * Get a 1-dimensional  version of the curve.
+     */
+    Curve to_1d() const;
 };
