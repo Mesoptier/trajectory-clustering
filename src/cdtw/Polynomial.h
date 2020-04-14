@@ -5,6 +5,7 @@
 #include <vector>
 #include <cmath>
 #include <iostream>
+#include "../util.h"
 
 template<size_t D>
 struct Polynomial

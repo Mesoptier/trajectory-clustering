@@ -1,6 +1,8 @@
 #ifndef TRAJECTORY_CLUSTERING_NAIVE_LOWER_ENVELOPE_H
 #define TRAJECTORY_CLUSTERING_NAIVE_LOWER_ENVELOPE_H
 
+#include <queue>
+#include "PiecewisePolynomial.h"
 
 /**
  * Given a set of polynomial pieces, computes the set of polynomial pieces that form the lower envelope without any
