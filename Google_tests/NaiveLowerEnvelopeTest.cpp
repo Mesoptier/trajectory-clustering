@@ -44,3 +44,101 @@ TEST(NaiveLowerEnvelopeTest, Basic) {
     });
     AssertPiecewisePolynomialEqual(actual, expected);
 }
+
+TEST(NaiveLowerEnvelopeTest, IdenticalPieces) {
+    const std::vector<PolynomialPiece<2>> pieces {
+        {{0, 2}, Polynomial<2>({3, 2, 1})},
+        {{0, 2}, Polynomial<2>({3, 2, 1})},
+    };
+    const auto actual = naive_lower_envelope(pieces);
+    const PiecewisePolynomial<2> expected({
+        {{0, 2}, Polynomial<2>({3, 2, 1})},
+    });
+    AssertPiecewisePolynomialEqual(actual, expected);
+}
+
+TEST(NaiveLowerEnvelopeTest, IdenticalPolynomials) {
+    // TODO: Expected result should maybe have interval {0, 3} (i.e. merge the subsequent pieces)
+
+    //
+    // Different start-/endpoints
+    //
+    { // Order: left, right
+        const std::vector<PolynomialPiece<2>> pieces {
+            {{0, 2}, Polynomial<2>({3, 2, 1})},
+            {{1, 3}, Polynomial<2>({3, 2, 1})},
+        };
+        const auto actual = naive_lower_envelope(pieces);
+        const PiecewisePolynomial<2> expected({
+            {{0, 2}, Polynomial<2>({3, 2, 1})},
+            {{2, 3}, Polynomial<2>({3, 2, 1})},
+        });
+        AssertPiecewisePolynomialEqual(actual, expected);
+    }
+    { // Order: right, left
+        const std::vector<PolynomialPiece<2>> pieces {
+            {{1, 3}, Polynomial<2>({3, 2, 1})},
+            {{0, 2}, Polynomial<2>({3, 2, 1})},
+        };
+        const auto actual = naive_lower_envelope(pieces);
+        const PiecewisePolynomial<2> expected({
+            {{0, 1}, Polynomial<2>({3, 2, 1})},
+            {{1, 3}, Polynomial<2>({3, 2, 1})},
+        });
+        AssertPiecewisePolynomialEqual(actual, expected);
+    }
+
+    //
+    // Same startpoints
+    //
+    { // Order: left, right
+        const std::vector<PolynomialPiece<2>> pieces {
+            {{0, 2}, Polynomial<2>({3, 2, 1})},
+            {{0, 3}, Polynomial<2>({3, 2, 1})},
+        };
+        const auto actual = naive_lower_envelope(pieces);
+        const PiecewisePolynomial<2> expected({
+            {{0, 2}, Polynomial<2>({3, 2, 1})},
+            {{2, 3}, Polynomial<2>({3, 2, 1})},
+        });
+        AssertPiecewisePolynomialEqual(actual, expected);
+    }
+    { // Order: right, left
+        const std::vector<PolynomialPiece<2>> pieces {
+            {{0, 3}, Polynomial<2>({3, 2, 1})},
+            {{0, 2}, Polynomial<2>({3, 2, 1})},
+        };
+        const auto actual = naive_lower_envelope(pieces);
+        const PiecewisePolynomial<2> expected({
+            {{0, 3}, Polynomial<2>({3, 2, 1})},
+        });
+        AssertPiecewisePolynomialEqual(actual, expected);
+    }
+
+    //
+    // Same endpoints
+    //
+    { // Order: left, right
+        const std::vector<PolynomialPiece<2>> pieces {
+            {{0, 3}, Polynomial<2>({3, 2, 1})},
+            {{1, 3}, Polynomial<2>({3, 2, 1})},
+        };
+        const auto actual = naive_lower_envelope(pieces);
+        const PiecewisePolynomial<2> expected({
+            {{0, 3}, Polynomial<2>({3, 2, 1})},
+        });
+        AssertPiecewisePolynomialEqual(actual, expected);
+    }
+    { // Order: right, left
+        const std::vector<PolynomialPiece<2>> pieces {
+            {{1, 3}, Polynomial<2>({3, 2, 1})},
+            {{0, 3}, Polynomial<2>({3, 2, 1})},
+        };
+        const auto actual = naive_lower_envelope(pieces);
+        const PiecewisePolynomial<2> expected({
+            {{0, 1}, Polynomial<2>({3, 2, 1})},
+            {{1, 3}, Polynomial<2>({3, 2, 1})},
+        });
+        AssertPiecewisePolynomialEqual(actual, expected);
+    }
+}
