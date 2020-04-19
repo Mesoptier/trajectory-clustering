@@ -360,21 +360,31 @@ CDTW<dimension, image_norm, param_norm>::CDTW(const Curve& curve1, const Curve& 
     // Visualization
     //
 
-    std::cout << "ParametricPlot3D[{";
+    std::cout << "Show[";
     for (size_t i = 0; i < curve1.size(); ++i) {
         const double x = curve1.curve_length(i);
 
         for (size_t j = 0; j < curve2.size(); ++j) {
             const double y = curve2.curve_length(j);
 
-            std::cout << "{(x+" << x << "), " << y << ", " << in_functions[i][j].bottom << "},";
-            std::cout << "{" << x << ", (y+" << y << "), (" << in_functions[i][j].left << " /. x->y)},";
+            const auto& cell_bottom = in_functions[i][j].bottom;
+            if (!cell_bottom.empty()) {
+                std::cout << "ParametricPlot3D[";
+                std::cout << "{(x+" << x << "), (" << y << "), " << cell_bottom << "}";
+                std::cout << ", {x," << cell_bottom.interval().min << "," << cell_bottom.interval().max << "}";
+                std::cout << "],";
+            }
+
+            const auto& cell_left = in_functions[i][j].left;
+            if (!cell_left.empty()) {
+                std::cout << "ParametricPlot3D[";
+                std::cout << "{(" << x << "), (x+" << y << "), " << cell_left << "}";
+                std::cout << ",{x," << cell_left.interval().min << "," << cell_left.interval().max << "}";
+                std::cout << "],";
+            }
         }
     }
-    std::cout << "} // Evaluate,";
-    std::cout << "{x, 0, " << curve1.curve_length() << "},";
-    std::cout << "{y, 0, " << curve2.curve_length() << "},";
-    std::cout << "BoxRatios -> {Automatic, Automatic, 3}]" << std::endl;
+    std::cout << "BoxRatios -> {Automatic, Automatic, 10}]" << std::endl;
 }
 
 template<size_t dimension, Norm image_norm, Norm param_norm>
