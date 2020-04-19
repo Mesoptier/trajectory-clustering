@@ -363,15 +363,23 @@ CDTW<dimension, image_norm, param_norm>::CDTW(const Curve& curve1, const Curve& 
     std::cout << "Time: " << duration << "ms\n";
 
     size_t max_complexity = 0;
+    size_t total_complexity = 0;
+    size_t num_functions = 0;
 
     for (size_t i = 0; i < curve1.size(); ++i) {
         for (size_t j = 0; j < curve2.size(); ++j) {
-            max_complexity = std::max(max_complexity, in_functions[i][j].bottom.pieces.size());
-            max_complexity = std::max(max_complexity, in_functions[i][j].left.pieces.size());
+            size_t complexity_left = in_functions[i][j].left.pieces.size();
+            size_t complexity_bottom = in_functions[i][j].bottom.pieces.size();
+
+            max_complexity = std::max({ max_complexity, complexity_left, complexity_bottom });
+            total_complexity += complexity_left + complexity_bottom;
+            num_functions += (complexity_left != 0) + (complexity_bottom != 0);
         }
     }
 
     std::cout << "Max complexity: " << max_complexity << "\n";
+    std::cout << "Total complexity: " << total_complexity << "\n";
+    std::cout << "Average complexity: " << ((double) total_complexity / num_functions) << "\n";
 
     //
     // Visualization
