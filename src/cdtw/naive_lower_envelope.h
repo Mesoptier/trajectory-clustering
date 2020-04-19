@@ -33,8 +33,8 @@ PiecewisePolynomial<D> naive_lower_envelope(const std::vector<PolynomialPiece<D>
     constexpr PieceID INVALID_PIECE_ID = std::numeric_limits<size_t>::max();
     enum class EventType
     {
-        OPEN,
         CLOSE,
+        OPEN,
         SWAP,
     };
     struct Event
@@ -49,8 +49,11 @@ PiecewisePolynomial<D> naive_lower_envelope(const std::vector<PolynomialPiece<D>
         explicit CompareEvent(const std::vector<PolynomialPiece<D>>& pieces) : pieces(pieces) {}
         bool operator()(const Event& e2, const Event& e1) const {
             if (e1.x == e2.x) {
-                const typename Polynomial<D>::CompareAt compare(e1.x);
-                return compare(pieces[e1.id].polynomial, pieces[e2.id].polynomial);
+                if (e1.type == e2.type) {
+                    const typename Polynomial<D>::CompareAt compare(e1.x);
+                    return compare(pieces[e1.id].polynomial, pieces[e2.id].polynomial);
+                }
+                return e1.type < e2.type;
             }
             return e1.x < e2.x;
         }
