@@ -166,3 +166,33 @@ TEST(NaiveLowerEnvelopeTest, SlightlyDifferentStartpoints) {
     });
     ASSERT_EQ(actual, expected);
 }
+
+TEST(NaiveLowerEnvelopeTest, IdenticalPolynomialsHigherAfterIntersection) {
+    const std::vector<PolynomialPiece<2>> pieces {
+        {{0, 2}, Polynomial<2>({1, -2, 1})},
+        {{0, 2}, Polynomial<2>({1, -2, 1})},
+        {{0, 2}, Polynomial<2>({1, -2, 1})},
+        {{1, 3}, Polynomial<2>({4, -4, 1})},
+    };
+    const auto actual = naive_lower_envelope(pieces);
+    const PiecewisePolynomial<2> expected({
+        {{0, 1.5}, Polynomial<2>({1, -2, 1})},
+        {{1.5, 3}, Polynomial<2>({4, -4, 1})},
+    });
+    ASSERT_EQ(actual, expected);
+}
+
+TEST(NaiveLowerEnvelopeTest, IdenticalPolynomialsLowerAfterIntersection) {
+    const std::vector<PolynomialPiece<2>> pieces {
+        {{0, 2}, Polynomial<2>({1, -2, 1})},
+        {{1, 3}, Polynomial<2>({4, -4, 1})},
+        {{1, 3}, Polynomial<2>({4, -4, 1})},
+        {{1, 3}, Polynomial<2>({4, -4, 1})},
+    };
+    const auto actual = naive_lower_envelope(pieces);
+    const PiecewisePolynomial<2> expected({
+        {{0, 1.5}, Polynomial<2>({1, -2, 1})},
+        {{1.5, 3}, Polynomial<2>({4, -4, 1})},
+    });
+    ASSERT_EQ(actual, expected);
+}

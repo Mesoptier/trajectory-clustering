@@ -34,8 +34,8 @@ PiecewisePolynomial<D> naive_lower_envelope(const std::vector<PolynomialPiece<D>
     enum class EventType
     {
         CLOSE,
-        OPEN,
         SWAP,
+        OPEN,
     };
     struct Event
     {
@@ -48,14 +48,11 @@ PiecewisePolynomial<D> naive_lower_envelope(const std::vector<PolynomialPiece<D>
         const std::vector<PolynomialPiece<D>>& pieces;
         explicit CompareEvent(const std::vector<PolynomialPiece<D>>& pieces) : pieces(pieces) {}
         bool operator()(const Event& e2, const Event& e1) const {
-            if (e1.x == e2.x) {
-                if (e1.type == e2.type) {
-                    const typename Polynomial<D>::CompareAt compare(e1.x);
-                    return compare(pieces[e1.id].polynomial, pieces[e2.id].polynomial);
-                }
-                return e1.type < e2.type;
-            }
-            return e1.x < e2.x;
+            if (e1.x != e2.x) return e1.x < e2.x;
+            if (!(e1.type == e2.type)) return e1.type < e2.type;
+            if (e1.id != e2.id) return e1.id < e2.id;
+            const typename Polynomial<D>::CompareAt compare(e1.x);
+            return compare(pieces[e1.id].polynomial, pieces[e2.id].polynomial);
         }
     };
     struct ComparePieceID
@@ -146,8 +143,6 @@ PiecewisePolynomial<D> naive_lower_envelope(const std::vector<PolynomialPiece<D>
                                        ? event.id : other_id;
 
                     events.push({root, EventType::SWAP, lower_id});
-
-//                    std::cout << "add swap " << event.id << ' ' << other_id << ' ' << lower_id << ' ' << root << '\n';
                 }
             }
 
@@ -158,7 +153,7 @@ PiecewisePolynomial<D> naive_lower_envelope(const std::vector<PolynomialPiece<D>
             ComparePieceID compare_pieces_prev(pieces, prev_x);
 
             // Iterator to the position of event.id in the state
-            const auto it = std::lower_bound(state.begin(), state.end(), event.id, compare_pieces_prev);
+            auto it = std::lower_bound(state.begin(), state.end(), event.id, compare_pieces_prev);
             assert(*it == event.id);
 
             if (event.type == EventType::CLOSE) {
@@ -167,6 +162,23 @@ PiecewisePolynomial<D> naive_lower_envelope(const std::vector<PolynomialPiece<D>
             } else { // event.type == SWAP
                 assert(it != state.begin());
                 std::iter_swap(it - 1, it);
+                --it;
+
+                // Resolve SWAP events in the same point
+                while (events.top().type == EventType::SWAP && events.top().x == event.x) {
+                    const auto next_event = events.top();
+                    events.pop();
+
+                    // The piece with next_event.id is either at `it` or above it in the state
+                    while (*it != next_event.id) {
+                        ++it;
+                        assert(it != state.end());
+                    }
+
+                    assert(it != state.begin());
+                    std::iter_swap(it - 1, it);
+                    --it;
+                }
             }
         }
 
@@ -193,11 +205,6 @@ PiecewisePolynomial<D> naive_lower_envelope(const std::vector<PolynomialPiece<D>
 
         // Verify state
         assert(std::is_sorted(state.begin(), state.end(), compare_pieces));
-
-//        std::cout << "EVENT: x=" << event.x << " type=" << (size_t) event.type << "\n";
-//        for (const auto id : state) {
-//            std::cout << id << ' ' << pieces[id].polynomial(event.x) << ' ' << pieces[id] << '\n';
-//        }
     }
 
     return {result_pieces};
