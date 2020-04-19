@@ -149,6 +149,12 @@ PiecewisePolynomial<D> find_minimum(
 
 template<size_t D>
 void fast_lower_envelope(PiecewisePolynomial<D>& left, const PiecewisePolynomial<D>& right) {
+    // FIXME: Temporarily using naive_lower_envelope in order to reduce the chance of errors
+    std::vector<PolynomialPiece<D>> pieces = left.pieces;
+    pieces.insert(pieces.end(), right.pieces.begin(), right.pieces.end());
+    left = naive_lower_envelope(pieces);
+    return;
+
     // Early return for empty cases
     if (left.empty()) {
         left.pieces.assign(right.pieces.begin(), right.pieces.end());
@@ -393,7 +399,7 @@ CDTW<dimension, image_norm, param_norm>::propagate(
             // total_cost: cost of optimal path from origin through point on in-boundary to point on out-boundary
             const auto total_cost = cell_cost.add_x(piece_in_cost);
 
-            const auto min_total_cost = find_minimum(
+            const PiecewisePolynomial<D> min_total_cost = find_minimum(
                 total_cost.f,
                 total_cost.y_interval,
                 total_cost.left_constraints,

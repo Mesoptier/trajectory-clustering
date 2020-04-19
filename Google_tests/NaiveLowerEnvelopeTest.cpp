@@ -107,8 +107,7 @@ TEST(NaiveLowerEnvelopeTest, IdenticalPolynomials) {
         };
         const auto actual = naive_lower_envelope(pieces);
         const PiecewisePolynomial<2> expected({
-            {{0, 0 + EPS}, Polynomial<2>({3, 2, 1})},
-            {{0 + EPS, 3}, Polynomial<2>({3, 2, 1})},
+            {{0, 3}, Polynomial<2>({3, 2, 1})},
         });
         ASSERT_EQ(actual, expected);
     }
@@ -138,4 +137,32 @@ TEST(NaiveLowerEnvelopeTest, IdenticalPolynomials) {
         });
         ASSERT_EQ(actual, expected);
     }
+}
+
+TEST(NaiveLowerEnvelopeTest, SlightlyDifferentEndpoints) {
+    // The first function is significantly higher than the second at all points, but its endpoint is slightly later and
+    // so one might expect it to show up in the result. But this would cause disconnected pieces.
+    // So we don't want to see the first function in the result.
+    const std::vector<PolynomialPiece<2>> pieces {
+        {{0, 2 + EPS}, Polynomial<2>({5, 2, 1})},
+        {{0, 2}, Polynomial<2>({3, 2, 1})},
+    };
+    const auto actual = naive_lower_envelope(pieces);
+    const PiecewisePolynomial<2> expected({
+        // TODO: We might want for the result to be in range {0, 2 + EPS}
+        {{0, 2}, Polynomial<2>({3, 2, 1})},
+    });
+    ASSERT_EQ(actual, expected);
+}
+
+TEST(NaiveLowerEnvelopeTest, SlightlyDifferentStartpoints) {
+    const std::vector<PolynomialPiece<2>> pieces {
+        {{0, 2}, Polynomial<2>({5, 2, 1})},
+        {{0 + EPS, 2}, Polynomial<2>({3, 2, 1})},
+    };
+    const auto actual = naive_lower_envelope(pieces);
+    const PiecewisePolynomial<2> expected({
+        {{0, 2}, Polynomial<2>({3, 2, 1})},
+    });
+    ASSERT_EQ(actual, expected);
 }

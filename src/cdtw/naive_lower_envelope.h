@@ -17,6 +17,7 @@ PiecewisePolynomial<D> naive_lower_envelope(const std::vector<PolynomialPiece<D>
 //    for (auto piece : pieces) {
 //        std::cout << "Piecewise[{" << piece << "}, None],\n";
 //    }
+//    std::cout << std::endl;
 
     // State:
     //  - Open pieces sorted by value (and derivatives) at x
@@ -103,9 +104,9 @@ PiecewisePolynomial<D> naive_lower_envelope(const std::vector<PolynomialPiece<D>
 
     std::vector<PolynomialPiece<D>> result_pieces;
     // X of previous event
-    double prev_x = std::numeric_limits<double>::min();
+    double prev_x = -std::numeric_limits<double>::infinity();
     // X of the start of the current piece
-    double start_x = std::numeric_limits<double>::min();
+    double start_x = -std::numeric_limits<double>::infinity();
     PieceID prev_open_id = INVALID_PIECE_ID;
 
     while (!events.empty()) {
@@ -170,18 +171,17 @@ PiecewisePolynomial<D> naive_lower_envelope(const std::vector<PolynomialPiece<D>
         PieceID open_id = state.empty() ? INVALID_PIECE_ID : state.front();
         if (prev_open_id != open_id) {
             // Close previous piece
-            if (
-                // If we have already opened a piece
-                prev_open_id != INVALID_PIECE_ID
-                    // And this would not result in an empty interval
-                    && start_x != event.x
-                ) {
-                result_pieces.emplace_back(Interval{start_x, event.x}, pieces[prev_open_id].polynomial);
+            if (prev_open_id != INVALID_PIECE_ID) {
+                if (!approx_equal(start_x, event.x)) {
+                    result_pieces.emplace_back(Interval{start_x, event.x}, pieces[prev_open_id].polynomial);
+                }
             }
 
             // Open new piece
             if (open_id != INVALID_PIECE_ID) {
-                start_x = event.x;
+                if (!approx_equal(start_x, event.x)) {
+                    start_x = event.x;
+                }
             }
         }
 

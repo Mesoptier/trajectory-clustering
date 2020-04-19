@@ -2,6 +2,7 @@
 #define TRAJECTORY_CLUSTERING_INTERVAL_H
 
 #include <iostream>
+#include "../util.h"
 
 struct Interval {
     double min;
@@ -17,7 +18,7 @@ struct Interval {
      * @return
      */
     bool contains_excl(double x) const {
-        return min < x && x < max;
+        return min + ABS_TOL <= x && x <= max - ABS_TOL;
     }
 
     friend std::ostream& operator<<(std::ostream& os, const Interval& interval) {

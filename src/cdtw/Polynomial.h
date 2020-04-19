@@ -173,11 +173,12 @@ std::vector<double> find_roots(const Polynomial<2>& f) {
     }
 
     double det = c1 * c1 - 4 * c2 * c0;
-    if (det == 0) {
+    if (approx_zero(det)) {
         return {-c1 / (2 * c2)};
     }
     if (det < 0) {
-        throw std::runtime_error("Complex roots");
+        // Complex roots
+        return {};
     }
 
     return {
