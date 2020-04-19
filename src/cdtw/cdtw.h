@@ -299,6 +299,8 @@ template<size_t dimension, Norm image_norm, Norm param_norm>
 CDTW<dimension, image_norm, param_norm>::CDTW(const Curve& curve1, const Curve& curve2) :
     in_functions(curve1.size(), std::vector<Entry>(curve2.size()))
 {
+    auto start_time = std::chrono::high_resolution_clock::now();
+
     // TODO: Simplify cell structs?
 
     // Initialize bottom base in_functions
@@ -356,35 +358,54 @@ CDTW<dimension, image_norm, param_norm>::CDTW(const Curve& curve1, const Curve& 
         }
     }
 
+    auto end_time = std::chrono::high_resolution_clock::now();
+    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time).count();
+    std::cout << "Time: " << duration << "ms\n";
+
+    size_t max_complexity = 0;
+
+    for (size_t i = 0; i < curve1.size(); ++i) {
+        for (size_t j = 0; j < curve2.size(); ++j) {
+            max_complexity = std::max(max_complexity, in_functions[i][j].bottom.pieces.size());
+            max_complexity = std::max(max_complexity, in_functions[i][j].left.pieces.size());
+        }
+    }
+
+    std::cout << "Max complexity: " << max_complexity << "\n";
+
     //
     // Visualization
     //
-
-    std::cout << "Show[";
-    for (size_t i = 0; i < curve1.size(); ++i) {
-        const double x = curve1.curve_length(i);
-
-        for (size_t j = 0; j < curve2.size(); ++j) {
-            const double y = curve2.curve_length(j);
-
-            const auto& cell_bottom = in_functions[i][j].bottom;
-            if (!cell_bottom.empty()) {
-                std::cout << "ParametricPlot3D[";
-                std::cout << "{(x+" << x << "), (" << y << "), " << cell_bottom << "}";
-                std::cout << ", {x," << cell_bottom.interval().min << "," << cell_bottom.interval().max << "}";
-                std::cout << "],";
-            }
-
-            const auto& cell_left = in_functions[i][j].left;
-            if (!cell_left.empty()) {
-                std::cout << "ParametricPlot3D[";
-                std::cout << "{(" << x << "), (x+" << y << "), " << cell_left << "}";
-                std::cout << ",{x," << cell_left.interval().min << "," << cell_left.interval().max << "}";
-                std::cout << "],";
-            }
-        }
-    }
-    std::cout << "BoxRatios -> {Automatic, Automatic, 10}]" << std::endl;
+//
+//    std::ofstream file("data/out/exact-cdtw.txt");
+//
+//    file << "Show[";
+//    for (size_t i = 0; i < curve1.size(); ++i) {
+//        const double x = curve1.curve_length(i);
+//
+//        for (size_t j = 0; j < curve2.size(); ++j) {
+//            const double y = curve2.curve_length(j);
+//
+//            const auto& cell_bottom = in_functions[i][j].bottom;
+//            if (!cell_bottom.empty()) {
+//                file << "ParametricPlot3D[";
+//                file << "{(x+" << x << "), (" << y << "), " << cell_bottom << "}";
+//                file << ", {x," << cell_bottom.interval().min << "," << cell_bottom.interval().max << "}";
+//                file << "],";
+//            }
+//
+//            const auto& cell_left = in_functions[i][j].left;
+//            if (!cell_left.empty()) {
+//                file << "ParametricPlot3D[";
+//                file << "{(" << x << "), (x+" << y << "), " << cell_left << "}";
+//                file << ",{x," << cell_left.interval().min << "," << cell_left.interval().max << "}";
+//                file << "],";
+//            }
+//        }
+//    }
+//    file << "BoxRatios -> {Automatic, Automatic, 10}]" << std::endl;
+//
+//    file.close();
 }
 
 template<size_t dimension, Norm image_norm, Norm param_norm>
@@ -396,6 +417,8 @@ CDTW<dimension, image_norm, param_norm>::propagate(
     const Iterator pieces_end
 ) const
 {
+    std::vector<PolynomialPiece<D>> min_pieces;
+
     PiecewisePolynomial<D> out_cost;
     while (pieces_it != pieces_end) {
         // piece_in_cost: cost of optimal path from origin to point on in-boundary
@@ -416,14 +439,21 @@ CDTW<dimension, image_norm, param_norm>::propagate(
                 total_cost.right_constraints
             );
 
-            fast_lower_envelope(piece_out_cost, min_total_cost);
+//            std::cout << "Piecewise[{" << cell_cost << "}, None]," << std::endl;
+//            std::cout << "Piecewise[{" << total_cost << "}, None]," << std::endl;
+
+//            std::cout << piece_out_cost << ' ' << min_total_cost << std::endl;
+
+//            fast_lower_envelope(piece_out_cost, min_total_cost);
+
+            min_pieces.insert(min_pieces.end(), min_total_cost.pieces.begin(), min_total_cost.pieces.end());
         }
 
-        fast_lower_envelope(out_cost, piece_out_cost);
+//        fast_lower_envelope(out_cost, piece_out_cost);
 
         ++pieces_it;
     }
-    return out_cost;
+    return naive_lower_envelope(min_pieces);
 }
 
 template<size_t dimension, Norm image_norm, Norm param_norm>
