@@ -24,6 +24,10 @@ struct Interval {
         os << interval.min << " <= x <= " << interval.max;
         return os;
     }
+
+    bool operator==(const Interval& rhs) const {
+        return min == rhs.min && max == rhs.max;
+    }
 };
 
 #endif //TRAJECTORY_CLUSTERING_INTERVAL_H

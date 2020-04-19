@@ -35,6 +35,15 @@ struct PolynomialPiece
     }
 
     //
+    // Equality operators
+    //
+
+    bool operator==(const PolynomialPiece& rhs) const {
+        return interval == rhs.interval &&
+            polynomial == rhs.polynomial;
+    }
+
+    //
     // Stream output operator
     //
 
@@ -105,6 +114,14 @@ struct PiecewisePolynomial
     friend PiecewisePolynomial<D> operator+(PiecewisePolynomial<D> f, double c) {
         f += c;
         return f;
+    }
+
+    //
+    // Equality operators
+    //
+
+    bool operator==(const PiecewisePolynomial& rhs) const {
+        return pieces == rhs.pieces;
     }
 
     //
