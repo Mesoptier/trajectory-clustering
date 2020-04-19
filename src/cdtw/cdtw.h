@@ -376,36 +376,36 @@ CDTW<dimension, image_norm, param_norm>::CDTW(const Curve& curve1, const Curve& 
     //
     // Visualization
     //
-//
-//    std::ofstream file("data/out/exact-cdtw.txt");
-//
-//    file << "Show[";
-//    for (size_t i = 0; i < curve1.size(); ++i) {
-//        const double x = curve1.curve_length(i);
-//
-//        for (size_t j = 0; j < curve2.size(); ++j) {
-//            const double y = curve2.curve_length(j);
-//
-//            const auto& cell_bottom = in_functions[i][j].bottom;
-//            if (!cell_bottom.empty()) {
-//                file << "ParametricPlot3D[";
-//                file << "{(x+" << x << "), (" << y << "), " << cell_bottom << "}";
-//                file << ", {x," << cell_bottom.interval().min << "," << cell_bottom.interval().max << "}";
-//                file << "],";
-//            }
-//
-//            const auto& cell_left = in_functions[i][j].left;
-//            if (!cell_left.empty()) {
-//                file << "ParametricPlot3D[";
-//                file << "{(" << x << "), (x+" << y << "), " << cell_left << "}";
-//                file << ",{x," << cell_left.interval().min << "," << cell_left.interval().max << "}";
-//                file << "],";
-//            }
-//        }
-//    }
-//    file << "BoxRatios -> {Automatic, Automatic, 10}]" << std::endl;
-//
-//    file.close();
+
+    std::ofstream file("data/out/exact-cdtw.txt");
+
+    file << "Show[";
+    for (size_t i = 0; i < curve1.size(); ++i) {
+        const double x = curve1.curve_length(i);
+
+        for (size_t j = 0; j < curve2.size(); ++j) {
+            const double y = curve2.curve_length(j);
+
+            const auto& cell_bottom = in_functions[i][j].bottom;
+            if (!cell_bottom.empty()) {
+                file << "ParametricPlot3D[";
+                file << "{(x+" << x << "), (" << y << "), " << cell_bottom << "}";
+                file << ", {x," << cell_bottom.interval().min << "," << cell_bottom.interval().max << "}";
+                file << "],";
+            }
+
+            const auto& cell_left = in_functions[i][j].left;
+            if (!cell_left.empty()) {
+                file << "ParametricPlot3D[";
+                file << "{(" << x << "), (x+" << y << "), " << cell_left << "}";
+                file << ",{x," << cell_left.interval().min << "," << cell_left.interval().max << "}";
+                file << "],";
+            }
+        }
+    }
+    file << "BoxRatios -> {Automatic, Automatic, 10}]" << std::endl;
+
+    file.close();
 }
 
 template<size_t dimension, Norm image_norm, Norm param_norm>
