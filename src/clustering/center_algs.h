@@ -14,13 +14,17 @@ enum class CenterAlg {
 	kCenter,
 	fCenter,
 	fMean,
-	dtwMean
+	dtwMean,
+	avFCenter,
+	newCenterUpdate
 };
 
 enum class CenterCurveUpdateMethod {
 	frechetCentering,
 	frechetMean,
-	dtwMean
+	dtwMean,
+	avFCenter,
+	newCenterUpdate
 };
 
 std::string toString(CenterAlg center_alg);
@@ -40,5 +44,5 @@ bool calcKMeansCenters(Curves const& curves, Clustering& clustering, int l, dist
 bool calcKCenterCenters(Curves const& curves, Clustering& clustering, int l, distance_t(*dist_func)(Curve, Curve));
 bool calcFSACenters(
 	Curves const& curves, Clustering& clustering, int l, distance_t(*dist_func)(Curve, Curve), C2CDist cluster_dist = C2CDist::Max, CenterCurveUpdateMethod method=CenterCurveUpdateMethod::frechetMean);
-
+bool newCenterUpdate(Curves const& curves, Clustering& clustering, distance_t(*dist_func)(Curve, Curve), C2CDist c2c_dist);
 Points matching_of_vertices(Curve curve_1, Curve curve_2);

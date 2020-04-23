@@ -8,15 +8,23 @@
 #include "io.h"
 
 Curves read_data() {
-    Curves curves = io::read_pigeon_curves("data/Data_for_Mann_et_al_RSBL 2/Bladon & Church route recapping/bladon heath");
-    Curves simplified_curves = Curves();
-    for (auto curve: curves) {
-        simplified_curves.push_back(curve.naive_l_simplification(50));
-    }
-    return simplified_curves;
+    // Curves curves = io::read_pigeon_curves("data/Data_for_Mann_et_al_RSBL 2/Bladon & Church route recapping/bladon heath");
+    // Curves simplified_curves = Curves();
+    // for (auto curve: curves) {
+    //     simplified_curves.push_back(curve.naive_l_simplification(50));
+    // }
+    // return simplified_curves;
 
-    // Curves curves = io::read_curves("data/characters/data");
-    // return Curves(curves.begin(), curves.begin() + 30);
+    Curves curves = io::read_curves("data/characters/data");
+    return Curves(curves.begin(), curves.begin() + 400);
+}
+
+void center_update_experiments() {
+    Curves curves = read_data();
+    std::cout << "loaded curves...\n";
+
+    Clustering gonzalez_clustering = computeCenterClustering(curves, 2, 10, ClusterAlg::Gonzalez, CenterAlg::newCenterUpdate, average_frechet, "", 1);
+    std::cout << kMedianCost(curves, gonzalez_clustering, average_frechet);
 }
 
 

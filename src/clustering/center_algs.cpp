@@ -11,6 +11,68 @@
 namespace
 {
 
+Points get_uniformly_spaced_points(Points param_space_path, Curve curve_1, Curve curve_2) {
+
+	// std::cout << "uniform points...\n";
+	// std::cout << param_space_path.size() << "\n";
+	// std::cout << "curve_1 size... " << curve_1.get_points().size() << "\n"; 
+	//sequence of points on curve_2
+	Points points = Points();
+
+	distance_t curve_1_length = curve_1.curve_length();
+	distance_t interval_size = curve_1_length / (curve_1.get_points().size() - 1);
+
+	std::vector<distance_t> x_coords = std::vector<distance_t>();
+	for (auto p: param_space_path) {
+		x_coords.push_back(p.x);
+	}
+	points.push_back(curve_2[0]);
+	for (int i = 1; i < curve_1.get_points().size(); ++i) {
+		auto it =  std::lower_bound(x_coords.begin(), x_coords.end(), interval_size * i);
+		auto prev_index = static_cast<std::size_t>(std::distance(x_coords.begin(), it)) - 1;
+		auto next_index = prev_index+1;
+		
+		if (prev_index >= param_space_path.size()) {
+			std::cout << "yes\n";
+			prev_index = param_space_path.size() - 2;
+			next_index = prev_index + 1;
+		}
+
+		Point p = param_space_path[prev_index];
+		Point q = param_space_path[next_index];
+
+		// std::cout << "p: " << p << "\n";
+		// std::cout << "q: " << q << "\n";
+		// std::cout << interval_size * (i+1) << "\n";
+		// std::cout << "prev: " << prev_index << "\n";
+		// std::cout << "next: " << next_index << "\n";
+		Line line = Line::fromTwoPoints(p, q);
+		distance_t distance_along_c2;
+		if (line.isVertical()) {
+			distance_along_c2 = p.y;
+		} else {
+			distance_along_c2 = line.getY(interval_size * i);
+			assert(distance_along_c2 > 0);
+		}
+
+		if (distance_along_c2 > curve_2.curve_length()) {
+			distance_along_c2 = curve_2.curve_length();
+		}
+		CPoint cpoint = curve_2.get_cpoint_after(distance_along_c2);
+		Point new_point = curve_2.interpolate_at(cpoint);
+
+		// if (points.size() > 0)
+		// 	assert(!approx_equal(points.back(), new_point));
+		
+		points.push_back(
+			new_point
+		);
+	}
+
+	return points;
+
+}
+
 Points matching_to_points(Points param_space_path, Curve curve_1, Curve curve_2) {
 	std::vector<distance_t> curve_2_lengths = std::vector<distance_t>();
 	curve_2_lengths.push_back(0);
@@ -147,6 +209,10 @@ bool computerCenters(Curves const& curves, Clustering& clustering, int l, Center
 		return calcFSACenters(curves, clustering, l, dist_func, C2CDist::Median, CenterCurveUpdateMethod::frechetMean);
 	case CenterAlg::dtwMean:
 		return calcFSACenters(curves, clustering, l, dist_func, C2CDist::Median, CenterCurveUpdateMethod::dtwMean);
+	case CenterAlg::avFCenter:
+		return calcFSACenters(curves, clustering, l, dist_func, C2CDist::Median, CenterCurveUpdateMethod::avFCenter);
+	case CenterAlg::newCenterUpdate:
+		return newCenterUpdate(curves, clustering, dist_func, C2CDist::Median);
 	}
 
 	ERROR("No matching center_alg enum passed.");
@@ -213,6 +279,17 @@ bool calcFSACenters(Curves const& curves, Clustering& clustering, int /* l */, d
 				case CenterCurveUpdateMethod::frechetCentering:
 					matchings.push_back(calcMatching(cluster.center_curve, curve));
 					break;
+				case CenterCurveUpdateMethod::avFCenter:
+					matchings.push_back(
+						matching_to_points(
+							IntegralFrechet(cluster.center_curve, curve, ParamMetric::LInfinity_NoShortcuts, 1, nullptr)
+							.compute_matching()
+							.matching,
+							cluster.center_curve,
+							curve
+						)
+					);
+					break;
 				case CenterCurveUpdateMethod::frechetMean:
 					matchings.push_back(
 						matching_to_points(
@@ -250,6 +327,9 @@ bool calcFSACenters(Curves const& curves, Clustering& clustering, int /* l */, d
 				case CenterCurveUpdateMethod::frechetCentering:
 					new_point = calcMinEnclosingCircle(matching_points).center;
 					break;
+				case CenterCurveUpdateMethod::avFCenter:
+					new_point = calcMinEnclosingCircle(matching_points).center;
+					break;
 				case CenterCurveUpdateMethod::frechetMean:
 					new_point = mean_of_points(matching_points);
 					break;
@@ -280,6 +360,72 @@ bool calcFSACenters(Curves const& curves, Clustering& clustering, int /* l */, d
 		std::cout << "no new center... :( \n";
 	}
 	return found_new_center;
+}
+
+bool newCenterUpdate(Curves const& curves, Clustering& clustering, distance_t(*dist_func)(Curve, Curve), C2CDist c2c_dist) {
+	bool found_new_center = false;
+
+	for (auto& cluster: clustering) {
+		if (cluster.cost == std::numeric_limits<distance_t>::max()) {
+			cluster.cost = calcC2CDist(curves, cluster.center_curve, cluster.curve_ids, c2c_dist, dist_func);
+		}
+	}
+
+		for (auto& cluster: clustering) {
+		std::vector<Points> matchings;
+		auto const& center_curve = cluster.center_curve;
+		Curve new_center_curve;
+
+		for (auto curve_id: cluster.curve_ids) {
+			auto const& curve = curves[curve_id];
+
+			matchings.push_back(
+				get_uniformly_spaced_points(
+					IntegralFrechet(cluster.center_curve, curve, ParamMetric::LInfinity_NoShortcuts, 1, nullptr)
+					.compute_matching()
+					.matching,
+					cluster.center_curve,
+					curve
+				)
+			);
+
+		}
+
+		for (PointID point_id = 0; point_id < center_curve.size(); ++point_id) {
+			Points matching_points;
+			for (auto const& matching: matchings) {
+				matching_points.push_back(matching[point_id]);
+			}
+
+			Point new_point;
+			new_point = mean_of_points(matching_points);
+
+
+			if (new_center_curve.get_points().empty() || !approx_equal(new_point, new_center_curve.get_points().back())) {
+				new_center_curve.push_back(new_point);
+			}
+		}
+
+		if (center_curve != new_center_curve) {
+			auto new_dist = calcC2CDist(curves, new_center_curve, cluster.curve_ids, c2c_dist, dist_func);
+			if (new_dist < cluster.cost) {
+				cluster.center_curve = std::move(new_center_curve);
+				cluster.cost = new_dist;
+				found_new_center = true;
+			}
+		} 
+	}
+
+		
+	if (found_new_center) {
+		std::cout << "found new center\n";
+	}
+	else {
+		std::cout << "no new center... :( \n";
+	}
+	return found_new_center;
+
+
 }
 
 Points matching_of_vertices(Curve curve_1, Curve curve_2) {
