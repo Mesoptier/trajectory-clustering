@@ -269,6 +269,12 @@ class CDTW
         PiecewisePolynomial<D> left;
     };
 
+    const Curve& curve1;
+    const Curve& curve2;
+
+    size_t n;
+    size_t m;
+
     // Dynamic program
     std::vector<std::vector<Entry>> in_functions;
 
@@ -282,9 +288,54 @@ class CDTW
         const std::vector<ConstrainedBivariatePolynomial<D>>& cell_costs,
         Iterator pieces_it,
         Iterator pieces_end
-    ) const;
-    PiecewisePolynomial<D> bottom_to_right(const PiecewisePolynomial<D>& in, const Cell& cell) const;
-    PiecewisePolynomial<D> bottom_to_top(const PiecewisePolynomial<D>& in, const Cell& cell) const;
+    ) const
+    {
+        std::vector<PolynomialPiece<D>> min_pieces;
+
+        PiecewisePolynomial<D> out_cost;
+        while (pieces_it != pieces_end) {
+            // piece_in_cost: cost of optimal path from origin to point on in-boundary
+            const PolynomialPiece<D>& piece_in_cost = *pieces_it;
+
+            // piece_out_cost: cost of optimal path from origin to point on out-boundary
+            PiecewisePolynomial<D> piece_out_cost;
+
+            // cell_cost: cost of optimal path from point on in-boundary to point on out-boundary
+            for (const auto& cell_cost : cell_costs) {
+                // total_cost: cost of optimal path from origin through point on in-boundary to point on out-boundary
+                const auto total_cost = cell_cost.add_x(piece_in_cost);
+
+                const PiecewisePolynomial<D> min_total_cost = find_minimum(
+                    total_cost.f,
+                    total_cost.y_interval,
+                    total_cost.left_constraints,
+                    total_cost.right_constraints
+                );
+
+//            std::cout << "Piecewise[{" << cell_cost << "}, None]," << std::endl;
+//            std::cout << "Piecewise[{" << total_cost << "}, None]," << std::endl;
+
+//            std::cout << piece_out_cost << ' ' << min_total_cost << std::endl;
+
+//            fast_lower_envelope(piece_out_cost, min_total_cost);
+
+                min_pieces.insert(min_pieces.end(), min_total_cost.pieces.begin(), min_total_cost.pieces.end());
+            }
+
+//        fast_lower_envelope(out_cost, piece_out_cost);
+
+            ++pieces_it;
+        }
+        return naive_lower_envelope(min_pieces);
+    }
+    PiecewisePolynomial<D> bottom_to_right(const PiecewisePolynomial<D>& in, const Cell& cell) const {
+        // Walk through the in-pieces in reverse order. Because the first value in the out-function "originates from" the
+        // last value in the in-function.
+        return propagate(bottom_to_right_costs(cell), in.pieces.rbegin(), in.pieces.crend());
+    }
+    PiecewisePolynomial<D> bottom_to_top(const PiecewisePolynomial<D>& in, const Cell& cell) const {
+        return propagate(bottom_to_top_costs(cell), in.pieces.begin(), in.pieces.cend());
+    }
 
     // Internal methods specific to each case
     PiecewisePolynomial<D> base_bottom(const Cell& cell) const;
@@ -293,20 +344,83 @@ class CDTW
 
 public:
     CDTW(const Curve& curve1, const Curve& curve2);
+
+    double cost() const {
+        const PiecewisePolynomial<D> func = in_functions[in_functions.size() - 2].back().bottom;
+        return func.pieces.back().polynomial(func.interval().max);
+        return 0;
+    }
+
+    void print_complexity() const {
+        size_t max_complexity = 0;
+        size_t total_complexity = 0;
+        size_t num_functions = 0;
+
+        for (size_t i = 0; i < n; ++i) {
+            for (size_t j = 0; j < m; ++j) {
+                size_t complexity_left = in_functions[i][j].left.pieces.size();
+                size_t complexity_bottom = in_functions[i][j].bottom.pieces.size();
+
+                max_complexity = std::max({ max_complexity, complexity_left, complexity_bottom });
+                total_complexity += complexity_left + complexity_bottom;
+                num_functions += (complexity_left != 0) + (complexity_bottom != 0);
+            }
+        }
+
+        std::cout << "Max complexity: " << max_complexity << "\n";
+        std::cout << "Total complexity: " << total_complexity << "\n";
+        std::cout << "Average complexity: " << ((double) total_complexity / num_functions) << "\n";
+    }
+
+    void output_visualization_data() const {
+        //
+        // Visualization
+        //
+
+        std::ofstream file("data/out/exact-cdtw.txt");
+
+        file << "Show[";
+        for (size_t i = 0; i < n; ++i) {
+            const double x = curve1.curve_length(i);
+
+            for (size_t j = 0; j < m; ++j) {
+                const double y = curve2.curve_length(j);
+
+                const auto& cell_bottom = in_functions[i][j].bottom;
+                if (!cell_bottom.empty()) {
+                    file << "ParametricPlot3D[";
+                    file << "{(x+" << x << "), (" << y << "), " << cell_bottom << "}";
+                    file << ", {x," << cell_bottom.interval().min << "," << cell_bottom.interval().max << "}";
+                    file << "],";
+                }
+
+                const auto& cell_left = in_functions[i][j].left;
+                if (!cell_left.empty()) {
+                    file << "ParametricPlot3D[";
+                    file << "{(" << x << "), (x+" << y << "), " << cell_left << "}";
+                    file << ",{x," << cell_left.interval().min << "," << cell_left.interval().max << "}";
+                    file << "],";
+                }
+            }
+        }
+        file << "BoxRatios -> {Automatic, Automatic, 10}]" << std::endl;
+
+        file.close();
+    }
 };
 
 template<size_t dimension, Norm image_norm, Norm param_norm>
 CDTW<dimension, image_norm, param_norm>::CDTW(const Curve& curve1, const Curve& curve2) :
-    in_functions(curve1.size(), std::vector<Entry>(curve2.size()))
+    curve1(curve1), curve2(curve2),
+    n(curve1.size()), m(curve2.size()),
+    in_functions(n, std::vector<Entry>(m))
 {
-    auto start_time = std::chrono::high_resolution_clock::now();
-
     // TODO: Simplify cell structs?
 
     // Initialize bottom base in_functions
     {
         double c = 0;
-        for (size_t i = 0; i + 1 < curve1.size(); ++i) {
+        for (size_t i = 0; i + 1 < n; ++i) {
             const Cell cell(curve1[i], curve2[0], curve1[i + 1], curve2[1]);
             const PiecewisePolynomial<D> f = base_bottom(cell) + c;
             in_functions[i][0].bottom = f;
@@ -317,7 +431,7 @@ CDTW<dimension, image_norm, param_norm>::CDTW(const Curve& curve1, const Curve& 
     // Initialize left base in_functions
     {
         double c = 0;
-        for (size_t i = 0; i + 1 < curve2.size(); ++i) {
+        for (size_t i = 0; i + 1 < m; ++i) {
             // Note: this cell is transposed
             const Cell cell(curve2[i], curve1[0], curve2[i + 1], curve1[1]);
             const PiecewisePolynomial<D> f = base_bottom(cell) + c;
@@ -327,8 +441,8 @@ CDTW<dimension, image_norm, param_norm>::CDTW(const Curve& curve1, const Curve& 
     }
 
     // Dynamic program
-    for (size_t i = 0; i + 1 < curve1.size(); ++i) {
-        for (size_t j = 0; j + 1 < curve2.size(); ++j) {
+    for (size_t i = 0; i + 1 < n; ++i) {
+        for (size_t j = 0; j + 1 < m; ++j) {
             // In-functions along bottom/left are given
             // Compute out-functions along top/right
             // Depending on current row/column:
@@ -357,123 +471,4 @@ CDTW<dimension, image_norm, param_norm>::CDTW(const Curve& curve1, const Curve& 
             in_functions[i][j + 1].bottom = top_out;
         }
     }
-
-    auto end_time = std::chrono::high_resolution_clock::now();
-    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time).count();
-    std::cout << "Time: " << duration << "ms\n";
-
-    size_t max_complexity = 0;
-    size_t total_complexity = 0;
-    size_t num_functions = 0;
-
-    for (size_t i = 0; i < curve1.size(); ++i) {
-        for (size_t j = 0; j < curve2.size(); ++j) {
-            size_t complexity_left = in_functions[i][j].left.pieces.size();
-            size_t complexity_bottom = in_functions[i][j].bottom.pieces.size();
-
-            max_complexity = std::max({ max_complexity, complexity_left, complexity_bottom });
-            total_complexity += complexity_left + complexity_bottom;
-            num_functions += (complexity_left != 0) + (complexity_bottom != 0);
-        }
-    }
-
-    std::cout << "Max complexity: " << max_complexity << "\n";
-    std::cout << "Total complexity: " << total_complexity << "\n";
-    std::cout << "Average complexity: " << ((double) total_complexity / num_functions) << "\n";
-
-    //
-    // Visualization
-    //
-
-    std::ofstream file("data/out/exact-cdtw.txt");
-
-    file << "Show[";
-    for (size_t i = 0; i < curve1.size(); ++i) {
-        const double x = curve1.curve_length(i);
-
-        for (size_t j = 0; j < curve2.size(); ++j) {
-            const double y = curve2.curve_length(j);
-
-            const auto& cell_bottom = in_functions[i][j].bottom;
-            if (!cell_bottom.empty()) {
-                file << "ParametricPlot3D[";
-                file << "{(x+" << x << "), (" << y << "), " << cell_bottom << "}";
-                file << ", {x," << cell_bottom.interval().min << "," << cell_bottom.interval().max << "}";
-                file << "],";
-            }
-
-            const auto& cell_left = in_functions[i][j].left;
-            if (!cell_left.empty()) {
-                file << "ParametricPlot3D[";
-                file << "{(" << x << "), (x+" << y << "), " << cell_left << "}";
-                file << ",{x," << cell_left.interval().min << "," << cell_left.interval().max << "}";
-                file << "],";
-            }
-        }
-    }
-    file << "BoxRatios -> {Automatic, Automatic, 10}]" << std::endl;
-
-    file.close();
-}
-
-template<size_t dimension, Norm image_norm, Norm param_norm>
-template<class Iterator>
-PiecewisePolynomial<CDTW<dimension, image_norm, param_norm>::D>
-CDTW<dimension, image_norm, param_norm>::propagate(
-    const std::vector<ConstrainedBivariatePolynomial<D>>& cell_costs,
-    Iterator pieces_it,
-    const Iterator pieces_end
-) const
-{
-    std::vector<PolynomialPiece<D>> min_pieces;
-
-    PiecewisePolynomial<D> out_cost;
-    while (pieces_it != pieces_end) {
-        // piece_in_cost: cost of optimal path from origin to point on in-boundary
-        const PolynomialPiece<D>& piece_in_cost = *pieces_it;
-
-        // piece_out_cost: cost of optimal path from origin to point on out-boundary
-        PiecewisePolynomial<D> piece_out_cost;
-
-        // cell_cost: cost of optimal path from point on in-boundary to point on out-boundary
-        for (const auto& cell_cost : cell_costs) {
-            // total_cost: cost of optimal path from origin through point on in-boundary to point on out-boundary
-            const auto total_cost = cell_cost.add_x(piece_in_cost);
-
-            const PiecewisePolynomial<D> min_total_cost = find_minimum(
-                total_cost.f,
-                total_cost.y_interval,
-                total_cost.left_constraints,
-                total_cost.right_constraints
-            );
-
-//            std::cout << "Piecewise[{" << cell_cost << "}, None]," << std::endl;
-//            std::cout << "Piecewise[{" << total_cost << "}, None]," << std::endl;
-
-//            std::cout << piece_out_cost << ' ' << min_total_cost << std::endl;
-
-//            fast_lower_envelope(piece_out_cost, min_total_cost);
-
-            min_pieces.insert(min_pieces.end(), min_total_cost.pieces.begin(), min_total_cost.pieces.end());
-        }
-
-//        fast_lower_envelope(out_cost, piece_out_cost);
-
-        ++pieces_it;
-    }
-    return naive_lower_envelope(min_pieces);
-}
-
-template<size_t dimension, Norm image_norm, Norm param_norm>
-PiecewisePolynomial<CDTW<dimension, image_norm, param_norm>::D>
-CDTW<dimension, image_norm, param_norm>::bottom_to_right(const PiecewisePolynomial<D>& in, const Cell& cell) const {
-    // Walk through the in-pieces in reverse order. Because the first value in the out-function "originates from" the
-    // last value in the in-function.
-    return propagate(bottom_to_right_costs(cell), in.pieces.rbegin(), in.pieces.crend());
-}
-
-template<size_t dimension, Norm image_norm, Norm param_norm>
-PiecewisePolynomial<CDTW<dimension, image_norm, param_norm>::D>
-CDTW<dimension, image_norm, param_norm>::bottom_to_top(const PiecewisePolynomial<D>& in, const Cell& cell) const {
-    return propagate(bottom_to_top_costs(cell), in.pieces.begin(), in.pieces.cend());
 }
