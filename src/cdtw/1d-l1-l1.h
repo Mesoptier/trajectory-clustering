@@ -1,5 +1,5 @@
-#ifndef TRAJECTORY_CLUSTERING_1D_L1_H
-#define TRAJECTORY_CLUSTERING_1D_L1_H
+#ifndef TRAJECTORY_CLUSTERING_1D_L1_L1_H
+#define TRAJECTORY_CLUSTERING_1D_L1_L1_H
 
 #include "cdtw.h"
 #include "BivariatePolynomial.h"
@@ -518,4 +518,4 @@ CDTW<1, Norm::L1, Norm::L1>::bottom_to_top_costs(const Cell& cell) const {
     return costs;
 }
 
-#endif //TRAJECTORY_CLUSTERING_1D_L1_H
+#endif //TRAJECTORY_CLUSTERING_1D_L1_L1_H

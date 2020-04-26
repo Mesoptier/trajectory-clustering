@@ -12,7 +12,7 @@
 #include "src/simplification/imaiiri.h"
 #include "src/DTW/dtw.h"
 #include "src/cdtw/cdtw.h"
-#include "src/cdtw/1d-l1.h"
+#include "src/cdtw/1d-l1-l1.h"
 
 namespace {
 //
