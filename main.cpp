@@ -218,73 +218,46 @@ void experiment_visualize_band() {
     std::cout << "matching cost: " << result.cost << '\n';
     std::cout << "matching (alt) cost: " << result_alt.cost << '\n';
 }
+
+void experiment_compare_heuristic_vs_extact_cdtw() {
+    const auto curve1 = io::read_curve("data/characters/data/a0001.txt").to_1d();
+    const auto curve2 = io::read_curve("data/characters/data/a0002.txt").to_1d();
+
+
+    // Heuristic
+    {
+        auto start_time = std::chrono::high_resolution_clock::now();
+
+        IntegralFrechet heuristic_alg(curve1, curve2, ParamMetric::L1, 0.1);
+        const auto heuristic_res = heuristic_alg.compute_matching();
+
+        auto end_time = std::chrono::high_resolution_clock::now();
+        auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time).count();
+        std::cout << "heuristic cost: " << heuristic_res.cost << '\n';
+        std::cout << "heuristic time: " << duration << "ms\n";
+    }
+
+    // Exact
+    {
+        auto start_time = std::chrono::high_resolution_clock::now();
+
+        CDTW<1, Norm::L1, Norm::L1> exact_alg(curve1, curve2);
+
+        auto end_time = std::chrono::high_resolution_clock::now();
+        auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time).count();
+        std::cout << "exact cost: " << exact_alg.cost() << '\n';
+        std::cout << "exact time: " << duration << "ms\n";
+    }
+
+}
 }
 
 int main() {
-//    const auto curves = read_curves("data/characters/data");
-//    // const auto dm = compute_distance_matrix(curves);
-//    // export_matrix(dm, "data/out/distance_matrix.mtx");
-//
-//    // const auto distance_matrix = read_matrix("data/out/distance_matrix.mtx");
-//    // compute_clusters(distance_matrix, 19); // "characters" has 19 classes
-//{
-//    auto start_time = std::chrono::high_resolution_clock::now();
-//    auto ret = simplification::imai_iri::simplify(curves[0], 5);
-//    auto end_time = std::chrono::high_resolution_clock::now();
-//    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time).count();
-//    std::cout << "Time: " << duration << "ms\n";
-//    std::cout << "Cost: " << ret.first << "\n";
-//    std::cout << "Curve:";
-//    for (const auto& p: ret.second.get_points())
-//        std::cout << " " << p;
-//    std::cout << "\n";
-//    std::cout << "Length: " << ret.second.size() << std::endl;
-//}
-//{
-//    auto start_time = std::chrono::high_resolution_clock::now();
-//    DTW distance(curves[0], curves[1]);
-//    auto end_time = std::chrono::high_resolution_clock::now();
-//    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time).count();
-//    std::cout << "Time: " << duration << "ms\n";
-//    std::cout << "Cost: " << distance.cost() << "\n";
-//    std::cout << "Matching:";
-//    for (const auto& p: distance.matching())
-//        std::cout << " (" << p.first << ", " << p.second << ")";
-//    std::cout << std::endl;
-//}
+    // TODO: Compare Heuristic CDTW vs Exact CDTW (timing and result)
+    // TODO: Upgrade to 2D + L2^2
+    // TODO: How to Dijkstra in Exact CDTW?
 
-    Curve curve1("curve1", {{-5, 0}, {1, 0}, {6, 0}});
-    Curve curve2("curve2", {{0, 0}, {4, 0}, {6, 0}, {5, 0}});
-    CDTW<1, Norm::L1, Norm::L1> cdtw(curve1, curve2);
-
-    io::export_points("data/out/curve1.csv", curve1.get_points());
-    io::export_points("data/out/curve2.csv", curve2.get_points());
-
-//
-//    // Bottom-left corner of cell
-//    double sx = -5;
-//    double sy = 0;
-//    // Top-right corner of cell
-//    double tx = 5;
-//    double ty = 10;
-//
-//    std::cout << "RIGHT = {\n";
-//    std::cout << "\t" << bottom_to_right_1(sx, sy, tx, ty) << ",\n";
-//    std::cout << "\t" << bottom_to_right_2(sx, sy, tx, ty) << ",\n";
-//    std::cout << "\t" << bottom_to_right_3(sx, sy, tx, ty) << ",\n";
-//    std::cout << "\t" << bottom_to_right_4(sx, sy, tx, ty) << ",\n";
-//    std::cout << "\t" << bottom_to_right_5(sx, sy, tx, ty) << ",\n";
-//    std::cout << "\t" << bottom_to_right_6(sx, sy, tx, ty) << ",\n";
-//    std::cout << "} -> " << bottom_to_right(sx, sy, tx, ty) << "\n";
-//
-//    std::cout << "TOP = {\n";
-//    std::cout << "\t" << bottom_to_top_1(sx, sy, tx, ty) << ",\n";
-//    std::cout << "\t" << bottom_to_top_2(sx, sy, tx, ty) << ",\n";
-//    std::cout << "\t" << bottom_to_top_3(sx, sy, tx, ty) << ",\n";
-//    std::cout << "\t" << bottom_to_top_4(sx, sy, tx, ty) << ",\n";
-//    std::cout << "\t" << bottom_to_top_5(sx, sy, tx, ty) << ",\n";
-//    std::cout << "\t" << bottom_to_top_6(sx, sy, tx, ty) << ",\n";
-//    std::cout << "} -> " << bottom_to_top(sx, sy, tx, ty) << "\n";
+    experiment_compare_heuristic_vs_extact_cdtw();
 
     return 0;
 }
