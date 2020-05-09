@@ -31,4 +31,7 @@ struct Interval {
     }
 };
 
+template<>
+bool approx_equal(const Interval& a, const Interval& b, double tol);
+
 #endif //TRAJECTORY_CLUSTERING_INTERVAL_H

@@ -125,6 +125,11 @@ struct Polynomial
 };
 
 template<size_t D>
+bool approx_equal(const Polynomial<D>& a, const Polynomial<D>& b, double tol = ABS_TOL) {
+    return approx_equal(a.coefficients, b.coefficients, tol);
+}
+
+template<size_t D>
 std::ostream& operator<<(std::ostream& os, const Polynomial<D>& p) {
     for (int d = D; d >= 0; --d) {
         if (d < D) os << " + ";

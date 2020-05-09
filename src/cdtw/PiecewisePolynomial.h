@@ -54,6 +54,11 @@ struct PolynomialPiece
 };
 
 template<size_t D>
+bool approx_equal(const PolynomialPiece<D>& a, const PolynomialPiece<D>& b, double tol = ABS_TOL) {
+    return approx_equal(a.interval, b.interval, tol) && approx_equal(a.polynomial, b.polynomial, tol);
+}
+
+template<size_t D>
 std::vector<double> find_intersections(const PolynomialPiece<D>& f, const PolynomialPiece<D>& g) {
     std::vector<double> result;
     const std::vector<double> intersections = find_intersections(f.polynomial, g.polynomial);
@@ -138,5 +143,10 @@ struct PiecewisePolynomial
         return os;
     }
 };
+
+template<size_t D>
+bool approx_equal(const PiecewisePolynomial<D>& a, const PiecewisePolynomial<D>& b, double tol = ABS_TOL) {
+    return approx_equal(a.pieces, b.pieces, tol);
+}
 
 #endif //TRAJECTORY_CLUSTERING_PIECEWISEPOLYNOMIAL_H

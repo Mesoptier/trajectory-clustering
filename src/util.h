@@ -20,6 +20,32 @@ bool approx_equal(const T& a, const T& b, double tol = ABS_TOL) {
 }
 
 template<class T>
+bool approx_equal(const std::vector<T>& a, const std::vector<T>& b, double tol = ABS_TOL) {
+    if (a.size() != b.size()) {
+        return false;
+    }
+
+    for (size_t i = 0; i < a.size(); ++i) {
+        if (!approx_equal(a[i], b[i], tol)) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+template<class T, size_t N>
+bool approx_equal(const std::array<T, N>& a, const std::array<T, N>& b, double tol = ABS_TOL) {
+    for (size_t i = 0; i < N; ++i) {
+        if (!approx_equal(a[i], b[i], tol)) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+template<class T>
 bool approx_zero(T a, double tol = ABS_TOL) {
     return approx_equal(std::abs(a), 0.0, tol);
 }

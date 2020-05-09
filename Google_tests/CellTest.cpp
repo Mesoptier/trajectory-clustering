@@ -3,7 +3,8 @@
 #include "../src/IntegralFrechet/metrics/include.h"
 
 void AssertPointsEqual(const Point& a, const Point& b) {
-    ASSERT_PRED3(approx_equal<Point>, a, b, ABS_TOL);
+    ASSERT_TRUE(approx_equal(a, b));
+//    ASSERT_PRED3(approx_equal<Point>, a, b, ABS_TOL);
 }
 
 void AssertPathsEqual(const Points& a, const Points& b) {

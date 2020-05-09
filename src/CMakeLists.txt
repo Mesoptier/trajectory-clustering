@@ -14,6 +14,7 @@ set(SOURCE_FILES
     simplification/imaiiri.cpp
     DTW/dtw.cpp
     cdtw/Polynomial.cpp
+    cdtw/Interval.cpp
 )
 
 add_library(TrajectoryClustering_lib STATIC ${SOURCE_FILES} ${HEADER_FILES})
