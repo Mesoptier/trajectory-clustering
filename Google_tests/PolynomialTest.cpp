@@ -38,3 +38,33 @@ TEST(PolynomialTest, FindRootsCubic) {
         ASSERT_TRUE(IsApproxEqual(actual, expected));
     }
 }
+
+TEST(PolynomialTest, ChangesSignAtSquare) {
+    {
+        Polynomial<2> f({0, 0, 1});
+        ASSERT_FALSE(f.changes_sign_at(0));
+    }
+    {
+        Polynomial<2> f({-1, 0, 1});
+        ASSERT_TRUE(f.changes_sign_at(-1));
+        ASSERT_TRUE(f.changes_sign_at(1));
+    }
+}
+
+TEST(PolynomialTest, ChangesSignAtCubic) {
+    {
+        Polynomial<3> f({0, 0, 0, 1});
+        ASSERT_TRUE(f.changes_sign_at(0));
+    }
+    {
+        Polynomial<3> f({0, 0, 1, 1});
+        ASSERT_TRUE(f.changes_sign_at(-1));
+        ASSERT_FALSE(f.changes_sign_at(0));
+    }
+    {
+        Polynomial<3> f({0, -1, 0, 1});
+        ASSERT_TRUE(f.changes_sign_at(-1));
+        ASSERT_TRUE(f.changes_sign_at(0));
+        ASSERT_TRUE(f.changes_sign_at(1));
+    }
+}

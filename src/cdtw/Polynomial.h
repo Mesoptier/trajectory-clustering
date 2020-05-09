@@ -41,11 +41,28 @@ struct Polynomial
         return result;
     }
 
+    /**
+     * Test whether the function changes sign at x.
+     * @param x
+     * @return
+     */
     bool changes_sign_at(double x) const {
-        if (!approx_zero((*this)(x))) {
-            return false;
+        // For a function to change sign at x:
+        //  1. It must equal zero at x
+        //  2. Its derivative must nog change sign at x
+
+        Polynomial<D> f = *this;
+        bool state = false;
+
+        for (size_t d = D; d > 0; --d) {
+            if (!approx_zero(f(x))) {
+                return state;
+            }
+            state = !state;
+            f = f.derivative();
         }
-        return !this->derivative().changes_sign_at(x);
+
+        return state;
     }
 
     Polynomial<D> translate_xy(double cx, double cy) const;
