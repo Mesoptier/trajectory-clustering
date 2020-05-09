@@ -5,6 +5,7 @@
 #include <vector>
 #include <cmath>
 #include <iostream>
+#include <iomanip>
 #include "../util.h"
 
 template<size_t D>
@@ -131,6 +132,7 @@ bool approx_equal(const Polynomial<D>& a, const Polynomial<D>& b, double tol = A
 
 template<size_t D>
 std::ostream& operator<<(std::ostream& os, const Polynomial<D>& p) {
+    os << std::fixed;
     for (int d = D; d >= 0; --d) {
         if (d < D) os << " + ";
         os << p.coefficients[d];
