@@ -83,7 +83,7 @@ std::vector<double> find_roots<3>(const Polynomial<3>& f) {
     std::vector<double> roots(3);
 
     for (size_t k = 0; k < 3; ++k) {
-        roots[k] = term1 * std::cos(term2 - (2 * M_PI * k) / 3);
+        roots[k] = term1 * std::cos(term2 - (2 * M_PIl * k) / 3) - shift;
     }
 
     return roots;
