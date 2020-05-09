@@ -24,7 +24,13 @@ struct Polynomial
     double operator()(double x) const {
         double y = 0;
         for (size_t d = 0; d <= D; ++d) {
-            y += coefficients[d] * std::pow(x, d);
+            if (d == 0) {
+                y += coefficients[d];
+            } else if (d == 1) {
+                y += coefficients[d] * x;
+            } else {
+                y += coefficients[d] * std::pow(x, d);
+            }
         }
         return y;
     }
