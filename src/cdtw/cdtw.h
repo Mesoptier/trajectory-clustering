@@ -257,6 +257,7 @@ void fast_lower_envelope(PiecewisePolynomial<D>& left, const PiecewisePolynomial
 template<size_t dimension, Norm image_norm, Norm param_norm>
 class CDTW
 {
+public:
     static const size_t D =
         (dimension == 1 && image_norm == Norm::L1 && param_norm == Norm::L1) ? 2 :
         (dimension == 1 && image_norm == Norm::L2Squared && param_norm == Norm::L1) ? 3 :
@@ -269,6 +270,7 @@ class CDTW
         PiecewisePolynomial<D> left;
     };
 
+private:
     const Curve& curve1;
     const Curve& curve2;
 
@@ -406,6 +408,10 @@ public:
         file << "BoxRatios -> {Automatic, Automatic, 10}]" << std::endl;
 
         file.close();
+    }
+
+    const std::vector<std::vector<Entry>>& get_functions() const {
+        return in_functions;
     }
 };
 
