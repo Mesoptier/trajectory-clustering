@@ -66,7 +66,12 @@ CDTW<1, Norm::L2Squared, Norm::L1>::bottom_to_right_costs(const Cell& cell) cons
         // 1.
         costs.push_back(ConstrainedBivariatePolynomial<3>{
             BivariatePolynomial<3>({{
-                {{(sx - tx) * (sx*sx + 3*sy*sy + 3*sy*tx + tx*tx + 3*sy*sx + tx*sx) / -3, (sy+tx)*(sy+tx), sy + tx, 1./3}},
+                {{
+                    (sx - tx) * (sx*sx + 3*sy*sy + 3*sy*tx + tx*tx + sx * (3*sy + tx)) / -3,
+                    (sy+tx)*(sy+tx),
+                    sy + tx,
+                    1./3,
+                }},
                 {{-(sx+sy) * (sx+sy), 0, 0, 0}},
                 {{-sx - sy, 0, 0, 0}},
                 {{-1./3, 0, 0, 0}},
@@ -95,7 +100,7 @@ CDTW<1, Norm::L2Squared, Norm::L1>::bottom_to_right_costs(const Cell& cell) cons
     costs.push_back(ConstrainedBivariatePolynomial<3>{
         BivariatePolynomial<3>({{
             {{
-                (sx - tx) * (sx*sx + 3*sy*sy - 3*sy*tx + tx*tx - 3*sy*sx + tx*sx) / -3,
+                (sx - tx) * (sx*sx + 3*sy*sy - 3*sy*tx + tx*tx + sx*(-3*sy + tx)) / -3,
                 2*sx*sx - 4*sx*sy + sy*sy + 2*sy*tx - tx*tx,
                 -2*sx + sy + tx,
                 1./3,
@@ -105,7 +110,7 @@ CDTW<1, Norm::L2Squared, Norm::L1>::bottom_to_right_costs(const Cell& cell) cons
             {{-1./3, 0, 0, 0}},
         }}),
         // B in cell + B below valley
-        Interval{0, std::clamp(sx-sy, 0., ty-sy)},
+        Interval{0, std::clamp(tx-sy, 0., ty-sy)},
         {{
             Polynomial<1>({0, 0}), // A in cell
             Polynomial<1>({sy-sx, 0}), // A below valley
@@ -123,7 +128,7 @@ CDTW<1, Norm::L2Squared, Norm::L1>::bottom_to_right_costs(const Cell& cell) cons
     costs.push_back(ConstrainedBivariatePolynomial<3>{
         BivariatePolynomial<3>({{
             {{
-                (sx - 2*sy + tx) * (sx*sx + sy*sy - sy*tx + tx*tx - sx*sy - sx*tx) / 3,
+                (sx - 2*sy + tx) * (sx*sx + sy*sy - sy*tx + tx*tx - sx*(sy+tx)) / 3,
                 -(sy-tx) * (sy-tx),
                 -sy + tx,
                 -1./3,
@@ -133,7 +138,7 @@ CDTW<1, Norm::L2Squared, Norm::L1>::bottom_to_right_costs(const Cell& cell) cons
             {{1./3, 0, 0, 0}},
         }}),
         // B in cell + B below valley
-        Interval{0, std::clamp(sx-sy, 0., ty-sy)},
+        Interval{0, std::clamp(tx-sy, 0., ty-sy)},
         {{
             Polynomial<1>({0, 0}), // A in cell
             Polynomial<1>({sy-sx, 0}), // A below valley
@@ -151,7 +156,7 @@ CDTW<1, Norm::L2Squared, Norm::L1>::bottom_to_right_costs(const Cell& cell) cons
     costs.push_back(ConstrainedBivariatePolynomial<3>{
         BivariatePolynomial<3>({{
             {{
-                (sx - tx) * (sx*sx + 3*sy*sy - 3*sy*tx + tx*tx - 3*sy*sx + tx*sx) / -3,
+                (sx - tx) * (sx*sx + 3*sy*sy - 3*sy*tx + tx*tx + sx*(-3*sy + tx)) / -3,
                 -(sy-tx) * (sy-tx),
                 -sy + tx,
                 -1./3,
@@ -161,7 +166,7 @@ CDTW<1, Norm::L2Squared, Norm::L1>::bottom_to_right_costs(const Cell& cell) cons
             {{-1./3, 0, 0, 0}},
         }}),
         // B in cell + B below valley
-        Interval{0, std::clamp(sx-sy, 0., ty-sy)},
+        Interval{0, std::clamp(tx-sy, 0., ty-sy)},
         {{
             Polynomial<1>({0, 0}), // A in cell
         }},
@@ -178,7 +183,7 @@ CDTW<1, Norm::L2Squared, Norm::L1>::bottom_to_right_costs(const Cell& cell) cons
     costs.push_back(ConstrainedBivariatePolynomial<3>{
         BivariatePolynomial<3>({{
             {{
-                (sx - tx) * (sx*sx + 3*sy*sy - 3*sy*tx + tx*tx - 3*sy*sx + tx*sx) / 3,
+                (sx - tx) * (sx*sx + 3*sy*sy - 3*sy*tx + tx*tx + sx*(-3*sy + tx)) / 3,
                 (sy-tx) * (sy-tx),
                 sy - tx,
                 1./3
@@ -188,7 +193,7 @@ CDTW<1, Norm::L2Squared, Norm::L1>::bottom_to_right_costs(const Cell& cell) cons
             {{1./3, 0, 0, 0}},
         }}),
         // B in cell + B above valley
-        Interval{std::clamp(sx-sy, 0., ty-sy), ty-sy},
+        Interval{std::clamp(tx-sy, 0., ty-sy), ty-sy},
         {{
             Polynomial<1>({0, 0}), // A in cell
             Polynomial<1>({sy-sx, 0}), // A below valley
@@ -205,7 +210,7 @@ CDTW<1, Norm::L2Squared, Norm::L1>::bottom_to_right_costs(const Cell& cell) cons
         costs.push_back(ConstrainedBivariatePolynomial<3>{
             BivariatePolynomial<3>({{
                 {{
-                    (sx - 2*sy + tx) * (sx*sx + sy*sy - sy*tx + tx*tx - sy*sx + tx*sx) / -3,
+                    (sx - 2*sy + tx) * (sx*sx + sy*sy - sy*tx + tx*tx - sx*(sy+tx)) / -3,
                     (sy-tx) * (sy-tx),
                     sy - tx,
                     1./3,
@@ -215,7 +220,7 @@ CDTW<1, Norm::L2Squared, Norm::L1>::bottom_to_right_costs(const Cell& cell) cons
                 {{-1./3, 0, 0, 0}},
             }}),
             // B in cell + B above valley
-            Interval{std::clamp(sx-sy, 0., ty-sy), ty-sy},
+            Interval{std::clamp(tx-sy, 0., ty-sy), ty-sy},
             {{
                 Polynomial<1>({0, 0}), // A in cell
             }},
@@ -228,7 +233,7 @@ CDTW<1, Norm::L2Squared, Norm::L1>::bottom_to_right_costs(const Cell& cell) cons
         costs.push_back(ConstrainedBivariatePolynomial<3>{
             BivariatePolynomial<3>({{
                 {{
-                    ((tx-ty)*(tx-ty)*(tx-ty) - (sx-sy)*(sx-sy)*(sx-sy)) / 3,
+                    (sx-tx) * (sx*sx + 3*sy*sy - 3*sy*tx + tx*tx + sx*(-3*sy+tx)) / -3,
                     (sy-tx)*(sy-tx),
                     sy - tx,
                     1./3,
@@ -238,7 +243,7 @@ CDTW<1, Norm::L2Squared, Norm::L1>::bottom_to_right_costs(const Cell& cell) cons
                 {{-1./3, 0, 0, 0}},
             }}),
             // B in cell + B above valley
-            Interval{std::clamp(sx-sy, 0., ty-sy), ty-sy},
+            Interval{std::clamp(tx-sy, 0., ty-sy), ty-sy},
             {{
                 Polynomial<1>({0, 0}), // A in cell
             }},
@@ -277,12 +282,20 @@ CDTW<1, Norm::L2Squared, Norm::L1>::bottom_to_top_costs(const Cell& cell) const 
     if (!same_direction) { // Downwards valley
         costs.reserve(1);
 
+//        std::cout << "bottom_to_top / same_direction\n";
+//        std::cout << sx << ' ' << sy << ' ' << tx << ' ' << ty << '\n';
+
         // 1.
         costs.push_back(ConstrainedBivariatePolynomial<3>{
             BivariatePolynomial<3>({{
-                {{(sy - ty) * (3 * sx*sx + sy*sy + sy*ty + ty*ty - 3*sx*(sy+ty)) / -3, sx*sx + 2*sy*sy - ty*ty + 2*sx*(-2*sy+ty), sx -2*sy + ty, 1./3}},
-                {{-(sx-sy) * (sx-sy), 0, 0, 0}},
-                {{-sx + sy, 0, 0, 0}},
+                {{
+                    (sy - ty) * (3*sx*sx + sy*sy + sy*ty + ty*ty + 3*sx*(sy+ty)) / -3,
+                    (sx+ty) * (sx+ty),
+                    sx + ty,
+                    1./3,
+                }},
+                {{-(sx+sy) * (sx+sy), 0, 0, 0}},
+                {{-sx - sy, 0, 0, 0}},
                 {{-1./3, 0, 0, 0}},
             }}),
             // B in cell
@@ -310,8 +323,8 @@ CDTW<1, Norm::L2Squared, Norm::L1>::bottom_to_top_costs(const Cell& cell) const 
     costs.push_back(ConstrainedBivariatePolynomial<3>{
         BivariatePolynomial<3>({{
             {{
-                (sy - ty) * (3*sx*sx + sy*sy + sy*ty + ty*ty - 3*sx*sy - 3*sx*ty) / -3,
-                sx*sx + 2*sy*sy - ty*ty + 2*sx*(ty - 2*sy),
+                (sy - ty) * (3*sx*sx + sy*sy + sy*ty + ty*ty - 3*sx*(sy+ty)) / -3,
+                sx*sx + 2*sy*sy - ty*ty + 2*sx*(-2*sy+ty),
                 sx - 2*sy + ty,
                 1./3,
             }},
@@ -366,7 +379,7 @@ CDTW<1, Norm::L2Squared, Norm::L1>::bottom_to_top_costs(const Cell& cell) const 
     costs.push_back(ConstrainedBivariatePolynomial<3>{
         BivariatePolynomial<3>({{
             {{
-                (sy - ty) * (3*sx*sx + sy*sy + sy*ty + ty*ty - 3*sx*sy - 3*sx*ty) / -3,
+                (sy - ty) * (3*sx*sx + sy*sy + sy*ty + ty*ty - 3*sx*(sy+ty)) / -3,
                 -(sx-ty) * (sx-ty),
                 -sx + ty,
                 -1./3,
@@ -394,7 +407,7 @@ CDTW<1, Norm::L2Squared, Norm::L1>::bottom_to_top_costs(const Cell& cell) const 
     costs.push_back(ConstrainedBivariatePolynomial<3>{
         BivariatePolynomial<3>({{
             {{
-                (sy - ty) * (3*sx*sx + sy*sy + sy*ty + ty*ty - 3*sx*sy - 3*sx*ty) / 3,
+                (sy - ty) * (3*sx*sx + sy*sy + sy*ty + ty*ty - 3*sx*(sy+tx)) / 3,
                 (sx-ty) * (sx-ty),
                 sx - ty,
                 1./3,
@@ -422,7 +435,7 @@ CDTW<1, Norm::L2Squared, Norm::L1>::bottom_to_top_costs(const Cell& cell) const 
     costs.push_back(ConstrainedBivariatePolynomial<3>{
         BivariatePolynomial<3>({{
             {{
-                (2*sx - sy - ty) * (sx*sx + sy*sy - sy*ty + ty*ty - sx*sy - sx*ty) / 3,
+                (2*sx - sy - ty) * (sx*sx + sy*sy - sy*ty + ty*ty - sx*(sy+ty)) / 3,
                 (sx-ty) * (sx-ty),
                 sx - ty,
                 1./3
@@ -451,7 +464,7 @@ CDTW<1, Norm::L2Squared, Norm::L1>::bottom_to_top_costs(const Cell& cell) const 
     costs.push_back(ConstrainedBivariatePolynomial<3>{
         BivariatePolynomial<3>({{
             {{
-                (sy - ty) * (3*sx*sx + sy*sy + sy*ty + ty*ty - 3*sx*sy - 3*sx*ty) / 3,
+                (sy - ty) * (3*sx*sx + sy*sy + sy*ty + ty*ty - 3*sx*(sy+ty)) / -3,
                 (sx-ty) * (sx-ty),
                 sx - ty,
                 1./3,
