@@ -62,7 +62,6 @@ TEST(CDTW_L1_L2Squared_L1, Case2) {
     const Curve curve1("curve1", {0, 1});
     const Curve curve2("curve2", {2, 1});
     const MyCDTW alg(curve1, curve2);
-    alg.output_visualization_data();
     const MyFunctions& actual = alg.get_functions();
     const MyFunctions expected{
         {
@@ -92,3 +91,47 @@ TEST(CDTW_L1_L2Squared_L1, Case2) {
 
     AssertFunctionsEqual(actual, expected);
 }
+
+TEST(CDTW_L1_L2Squared_L1, Case3) {
+    const Curve curve1("curve1", {0, 1});
+    const Curve curve2("curve2", {0, 1});
+    const MyCDTW alg(curve1, curve2);
+    const MyFunctions& actual = alg.get_functions();
+    const MyFunctions expected{
+        {
+            {
+                .bottom = PiecewisePolynomial<3>({
+                    {{0, 1}, Polynomial<3>({0, 0, 0, 1./3})},
+                }),
+                .left = PiecewisePolynomial<3>({
+                    {{0, 1}, Polynomial<3>({0, 0, 0, 1./3})},
+                }),
+            },
+            {
+                .bottom = PiecewisePolynomial<3>({
+                    {{0, 1}, Polynomial<3>({1./3, -1, 1, -1./3})},
+                }),
+            },
+        },
+        {
+            {
+                .left = PiecewisePolynomial<3>({
+                    {{0, 1}, Polynomial<3>({1./3, -1, 1, -1./3})},
+                }),
+            },
+            {},
+        },
+    };
+
+    AssertFunctionsEqual(actual, expected);
+}
+
+//TEST(CDTW_L1_L2Squared_L1, Case4) {
+//    const Curve curve1("curve1", {0, 1});
+//    const Curve curve2("curve2", {0, 1, 0});
+//    const MyCDTW alg(curve1, curve2);
+//    const MyFunctions& actual = alg.get_functions();
+//    const MyFunctions expected{};
+//
+//    AssertFunctionsEqual(actual, expected);
+//}
