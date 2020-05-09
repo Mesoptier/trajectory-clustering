@@ -18,6 +18,15 @@ Curve::Curve(std::string name, const Points& pts): m_name(std::move(name)), poin
     }
 }
 
+Curve::Curve(std::string name, const std::vector<double>& pts): m_name(std::move(name)) {
+    points.reserve(pts.size());
+    prefix_length.reserve(pts.size());
+
+    for (double x : pts) {
+        push_back({ x, 0 });
+    }
+}
+
 void Curve::push_back(const Point& point) {
     if (prefix_length.empty()) {
         prefix_length.push_back(0);
