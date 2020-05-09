@@ -14,6 +14,7 @@
 #include "BivariatePolynomial.h"
 #include "ConstrainedBivariatePolynomial.h"
 #include "naive_lower_envelope.h"
+#include "../IntegralFrechet/Cell.h"
 
 /**
  * Given a bivariate polynomial function H(x,y) computes a univariate piecewise polynomial that returns for each Y
@@ -40,6 +41,14 @@ PiecewisePolynomial<D> find_minimum(
     // We take the cost function over these edges. This gives us a bunch of polynomial pieces over y.
     // The final result is the lower envelope of all theses pieces, which is a piecewise polynomial.
 
+    // TODO: Make this properly (instead of assuming 0y+0 is in left_constraints)
+    // Early return for empty domain on x-axis
+    for (const auto& rc : right_constraints) {
+        if (rc.coefficients[0] == 0 && rc.coefficients[1] == 0) {
+            return {};
+        }
+    }
+
     using Edge = PolynomialPiece<1>;
     std::vector<Edge> edges;
 
@@ -47,7 +56,6 @@ PiecewisePolynomial<D> find_minimum(
     lines.insert(lines.end(), left_constraints.begin(), left_constraints.end());
     lines.insert(lines.end(), right_constraints.begin(), right_constraints.end());
 
-    // TODO: Fix this for D != 2
     std::vector<Polynomial<1>> critical_lines = find_roots_y(h.partial_derivative_x());
     lines.insert(lines.end(), critical_lines.begin(), critical_lines.end());
 
@@ -133,15 +141,7 @@ PiecewisePolynomial<D> find_minimum(
 
     std::vector<PolynomialPiece<D>> pieces;
     for (auto edge : edges) {
-        const auto& hc = h.coefficients;
-        const auto& ec = edge.polynomial.coefficients;
-
-        // TODO: Fix this for D != 2
-        pieces.emplace_back(edge.interval, Polynomial<2>({
-            hc[0][0] + hc[1][0] * ec[0] + hc[2][0] * ec[0] * ec[0],
-            hc[0][1] + hc[1][0] * ec[1] + hc[1][1] * ec[0] + 2 * hc[2][0] * ec[1] * ec[0],
-            hc[0][2] + hc[1][1] * ec[1] + hc[2][0] * ec[1] * ec[1],
-        }));
+        pieces.emplace_back(edge.interval, h.embed_x(edge.polynomial));
     }
 
     return naive_lower_envelope(pieces);
@@ -314,20 +314,12 @@ private:
                     total_cost.right_constraints
                 );
 
-//            std::cout << "Piecewise[{" << cell_cost << "}, None]," << std::endl;
-//            std::cout << "Piecewise[{" << total_cost << "}, None]," << std::endl;
-
-//            std::cout << piece_out_cost << ' ' << min_total_cost << std::endl;
-
-//            fast_lower_envelope(piece_out_cost, min_total_cost);
-
                 min_pieces.insert(min_pieces.end(), min_total_cost.pieces.begin(), min_total_cost.pieces.end());
             }
 
-//        fast_lower_envelope(out_cost, piece_out_cost);
-
             ++pieces_it;
         }
+
         return naive_lower_envelope(min_pieces);
     }
     PiecewisePolynomial<D> bottom_to_right(const PiecewisePolynomial<D>& in, const Cell& cell) const {
