@@ -154,33 +154,43 @@ PiecewisePolynomial<D> naive_lower_envelope(const std::vector<PolynomialPiece<D>
 
             // Iterator to the position of event.id in the state
             auto it = std::lower_bound(state.begin(), state.end(), event.id, compare_pieces_prev);
+
+            // TODO: Ensure the correct position is found right away
+            while (it != state.end() && *it != event.id) {
+                ++it;
+            }
+
+
             assert(*it == event.id);
 
             if (event.type == EventType::CLOSE) {
                 // Remove piece from the state
                 state.erase(it);
             } else { // event.type == SWAP
-                assert(it != state.begin());
-                std::iter_swap(it - 1, it);
-                --it;
-
-                // Resolve SWAP events in the same point
-                while (events.top().type == EventType::SWAP && events.top().x == event.x) {
-                    const auto next_event = events.top();
-                    events.pop();
-
-                    // The piece with next_event.id is either at `it` or above it in the state
-                    while (*it != next_event.id) {
-                        ++it;
-                        assert(it != state.end());
-                    }
-
-                    assert(it != state.begin());
-                    std::iter_swap(it - 1, it);
-                    --it;
-                }
+//                assert(it != state.begin());
+//                std::iter_swap(it - 1, it);
+//                --it;
+//
+//                // Resolve SWAP events in the same point
+//                while (events.top().type == EventType::SWAP && events.top().x == event.x) {
+//                    const auto next_event = events.top();
+//                    events.pop();
+//
+//                    // The piece with next_event.id is either at `it` or above it in the state
+//                    while (*it != next_event.id) {
+//                        ++it;
+//                        assert(it != state.end());
+//                    }
+//
+//                    assert(it != state.begin());
+//                    std::iter_swap(it - 1, it);
+//                    --it;
+//                }
             }
         }
+
+        // TODO: Figure out how to use the SWAP events again
+        std::sort(state.begin(), state.end(), compare_pieces);
 
         // Update result
         PieceID open_id = state.empty() ? INVALID_PIECE_ID : state.front();
