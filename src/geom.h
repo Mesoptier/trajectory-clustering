@@ -57,6 +57,7 @@ bool approx_equal<Point>(const Point& a, const Point& b, double tol);
  */
 distance_t perp(const Point& a, const Point& b);
 distance_t dot(const Point& a, const Point& b);
+distance_t acute_angle(const Point& a, const Point& b);
 
 distance_t norm(const Point& point, Norm p = Norm::L2);
 Point normalise(const Point& point, Norm p = Norm::L2);
@@ -359,6 +360,7 @@ using CurveID = std::size_t;
 using CurveIDs = std::vector<CurveID>;
 
 //
+
 // Interval
 //
 

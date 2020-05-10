@@ -4,6 +4,7 @@
 #include "../geom.h"
 #include "metrics.h"
 #include <iostream>
+#include <math.h>
 
 struct Cell
 {
@@ -37,12 +38,6 @@ struct Cell
         s1(start1), s2(start2), t1(end1), t2(end2),
         len1(s1.dist(t1)), len2(s2.dist(t2)), s({0, 0}), t({len1, len2})
     {
-
-        // if (len1 == 0) {
-        //     std::cout << "aha!\n";
-        //     std::cout << s1 << "\n";
-        //     std::cout << t1 << "\n";
-        // }
 
         if (!(approx_equal(s1, t1) || approx_equal(s2, t2))) {
             const auto l1 = Line::fromTwoPoints(s1, t1);

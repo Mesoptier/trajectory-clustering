@@ -148,7 +148,7 @@ Clustering runGonzalez(Curves const& curves, std::size_t k, int l, distance_t(*d
 
 	// add as center and update closest distances to center
 	// auto center_curve = simplify(curves[center_id], l);
-	auto center_curve = curves[center_id].naive_l_simplification(l);
+	auto center_curve = naive_simplification ? curves[center_id].naive_l_simplification(l) : simplify(curves[center_id], l, dist_func);
 	
 	result.push_back({{}, center_curve});
 	for (CurveID curve_id = 0; curve_id < curves.size(); ++curve_id) {

@@ -21,6 +21,8 @@
 #include "src/DTW/dtw.h"
 #include "src/distance_functions.h"
 #include "src/experiments.h"
+#include "src/synthetic_curves.h"
+#include "src/classification_experiment.h"
 
 namespace {
 //
@@ -422,69 +424,69 @@ distance_t evaluate_clustering(Clustering clustering, Curves curves, distance_t(
     return cost;
 }
 
-void test_center_algs() {
-    Curves curves = read_curves("data/characters/data");
-    curves = Curves(curves.begin(), curves.begin() + 26);
-    /*
-    Curve curve = curves[0];
-    Curve segment = Curve("", {curve.get_points()[6], curve.get_points()[8]});
-    std::cout << curve.name() << "\n";
-    std::cout << IntegralFrechet(Curve("", {curve.get_points()[6], curve.get_points()[7], curve.get_points()[8]}), segment, ParamMetric::LInfinity_NoShortcuts, 100)
-    .compute_matching().cost << "\n";*/
+// void test_center_algs() {
+//     Curves curves = read_curves("data/characters/data");
+//     curves = Curves(curves.begin(), curves.begin() + 26);
+//     /*
+//     Curve curve = curves[0];
+//     Curve segment = Curve("", {curve.get_points()[6], curve.get_points()[8]});
+//     std::cout << curve.name() << "\n";
+//     std::cout << IntegralFrechet(Curve("", {curve.get_points()[6], curve.get_points()[7], curve.get_points()[8]}), segment, ParamMetric::LInfinity_NoShortcuts, 100)
+//     .compute_matching().cost << "\n";*/
 
-    Clustering clustering = runGonzalez(curves, 1, 10, integral_frechet, true);
-    std::cout << "computed initial cluster center...\n";
-    // clustering[0].center_curve = curves[0].simplify(true);
+//     Clustering clustering = runGonzalez(curves, 1, 10, integral_frechet, true);
+//     std::cout << "computed initial cluster center...\n";
+//     // clustering[0].center_curve = curves[0].simplify(true);
 
-    std::fstream script;
-    script.open("gnuplot_script.txt", std::fstream::out | std::fstream::trunc);
+//     std::fstream script;
+//     script.open("gnuplot_script.txt", std::fstream::out | std::fstream::trunc);
 
-    script << "plot ";
-    for (std::size_t i = 0; i < curves.size(); ++i) {
-        Curve curve = curves[i];
-        script << "\"" << curve.name() + "\" with linespoints ls 0.7 lt rgb \"black\" ps 0.01, ";
-    }
+//     script << "plot ";
+//     for (std::size_t i = 0; i < curves.size(); ++i) {
+//         Curve curve = curves[i];
+//         script << "\"" << curve.name() + "\" with linespoints ls 0.7 lt rgb \"black\" ps 0.01, ";
+//     }
 
-    std::fstream initial_center;
-    initial_center.open("cluster/initial_center.txt", std::fstream::out | std::fstream::trunc);
-    for (auto p: clustering[0].center_curve.get_points()) {
-        initial_center << p.x << " " << p.y << "\n";
-    }
-    initial_center.close();
+//     std::fstream initial_center;
+//     initial_center.open("cluster/initial_center.txt", std::fstream::out | std::fstream::trunc);
+//     for (auto p: clustering[0].center_curve.get_points()) {
+//         initial_center << p.x << " " << p.y << "\n";
+//     }
+//     initial_center.close();
 
-    script << "\"cluster/initial_center.txt\" with linespoints ls 2 lw 3 lt rgb \"green\", ";
+//     script << "\"cluster/initial_center.txt\" with linespoints ls 2 lw 3 lt rgb \"green\", ";
 
-    for (std::size_t i = 0; i < curves.size(); ++i) {
-        Curve curve = curves[i];
-        Points matching = matching_of_vertices(clustering[0].center_curve, curve);
-        std::fstream vertices;
-        vertices.open("cluster/matching" + std::to_string(i) + ".txt", std::fstream::out | std::fstream::trunc);
-        for (std::size_t j = 0; j < matching.size(); ++j) {
-            vertices << matching[j].x << " " << matching[j].y << "\n";
-            vertices << clustering[0].center_curve.get_points()[j].x << " " << clustering[0].center_curve.get_points()[j].y << "\n\n";
-        }
-        vertices.close();
-        script << "\"cluster/matching" + std::to_string(i) + ".txt\" with linespoints ls 1 lt rgb \"blue\", ";
-    }
+//     for (std::size_t i = 0; i < curves.size(); ++i) {
+//         Curve curve = curves[i];
+//         Points matching = matching_of_vertices(clustering[0].center_curve, curve);
+//         std::fstream vertices;
+//         vertices.open("cluster/matching" + std::to_string(i) + ".txt", std::fstream::out | std::fstream::trunc);
+//         for (std::size_t j = 0; j < matching.size(); ++j) {
+//             vertices << matching[j].x << " " << matching[j].y << "\n";
+//             vertices << clustering[0].center_curve.get_points()[j].x << " " << clustering[0].center_curve.get_points()[j].y << "\n\n";
+//         }
+//         vertices.close();
+//         script << "\"cluster/matching" + std::to_string(i) + ".txt\" with linespoints ls 1 lt rgb \"blue\", ";
+//     }
 
-    int improvement_count = 0;
-    while (calcFSACenters(curves, clustering, 10, average_frechet, C2CDist::Median, CenterCurveUpdateMethod::frechetMean)) {
-        std::cout << "found new center!!\n";
-        improvement_count++;
-    }
+//     int improvement_count = 0;
+//     while (calcFSACenters(curves, clustering, 10, average_frechet, C2CDist::Median, CenterCurveUpdateMethod::frechetMean)) {
+//         std::cout << "found new center!!\n";
+//         improvement_count++;
+//     }
 
-    std::cout << "finished\n";
-    std::cout << improvement_count << "\n";
+//     std::cout << "finished\n";
+//     std::cout << improvement_count << "\n";
 
-    std::fstream improved_cluster;
-    improved_cluster.open("cluster/improved_cluster.txt", std::fstream::out | std::fstream::trunc);
-    for (auto p: clustering[0].center_curve.get_points()) {
-        improved_cluster << p.x << " " << p.y << "\n";
-    }
-    improved_cluster.close();
-    script << "\"cluster/improved_cluster.txt\" with linespoints ls 3 lw 3 lt rgb \"red\"";
-    script.close();
-}
+//     std::fstream improved_cluster;
+//     improved_cluster.open("cluster/improved_cluster.txt", std::fstream::out | std::fstream::trunc);
+//     for (auto p: clustering[0].center_curve.get_points()) {
+//         improved_cluster << p.x << " " << p.y << "\n";
+//     }
+//     improved_cluster.close();
+//     script << "\"cluster/improved_cluster.txt\" with linespoints ls 3 lw 3 lt rgb \"red\"";
+//     script.close();
+// }
 
 void test_pam_with_centering() {
     Curves curves = sample_curves(read_curves("data/characters/data"), 30);
@@ -562,7 +564,10 @@ int main() {
     // run_experiments();
     // preliminary_experiments();
     center_update_experiments();
-
+    // characterClassification();
+    // generate_curves(Curve({{0, 0}, {10, 10}, {20, 20}, {30, 30}, {40, 40}, {50, 50}, {60, 60}, {70, 70}, {80, 80}, {90, 90}, {100, 100}, {110, 110}, {120, 120}, {130, 130}}), 5);
+    // write_curves();
+    // synthetic_curve_experiment();
     // Curve curve1 = Curve({{-13.519655, 518.2176}, {-13.4540596224652, 518.171459590597}, {-13.4312466704293, 518.128483280568}, {-13.3730548740233, 518.11155638744}, {-13.3532487713532, 518.103879442256}, {-13.3012273722711, 518.081146702316}, {-13.2822606164468, 518.062349118219}, {-13.2407413511353, 518.010277368733}, {-13.2249619456808, 517.946611346145}, {-13.2343869456808, 517.908641346145}, {-13.2343869456808, 517.908641346145}, {-13.2343869456808, 517.908641346145}, {-13.1726447645511, 517.82374300373}});
     // std::cout << approx_equal(curve1[curve1.size()-2], curve1[curve1.size()-3]) << "\n";
 // {
