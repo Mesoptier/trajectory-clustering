@@ -144,7 +144,33 @@ PiecewisePolynomial<D> find_minimum(
         pieces.emplace_back(edge.interval, h.embed_x(edge.polynomial));
     }
 
-    return naive_lower_envelope(pieces);
+    const PiecewisePolynomial<D> result = naive_lower_envelope(pieces);
+
+    #ifndef NDEBUG
+    if (!result.empty()) {
+        // Checking whether the supposed minimum is actually the minimum
+        const Interval result_interval = result.interval();
+        const ConstrainedBivariatePolynomial<D> hc{
+            h,
+            interval,
+            left_constraints,
+            right_constraints,
+        };
+
+        size_t n = 100;
+        for (size_t i = 0; i <= n; ++i) {
+            double y = result_interval.interpolate(i / static_cast<double>(n));
+            double supposed_minimum = result(y);
+            auto slice = hc.slice_at_y(y);
+
+            double real_minimum = slice.min_value();
+            assert(approx_equal(supposed_minimum, real_minimum));
+        }
+
+    }
+    #endif
+
+    return result;
 }
 
 template<size_t D>

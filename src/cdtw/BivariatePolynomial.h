@@ -67,6 +67,23 @@ struct BivariatePolynomial
      */
     Polynomial<D> embed_x(const Polynomial<1>& g) const;
 
+    /**
+     * Returns g(x) = f(x, c)
+     */
+    Polynomial<D> slice_at_y(double c) const {
+        Polynomial<D> result;
+        for (size_t dx = 0; dx <= D; ++dx) {
+            for (size_t dy = 0; dy <= D; ++dy) {
+                if (dy == 0) {
+                    result.coefficients[dx] += coefficients[dx][dy];
+                } else {
+                    result.coefficients[dx] += coefficients[dx][dy] * std::pow(c, dy);
+                }
+            }
+        }
+        return result;
+    }
+
     BivariatePolynomial<D> translate_xy(double x, double y) const;
 
     //

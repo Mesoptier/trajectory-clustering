@@ -29,6 +29,10 @@ struct Interval {
     bool operator==(const Interval& rhs) const {
         return min == rhs.min && max == rhs.max;
     }
+
+    double interpolate(double t) const {
+        return min * (1 - t) + max * t;
+    }
 };
 
 template<>

@@ -21,6 +21,24 @@ struct PolynomialPiece
         return result;
     }
 
+    double min_value() const {
+        if (approx_equal(interval.min, interval.max)) {
+            return polynomial(interval.min);
+        }
+
+        std::vector<double> candidates = find_roots(polynomial);
+        candidates.push_back(interval.min);
+        candidates.push_back(interval.max);
+
+        double min = std::numeric_limits<double>::infinity();
+        for (double c : candidates) {
+            if (interval.contains(c)) {
+                min = std::min(min, polynomial(c));
+            }
+        }
+        return min;
+    }
+
     //
     // Arithmetic operators
     //
@@ -96,6 +114,15 @@ struct PiecewisePolynomial
             pieces.front().interval.min,
             pieces.back().interval.max,
         };
+    }
+
+    double operator()(double x) const {
+        for (const PolynomialPiece<D>& piece : pieces) {
+            if (piece.interval.contains(x)) {
+                return piece.polynomial(x);
+            }
+        }
+        throw std::runtime_error("x is not in interval");
     }
 
     PiecewisePolynomial<D> translate(double cx) const {

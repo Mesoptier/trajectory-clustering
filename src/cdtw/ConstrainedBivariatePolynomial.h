@@ -38,6 +38,24 @@ struct ConstrainedBivariatePolynomial
         return result;
     }
 
+    PolynomialPiece<D> slice_at_y(double c) const {
+        return {interval_at_y(c), f.slice_at_y(c)};
+    }
+
+    Interval interval_at_y(double y) const {
+        double min = -std::numeric_limits<double>::infinity();
+        double max = std::numeric_limits<double>::infinity();
+
+        for (const auto& lc : left_constraints) {
+            min = std::max(min, lc(y));
+        }
+        for (const auto& rc : right_constraints) {
+            max = std::min(max, rc(y));
+        }
+
+        return { min, max };
+    }
+
     friend std::ostream& operator<<(std::ostream& os, const ConstrainedBivariatePolynomial& polynomial) {
         os << "{(" << polynomial.f << "), ";
         os << "((" << polynomial.y_interval << ") /. x->y)";
