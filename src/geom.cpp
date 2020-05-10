@@ -2,6 +2,7 @@
 #include <iterator>
 #include <iostream>
 #include "geom.h"
+#define PI 3.14159265
 
 namespace {
     template<typename T>
@@ -100,6 +101,12 @@ distance_t perp(const Point& a, const Point& b) {
 
 distance_t dot(const Point& a, const Point& b) {
     return a.x * b.x + a.y * b.y;
+}
+
+distance_t acute_angle(const Point& a, const Point& b) {
+	return std::acos(
+		dot(a, b) / (norm(a) * norm(b))
+	) / PI;
 }
 
 std::ostream& operator<<(std::ostream& out, const Point& p) {

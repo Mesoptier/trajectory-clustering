@@ -96,6 +96,8 @@ public:
 	ExtremePoints const& getExtremePoints() const;
 
     distance_t getUpperBoundDistance(Curve const& other) const;
+    
+    std::vector<distance_t> get_prefix_length_vector() { return prefix_length; };
 
 private:
         ExtremePoints extreme_points = {

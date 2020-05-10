@@ -7,7 +7,7 @@ Clustering computeCenterClusteringRound(
 	Curves const& curves, int k, int l, ClusterAlg cluster_alg, CenterAlg center_alg,
 	distance_t(*dist_func)(Curve, Curve), std::string dist_matrix)
 {
-	auto clustering = computeClustering(curves, k, l, cluster_alg, dist_func, dist_matrix);
+	auto clustering = computeClustering(curves, k, l, cluster_alg, dist_func, dist_matrix, true);
 	updateClustering(curves, clustering, dist_func);
 
 	// iterate as long as there are new centers
