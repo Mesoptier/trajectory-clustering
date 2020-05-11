@@ -26,7 +26,7 @@ struct PolynomialPiece
             return polynomial(interval.min);
         }
 
-        std::vector<double> candidates = find_roots(polynomial);
+        std::vector<double> candidates = find_roots(polynomial.derivative());
         candidates.push_back(interval.min);
         candidates.push_back(interval.max);
 
