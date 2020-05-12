@@ -21,6 +21,10 @@ struct PolynomialPiece
         return result;
     }
 
+    /**
+     * Get the minimal value for f(x) for x in the range of the interval.
+     * @return
+     */
     double min_value() const {
         if (approx_equal(interval.min, interval.max)) {
             return polynomial(interval.min);

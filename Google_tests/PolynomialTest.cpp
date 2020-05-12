@@ -1,5 +1,6 @@
 #include "gtest/gtest.h"
 #include "../src/cdtw/Polynomial.h"
+#include "../src/cdtw/PiecewisePolynomial.h"
 
 ::testing::AssertionResult IsApproxEqual(const std::vector<double>& a, const std::vector<double>& b) {
     if (a.size() != b.size()) {
@@ -67,4 +68,9 @@ TEST(PolynomialTest, ChangesSignAtCubic) {
         ASSERT_TRUE(f.changes_sign_at(0));
         ASSERT_TRUE(f.changes_sign_at(1));
     }
+}
+
+TEST(PolynomialPieceTest, MinValue) {
+    PolynomialPiece<2> f({0, 1}, Polynomial<2>({0, -1, 1}));
+    ASSERT_DOUBLE_EQ(f.min_value(), -0.25);
 }
