@@ -196,3 +196,18 @@ TEST(NaiveLowerEnvelopeTest, IdenticalPolynomialsLowerAfterIntersection) {
     });
     ASSERT_EQ(actual, expected);
 }
+
+TEST(NaiveLowerEnvelopeTest, PieceEndsSlightlyBeforeIntersection) {
+    const std::vector<PolynomialPiece<2>> pieces {
+        {{0, 2}, Polynomial<2>({0, 1, 0})},
+        {{0, 1 - EPS}, Polynomial<2>({0, 1, 0})},
+        {{0, 2}, Polynomial<2>({2, -1, 0})},
+    };
+    const auto actual = naive_lower_envelope(pieces);
+    const PiecewisePolynomial<2> expected({
+        // TODO: Instead of `1-EPS` we want the breakpoint to be at `1` exactly
+        {{0, 1-EPS}, Polynomial<2>({0, 1, 0})},
+        {{1-EPS, 2}, Polynomial<2>({2, -1, 0})},
+    });
+    ASSERT_EQ(actual, expected);
+}
