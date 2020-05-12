@@ -183,9 +183,9 @@ Polynomial<2> BivariatePolynomial<2>::embed_x(const Polynomial<1>& g) const {
     auto g1 = g.coefficients[1];
 
     return Polynomial<2>({
-        c00 + c01*g0 + c02*g0*g0,
-        c10 + c11*g0 + c01*g1 + 2*c02*g0*g1,
-        c20 + c11*g1 + c02*g1*g1,
+        c00 + c10*g0 + c20*g0*g0,
+        c01 + c11*g0 + c10*g1 + 2*c20*g0*g1,
+        c02 + c11*g1 + c20*g1*g1,
     });
 }
 
