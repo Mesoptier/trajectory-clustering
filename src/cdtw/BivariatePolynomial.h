@@ -131,10 +131,6 @@ std::vector<Polynomial<1>> find_roots_y(const BivariatePolynomial<1>& f) {
 
 template<>
 std::vector<Polynomial<1>> find_roots_y(const BivariatePolynomial<2>& f) {
-    // TODO: Return roots where possible (i.e. anything without square roots)
-
-//    std::cout << f << std::endl;
-
     auto c00 = f.coefficients[0][0];
     auto c01 = f.coefficients[0][1];
     auto c02 = f.coefficients[0][2];
@@ -142,12 +138,37 @@ std::vector<Polynomial<1>> find_roots_y(const BivariatePolynomial<2>& f) {
     auto c11 = f.coefficients[1][1];
     auto c20 = f.coefficients[2][0];
 
-//    if (c00 == 0 && c10 == 0 && c20 == 0) {
-//        return find_roots_y(BivariatePolynomial<1>({{
-//            {c01, c02},
-//            {c11, 0},
-//        }}));
-//    }
+    if (approx_zero(c11) && approx_zero(c01) && approx_zero(c02)) {
+        const std::vector<double> roots = find_roots(Polynomial<2>({c00, c10, c20}));
+        std::vector<Polynomial<1>> result;
+        for (const auto root : roots) {
+            result.push_back(Polynomial<1>({root, 0}));
+        }
+        return result;
+    }
+
+    if (approx_zero(c00) && approx_zero(c10) && approx_zero(c20)) {
+        return {
+            Polynomial<1>({-c01 / c11, -c02 / c11}),
+        };
+    }
+
+    if (c11 == 4 && c20 == -2 && c02 == -2 && c10 == -c01) {
+        double d = 8 * c00 + c10 * c10;
+        if (approx_zero(d)) {
+            return {
+                Polynomial<1>({(c10 - std::sqrt(d)) / 4, 1}),
+            };
+        }
+        if (d < 0) {
+            return {};
+        }
+        return {
+            Polynomial<1>({(c10 - std::sqrt(d)) / 4, 1}),
+            Polynomial<1>({(c10 + std::sqrt(d)) / 4, 1}),
+        };
+    }
+//    std::cout << "c00->" << c00 << ",\t" << "c10->" << c10 << ",\t" << "c20->" << c20 << ",\t" << "c01->" << c01 << ",\t" << "c02->" << c02 << ",\t" << "c11->" << c11 << ",\n";
 
     return {};
 }
