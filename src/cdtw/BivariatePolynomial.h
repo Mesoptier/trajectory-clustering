@@ -168,7 +168,8 @@ std::vector<Polynomial<1>> find_roots_y(const BivariatePolynomial<2>& f) {
             Polynomial<1>({(c10 + std::sqrt(d)) / 4, 1}),
         };
     }
-//    std::cout << "c00->" << c00 << ",\t" << "c10->" << c10 << ",\t" << "c20->" << c20 << ",\t" << "c01->" << c01 << ",\t" << "c02->" << c02 << ",\t" << "c11->" << c11 << ",\n";
+
+    // TODO: Maybe use sampling to find a few roots and return a set of linear functions through those points?
 
     return {};
 }
