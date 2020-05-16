@@ -221,28 +221,28 @@ void experiment_visualize_band() {
 }
 
 void experiment_compare_heuristic_vs_extact_cdtw() {
-    const auto curve1 = io::read_curve("data/characters/data/a0001.txt").to_1d();
-    const auto curve2 = io::read_curve("data/characters/data/a0002.txt").to_1d();
+//    const auto curve1 = io::read_curve("data/characters/data/a0001.txt").to_1d();
+//    const auto curve2 = io::read_curve("data/characters/data/a0002.txt").to_1d();
 
-//    const auto curve1 = io::read_curve("data/characters/data/a0001.txt").simplify(false).to_1d();
-//    const auto curve2 = io::read_curve("data/characters/data/a0002.txt").simplify(false).to_1d();
+    const auto curve1 = io::read_curve("data/characters/data/a0001.txt").simplify(false).to_1d();
+    const auto curve2 = io::read_curve("data/characters/data/a0002.txt").simplify(false).to_1d();
 
-    io::export_points("data/out/curve1.csv", curve1.get_points());
-    io::export_points("data/out/curve2.csv", curve2.get_points());
+//    io::export_points("data/out/curve1.csv", curve1.get_points());
+//    io::export_points("data/out/curve2.csv", curve2.get_points());
 
 
     // Heuristic
-    {
-        auto start_time = std::chrono::high_resolution_clock::now();
-
-        IntegralFrechet heuristic_alg(curve1, curve2, ParamMetric::L1, 0.1);
-        const auto heuristic_res = heuristic_alg.compute_matching();
-
-        auto end_time = std::chrono::high_resolution_clock::now();
-        auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time).count();
-        std::cout << "heuristic cost: " << heuristic_res.cost << '\n';
-        std::cout << "heuristic time: " << duration << "ms\n";
-    }
+//    {
+//        auto start_time = std::chrono::high_resolution_clock::now();
+//
+//        IntegralFrechet heuristic_alg(curve1, curve2, ParamMetric::L1, 0.1);
+//        const auto heuristic_res = heuristic_alg.compute_matching();
+//
+//        auto end_time = std::chrono::high_resolution_clock::now();
+//        auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time).count();
+//        std::cout << "heuristic cost: " << heuristic_res.cost << '\n';
+//        std::cout << "heuristic time: " << duration << "ms\n";
+//    }
 
     // Exact
     {
@@ -255,8 +255,8 @@ void experiment_compare_heuristic_vs_extact_cdtw() {
         std::cout << "exact cost: " << exact_alg.cost() << '\n';
         std::cout << "exact time: " << duration << "ms\n";
 
-//        exact_alg.output_visualization_data();
-//        exact_alg.print_complexity();
+        exact_alg.output_visualization_data();
+        exact_alg.print_complexity();
     }
 
 }
