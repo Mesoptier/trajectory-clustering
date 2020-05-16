@@ -433,6 +433,27 @@ public:
     }
 };
 
+// TODO: Remove temporary checks to find problematic cases for Sampson's proof.
+template<size_t D>
+void check_function(const PiecewisePolynomial<D>& f) {
+    for (size_t i = 1; i < f.pieces.size(); ++i) {
+        const PolynomialPiece<D> f1 = f.pieces.at(i - 1);
+        const PolynomialPiece<D> f2 = f.pieces.at(i);
+        const Polynomial<D> f1d = f1.polynomial.derivative();
+        const Polynomial<D> f2d = f2.polynomial.derivative();
+
+        if (f1d(f1.interval.max) < 0) {
+            if (f2d(f2.interval.min) > 0) {
+                std::cout << "negative to positive\n";
+            }
+
+            if (!approx_equal(f1d(f1.interval.max), f2d(f2.interval.min))) {
+                std::cout << "not continuous after negative: Piecewise[{" << f1 << ", " << f2 << "}, None]\n";
+            }
+        }
+    }
+}
+
 template<size_t dimension, Norm image_norm, Norm param_norm>
 CDTW<dimension, image_norm, param_norm>::CDTW(const Curve& curve1, const Curve& curve2) :
     curve1(curve1), curve2(curve2),
@@ -493,6 +514,10 @@ CDTW<dimension, image_norm, param_norm>::CDTW(const Curve& curve1, const Curve& 
             PiecewisePolynomial<D> top_out = bottom_to_right(left_in, cell_t);
             fast_lower_envelope(top_out, bottom_to_top(bottom_in, cell));
             in_functions[i][j + 1].bottom = top_out;
+
+//            // TODO: Remove temporary checks to find problematic cases for Sampson's proof.
+//            check_function(right_out);
+//            check_function(top_out);
         }
     }
 }
