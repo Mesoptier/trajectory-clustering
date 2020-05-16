@@ -27,7 +27,7 @@ struct PolynomialPiece
      */
     double min_value() const {
         if (approx_equal(interval.min, interval.max)) {
-            return polynomial(interval.min);
+            return std::numeric_limits<double>::infinity();
         }
 
         std::vector<double> candidates = find_roots(polynomial.derivative());
