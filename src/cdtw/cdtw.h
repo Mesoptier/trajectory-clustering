@@ -16,6 +16,56 @@
 #include "naive_lower_envelope.h"
 #include "../IntegralFrechet/Cell.h"
 
+template<size_t D>
+void verify_minimum(const PiecewisePolynomial<D>& f, const std::vector<ConstrainedBivariatePolynomial<D>>& hs) {
+    std::stringstream ss_h;
+    for (const auto& h : hs) {
+        ss_h << "Piecewise[{" << h << "}, None], ";
+    }
+    auto debug_h = ss_h.str();
+
+    std::stringstream ss_f;
+    ss_f << f;
+    auto debug_f = ss_f.str();
+
+    std::stringstream ss_m;
+    ss_m << std::setprecision(30);
+    ss_m << "{";
+
+    bool brk = false;
+
+    Interval f_interval = f.interval();
+    size_t n = 100;
+    for (size_t i = 1; i < n; ++i) {
+        double y = f_interval.interpolate(i / static_cast<double>(n));
+        double supposed_minimum = f(y);
+
+        double real_minimum = std::numeric_limits<double>::infinity();
+        for (const ConstrainedBivariatePolynomial<D>& h : hs) {
+            if (h.y_interval.contains(y)) {
+                auto slice = h.slice_at_y(y);
+                real_minimum = std::min(real_minimum, slice.min_value());
+            }
+        }
+
+        ss_m << "{" << y << ", " << real_minimum << "},";
+
+        if (!std::isinf(real_minimum) && !approx_equal(supposed_minimum, real_minimum)) {
+            brk = true;
+        }
+//        assert(approx_equal(supposed_minimum, real_minimum));
+    }
+
+    ss_m << "}";
+    auto debug_m = ss_m.str();
+
+    if (brk) {
+        std::cout << "Plot3D[{" << debug_h << "} // Evaluate, {x,0,10}, {y,0,10}]\n";
+        std::cout << "Show[Plot[{" << debug_f << "}, {x,0,10}], ListPlot[" << debug_m << "]]\n" << std::endl;
+    }
+//    assert(!brk);
+}
+
 /**
  * Given a bivariate polynomial function H(x,y) computes a univariate piecewise polynomial that returns for each Y
  * the minimum value bounded by the interval and left/right constraints (i.e. y maps to min_x H(x,y))
@@ -320,6 +370,10 @@ private:
     {
         std::vector<PolynomialPiece<D>> min_pieces;
 
+        #ifndef NDEBUG
+        std::vector<ConstrainedBivariatePolynomial<D>> total_costs;
+        #endif
+
         PiecewisePolynomial<D> out_cost;
         while (pieces_it != pieces_end) {
             // piece_in_cost: cost of optimal path from origin to point on in-boundary
@@ -332,6 +386,10 @@ private:
             for (const auto& cell_cost : cell_costs) {
                 // total_cost: cost of optimal path from origin through point on in-boundary to point on out-boundary
                 const auto total_cost = cell_cost.add_x(piece_in_cost);
+
+                #ifndef NDEBUG
+                total_costs.push_back(total_cost);
+                #endif
 
                 const PiecewisePolynomial<D> min_total_cost = find_minimum(
                     total_cost.f,
@@ -346,7 +404,13 @@ private:
             ++pieces_it;
         }
 
-        return naive_lower_envelope(min_pieces);
+        const auto result = naive_lower_envelope(min_pieces);
+
+        #ifndef NDEBUG
+        verify_minimum(result, total_costs);
+        #endif
+
+        return result;
     }
     PiecewisePolynomial<D> bottom_to_right(const PiecewisePolynomial<D>& in, const Cell& cell) const {
         // Walk through the in-pieces in reverse order. Because the first value in the out-function "originates from" the
