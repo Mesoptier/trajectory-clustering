@@ -335,8 +335,8 @@ class CDTW
 {
 public:
     static const size_t D =
-        (dimension == 1 && image_norm == Norm::L1 && param_norm == Norm::L1) ? 2 :
-        (dimension == 1 && image_norm == Norm::L2Squared && param_norm == Norm::L1) ? 3 :
+        (image_norm == Norm::L1 && param_norm == Norm::L1) ? 2 :
+        (image_norm == Norm::L2Squared && param_norm == Norm::L1) ? 3 :
         0;
 
     struct Entry
