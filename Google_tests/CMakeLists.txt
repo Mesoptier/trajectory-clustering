@@ -7,6 +7,7 @@ add_executable(Google_Tests_run
     ComputeMatchingTest.cpp
     NaiveLowerEnvelopeTest.cpp
     PolynomialTest.cpp
+    CellTest.cpp
     CDTW_L1_L2Squared_L1.cpp
 )
 
