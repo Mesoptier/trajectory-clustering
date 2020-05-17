@@ -32,6 +32,6 @@ TEST(CellTest, EllipseShape) {
             {0, 0}, {0, 0},
             {1, 0}, {1, 1}
         );
-        ASSERT_DOUBLE_EQ(cell.l, -0.70710678118654746);
+        ASSERT_DOUBLE_EQ(cell.l, std::sqrt(2) / -2);
     }
 }
