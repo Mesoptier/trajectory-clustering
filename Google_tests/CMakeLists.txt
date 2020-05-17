@@ -4,7 +4,7 @@ include_directories(${gtest_SOURCE_DIR}/include ${gtest_SOURCE_DIR})
 
 add_executable(Google_Tests_run
     geomTest.cpp
-    CellTest.cpp
+    ComputeMatchingTest.cpp
     NaiveLowerEnvelopeTest.cpp
     PolynomialTest.cpp
     CDTW_L1_L2Squared_L1.cpp
