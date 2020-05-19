@@ -518,70 +518,202 @@ void check_function(const PiecewisePolynomial<D>& f) {
     }
 }
 
+namespace {
+    enum class Side {
+        LEFT,
+        BOTTOM,
+    };
+
+    std::ostream& operator<<(std::ostream& os, const Side& side) {
+        switch (side) {
+            case Side::LEFT:
+                os << "LEFT";
+                break;
+            case Side::BOTTOM:
+                os << "BOTTOM";
+                break;
+        }
+        return os;
+    }
+
+    struct Coord {
+        size_t i1;
+        size_t i2;
+        Side side;
+
+        Coord top() const {
+            return {i1, i2 + 1, Side::BOTTOM};
+        }
+        Coord right() const {
+            return {i1 + 1, i2, Side::LEFT};
+        }
+
+        struct hash
+        {
+            auto operator()(const Coord& x) const {
+                size_t seed = 0;
+                hash_combine(seed, x.i1);
+                hash_combine(seed, x.i2);
+                hash_combine(seed, x.side);
+                return seed;
+            }
+        };
+
+        bool operator==(const Coord& rhs) const {
+            return i1 == rhs.i1 &&
+                i2 == rhs.i2 &&
+                side == rhs.side;
+        }
+
+        bool operator<(const Coord& rhs) const {
+            if (i1 < rhs.i1)
+                return true;
+            if (rhs.i1 < i1)
+                return false;
+            if (i2 < rhs.i2)
+                return true;
+            if (rhs.i2 < i2)
+                return false;
+            return side < rhs.side;
+        }
+
+        friend std::ostream& operator<<(std::ostream& os, const Coord& coord) {
+            os << "Coord{" << coord.i1 << ", " << coord.i2 << ", " << coord.side << "}";
+            return os;
+        }
+    };
+
+    struct PQNode {
+        distance_t min_cost;
+        Coord coord;
+
+        bool operator<(const PQNode& rhs) const {
+            if (min_cost < rhs.min_cost)
+                return true;
+            if (rhs.min_cost < min_cost)
+                return false;
+            return coord < rhs.coord;
+        }
+        bool operator>(const PQNode& rhs) const {
+            return rhs < *this;
+        }
+        bool operator<=(const PQNode& rhs) const {
+            return !(rhs < *this);
+        }
+        bool operator>=(const PQNode& rhs) const {
+            return !(*this < rhs);
+        }
+
+        friend std::ostream& operator<<(std::ostream& os, const PQNode& node) {
+            os << "PQNode{" << node.min_cost << ", " << node.coord << "}";
+            return os;
+        }
+    };
+}
+
 template<size_t dimension, Norm image_norm, Norm param_norm>
 CDTW<dimension, image_norm, param_norm>::CDTW(const Curve& curve1, const Curve& curve2) :
     curve1(curve1), curve2(curve2),
     n(curve1.size()), m(curve2.size()),
     in_functions(n, std::vector<Entry>(m))
 {
-    // TODO: Simplify cell structs?
+    struct Function {
+        PiecewisePolynomial<D> f;
+        distance_t min_cost;
+        bool open; // Whether this function is currently in the open_set
+    };
 
-    // Initialize bottom base in_functions
+    std::unordered_map<Coord, Function, typename Coord::hash> functions;
+    std::priority_queue<PQNode, std::vector<PQNode>, std::greater<>> open_set;
+
     {
-        double c = 0;
-        for (size_t i = 0; i + 1 < n; ++i) {
-            const Cell cell(curve1[i], curve2[0], curve1[i + 1], curve2[1]);
-            const PiecewisePolynomial<D> f = base_bottom(cell) + c;
-            in_functions[i][0].bottom = f;
-            c = f.pieces.back().polynomial(f.pieces.back().interval.max); // TODO: Create and use back_value() instead
+        const Cell cell(curve1[0], curve2[0], curve1[1], curve2[1]);
+        const Cell cell_t(curve2[0], curve1[0], curve2[1], curve1[1]);
+
+        const Function f1{base_bottom(cell), 0, true};
+        const Coord c1{0, 0, Side::BOTTOM};
+        functions.insert_or_assign(c1, f1);
+        open_set.push({f1.f.min_value(), c1});
+
+        const Function f2{base_bottom(cell_t), 0, true};
+        const Coord c2{0, 0, Side::LEFT};
+        functions.insert_or_assign(c2, f2);
+        open_set.push({f2.f.min_value(), c2});
+    }
+
+    distance_t min_result_cost = std::numeric_limits<distance_t>::infinity();
+
+    size_t nodes_handled = 0;
+    size_t nodes_skipped = 0;
+
+    while (!open_set.empty()) {
+        nodes_handled += 1;
+        nodes_skipped += 1;
+
+        const PQNode node = open_set.top();
+        open_set.pop();
+
+//        std::cout << min_result_cost << " " << node << '\n';
+        const Coord coord = node.coord;
+        Function& f = functions.at(coord);
+        f.open = false;
+
+        // We can no longer find a lower min_result_cost, so the search is finished
+        if (node.min_cost >= min_result_cost) {
+            break;
+        }
+
+        if (node.min_cost > f.min_cost) {
+            continue;
+        }
+
+        if (coord.i1 == curve1.size() - 1 || coord.i2 == curve2.size() - 1) {
+            if (coord.i1 == curve1.size() - 2 || coord.i2 == curve2.size() - 2) {
+                min_result_cost = std::min(min_result_cost, f.f.right_value());
+            }
+            continue;
+        }
+
+        nodes_skipped -= 1;
+
+        // Cell and transposed cell
+        const Cell cell(curve1[coord.i1], curve2[coord.i2], curve1[coord.i1 + 1], curve2[coord.i2 + 1]);
+        const Cell cell_t(curve2[coord.i2], curve1[coord.i1], curve2[coord.i2 + 1], curve1[coord.i1 + 1]);
+
+        for (size_t i = 0; i < 2; ++i) { // 0 -> right, 1 -> top
+            const PiecewisePolynomial<D> out_f = i == 0
+                ? (coord.side == Side::BOTTOM ? bottom_to_right(f.f, cell) : bottom_to_top(f.f, cell_t))
+                : (coord.side == Side::BOTTOM ? bottom_to_top(f.f, cell) : bottom_to_right(f.f, cell_t));
+            const Coord out_coord = i == 0
+                ? coord.right()
+                : coord.top();
+
+            distance_t min_cost = out_f.min_value();
+
+            auto it = functions.find(out_coord);
+            if (it == functions.end()) {
+                functions.emplace(out_coord, Function{out_f, min_cost, true});
+                open_set.push({min_cost, out_coord});
+            } else {
+                Function& prev_out = it->second;
+                // TODO: Only re-open function if lower_envelope has changed
+                fast_lower_envelope(prev_out.f, out_f);
+
+                if (min_cost < prev_out.min_cost) {
+                    prev_out.open = true;
+                    open_set.push({min_cost, out_coord});
+                } else { // min_cost == prev_out.min_cost
+                    if (!prev_out.open) {
+                        prev_out.open = true;
+                        open_set.push({min_cost, out_coord});
+                    }
+                }
+            }
         }
     }
 
-    // Initialize left base in_functions
-    {
-        double c = 0;
-        for (size_t i = 0; i + 1 < m; ++i) {
-            // Note: this cell is transposed
-            const Cell cell(curve2[i], curve1[0], curve2[i + 1], curve1[1]);
-            const PiecewisePolynomial<D> f = base_bottom(cell) + c;
-            in_functions[0][i].left = f;
-            c = f.pieces.back().polynomial(f.pieces.back().interval.max); // TODO: Create and use back_value() instead
-        }
-    }
-
-    // Dynamic program
-    for (size_t i = 0; i + 1 < n; ++i) {
-        for (size_t j = 0; j + 1 < m; ++j) {
-            // In-functions along bottom/left are given
-            // Compute out-functions along top/right
-            // Depending on current row/column:
-            //  - set out-functions as in-function for next cell
-            //  - or append to out_top/out_right
-
-            // In-functions
-            PiecewisePolynomial<D> bottom_in = in_functions[i][j].bottom;
-            PiecewisePolynomial<D> left_in = in_functions[i][j].left;
-
-            assert(!bottom_in.empty());
-            assert(!left_in.empty());
-
-            // Cell and transposed cell
-            const Cell cell(curve1[i], curve2[j], curve1[i + 1], curve2[j + 1]);
-            const Cell cell_t(curve2[j], curve1[i], curve2[j + 1], curve1[i + 1]);
-
-            // Compute right
-            PiecewisePolynomial<D> right_out = bottom_to_right(bottom_in, cell);
-            fast_lower_envelope(right_out, bottom_to_top(left_in, cell_t));
-            in_functions[i + 1][j].left = right_out;
-
-            // Compute top
-            PiecewisePolynomial<D> top_out = bottom_to_right(left_in, cell_t);
-            fast_lower_envelope(top_out, bottom_to_top(bottom_in, cell));
-            in_functions[i][j + 1].bottom = top_out;
-
-//            // TODO: Remove temporary checks to find problematic cases for Sampson's proof.
-//            check_function(right_out);
-//            check_function(top_out);
-        }
-    }
+    std::cout << min_result_cost << "\n";
+    std::cout << "nodes_handled: " << nodes_handled << "\n";
+    std::cout << "nodes_skipped: " << nodes_skipped << "\n";
+    std::cout << "nodes remaining: " << open_set.size() << "\n";
 }
