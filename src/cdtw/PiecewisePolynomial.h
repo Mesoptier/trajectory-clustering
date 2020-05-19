@@ -129,6 +129,18 @@ struct PiecewisePolynomial
         throw std::runtime_error("x is not in interval");
     }
 
+    double right_value() const {
+        return pieces.back().polynomial(pieces.back().interval.max);
+    }
+
+    double min_value() const {
+        double min = std::numeric_limits<double>::infinity();
+        for (const PolynomialPiece<D>& piece : pieces) {
+            min = std::min(min, piece.min_value());
+        }
+        return min;
+    }
+
     PiecewisePolynomial<D> translate(double cx) const {
         auto result = *this;
         for (auto& piece : result.pieces) {
