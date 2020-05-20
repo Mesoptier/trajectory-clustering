@@ -547,3 +547,19 @@ Circle calcMinEnclosingCircle(Points points) {
     current_circle.radius = std::sqrt(current_circle.radius);
     return current_circle;
 }
+
+// Computes the minimum distance from a point to a segment
+// defined by endpoints source and target
+distance_t segPointDist(Point& source, Point& target, Point& point) {
+    Line line = Line::fromTwoPoints(source, target);
+    Point line_vec = target - source;
+    Point normal_vec = {-line_vec.y, line_vec.x};
+
+    Line normal_src = Line(source, normal_vec);
+    Line normal_tgt = Line(target, normal_vec);
+
+    if (normal_src.side(point) != normal_tgt.side(point))
+        return point.dist(line.closest(point));
+
+    return std::min(point.dist(source), point.dist(target));
+}

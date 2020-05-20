@@ -12,7 +12,8 @@ namespace clustering {
     Clustering computeCenterClustering(Curves const& curves,
         std::size_t k, std::size_t l,
         ClusterAlg cluster_alg, CenterAlg center_alg,
-        std::function<distance_t(Curve const&, Curve const&)> const& dist_func,
+        std::function<distance_t(Curve const&, Curve const&)> const& init_dist,
+        std::function<distance_t(Curve const&, Curve const&)> const& dist,
         std::string const& dist_matrix,
         unsigned max_rounds = 10);
 }

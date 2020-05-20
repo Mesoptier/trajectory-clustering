@@ -552,4 +552,6 @@ struct Circle {
 };
 
 Circle calcMinEnclosingCircle(Points points);
+
+distance_t segPointDist(Point& source, Point& target, Point& point);
 #endif

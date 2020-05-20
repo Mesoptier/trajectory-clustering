@@ -6,10 +6,11 @@ namespace {
     Clustering computeCenterClusteringRound(Curves const& curves,
             std::size_t k, std::size_t l,
             clustering::ClusterAlg cluster_alg, clustering::CenterAlg center_alg,
+            std::function<distance_t(Curve const&, Curve const&)> const& init_dist,
             std::function<distance_t(Curve const&, Curve const&)> const& dist,
             std::string const& dist_matrix) {
-        auto clustering = computeClustering(curves, k, l, cluster_alg, dist,
-            dist_matrix, true);
+        auto clustering = computeClustering(curves, k, l, cluster_alg, init_dist,
+            dist_matrix, false);
         clustering::updateClustering(curves, clustering, dist);
 
         // iterate as long as there are new centers
@@ -27,6 +28,7 @@ namespace {
 Clustering clustering::computeCenterClustering(Curves const& curves,
         std::size_t k, std::size_t l,
         ClusterAlg cluster_alg, CenterAlg center_alg,
+        std::function<distance_t(Curve const&, Curve const&)> const& init_dist,
         std::function<distance_t(Curve const&, Curve const&)> const& dist,
         std::string const& dist_matrix, unsigned max_rounds) {
     Clustering min_clustering;
@@ -34,7 +36,7 @@ Clustering clustering::computeCenterClustering(Curves const& curves,
 
     for (unsigned round = 0; round < max_rounds; ++round) {
         auto clustering = computeCenterClusteringRound(curves, k, l,
-            cluster_alg, center_alg, dist, dist_matrix);
+            cluster_alg, center_alg, init_dist, dist, dist_matrix);
         distance_t cost_sum = 0.0;
         for (auto const& cluster: clustering)
             cost_sum += cluster.cost;

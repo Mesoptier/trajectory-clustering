@@ -68,7 +68,7 @@ void classification::characterClassification(
                     curves_slots[j].begin(), curves_slots[j].end());
             }
             auto clustering = computeCenterClustering(training_curves, k, l,
-                cluster_alg, center_alg, df::frechet, "", 1);
+                cluster_alg, center_alg, df::frechet, df::frechet, "", 1);
             for (auto const& cluster: clustering)
                 centers.push_back(std::move(cluster.center_curve));
 

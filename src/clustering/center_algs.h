@@ -21,7 +21,10 @@ namespace clustering {
         newCenterUpdate,
         newCenterUpdate2,
         naiveCenterUpdate,
-        ensembleMethod1
+        ensembleMethod1,
+        dba,
+        cdba,
+        wedge
     };
 
     enum class CenterCurveUpdateMethod {
@@ -72,6 +75,9 @@ namespace clustering {
     bool naiveCenterUpdate(Curves const& curves, Clustering& clustering,
         std::function<distance_t(Curve const&, Curve const&)> const& dist,
         C2CDist c2c_dist);
+
+    bool dba(Curves const& curves, Clustering& clustering, distance_t(*dist_func)(Curve, Curve), C2CDist c2c_dist);
+    bool cdba(Curves const& curves, Clustering& clustering, distance_t(*dist_func)(Curve, Curve), C2CDist c2c_dist);
 
     // First computes a new center via the naiveCenterUpdateMethod
     // the frechetMean update method is then applied
