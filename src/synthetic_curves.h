@@ -52,7 +52,7 @@ Curves generate_curves(Curve curve, int count) {
 
 void write_curves() {
     Curves curves = io::read_curves("data/characters/data");
-    Curve curve = curves[0];
+    Curve curve = curves[800];
     
     Curves synthetic_curves = generate_curves(curve, 20);
     std::fstream dataset;
@@ -66,6 +66,6 @@ void write_curves() {
     }
 
     dataset.close();
-    io::export_points("synthetic_curves/true_center.txt", curve.get_points());
+    io::export_points("synthetic_curves/true_center_curve.txt", curve.get_points());
 }
 

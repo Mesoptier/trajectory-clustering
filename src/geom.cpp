@@ -193,10 +193,6 @@ bool Line::includesPoint(const Point& point) const {
 }
 
 Point intersect(const Line& line1, const Line& line2) {
-	// std::cout << line1.origin << "\n";
-	// std::cout << line1.direction << "\n";
-	// std::cout << line2.origin << "\n";
-	// std::cout << line2.direction << "\n";
     const auto t1 = perp(line2.origin - line1.origin, line2.direction) / perp(line1.direction, line2.direction);
     assert(line1.includesPoint(line1(t1)));
     assert(line2.includesPoint(line1(t1)));
@@ -525,4 +521,20 @@ Circle calcMinEnclosingCircle(Points points)
 
 	current_circle.radius = std::sqrt(current_circle.radius);
 	return current_circle;
+}
+
+// Computes the minimum distance from a point to a segment
+// defined by endpoints source and target
+distance_t segPointDist(Point& source, Point& target, Point& point) {
+	Line line = Line::fromTwoPoints(source, target);
+	Point line_vec = target - source;
+	Point normal_vec = {-line_vec.y, line_vec.x};
+
+	Line normal_src = Line(source, normal_vec);
+	Line normal_tgt = Line(target, normal_vec);
+
+	if (normal_src.side(point) != normal_tgt.side(point)) 
+		return point.dist(line.closest(point));
+	
+	return std::min(point.dist(source), point.dist(target));
 }

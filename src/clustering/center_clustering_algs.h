@@ -5,5 +5,5 @@
 #include "../Curve.h"
 
 Clustering computeCenterClustering(
-	Curves const& curves, int k, int l, ClusterAlg cluster_alg, CenterAlg center_alg, distance_t(*dist_func)(Curve, Curve), std::string dist_matrix, 
+	Curves const& curves, int k, int l, ClusterAlg cluster_alg, CenterAlg center_alg, distance_t(*initial_dist)(Curve, Curve), distance_t(*dist_func)(Curve, Curve), std::string dist_matrix, 
 	int max_rounds = 10);

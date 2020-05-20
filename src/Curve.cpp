@@ -94,12 +94,6 @@ distance_t Curve::get_fraction(PointID id, distance_t dist) const {
     if (dist < 1e-10) {
         dist = 0.;
     }
-    if (!(id < points.size() - 1) || (id == points.size() - 1 && dist == 0.)) {
-        std::cout << "aha \n";
-        std::cout << id << "\n";
-        std::cout << points.size() - 1 << "\n";
-        std::cout << dist << "\n";
-    }
     assert((id < points.size() - 1) || (id == points.size() - 1 && dist == 0.));
     assert(dist == 0. || (0. < dist && dist <= curve_length(id, id + 1) + ABS_TOL));
     return dist == 0. ? dist : std::min(1., dist / curve_length(id, id + 1));
@@ -114,10 +108,6 @@ CPoint Curve::get_cpoint_after(distance_t dist, PointID after_id) const {
 
     while (after_id + 1 < size() && curve_length(after_id + 1) < dist) {
         ++after_id;
-    }
-    if (after_id == points.size() - 1) {
-        std::cout << "this seems wrong...\n";
-        std::cout << dist - curve_length(after_id) << "\n";
     }
     return get_cpoint(after_id, dist - curve_length(after_id));
 }
@@ -142,7 +132,13 @@ Curve Curve::simplify(bool maintain_lengths) const {
 Curve Curve::naive_l_simplification(int l) const {
     Curve other(m_name);
 
-    size_t period = points.size() / l;
+    size_t period;
+
+    if (points.size() > l) {
+        period = points.size() / l;
+    } else {
+        period = 1;
+    }
 
     for (size_t i = 0; i < points.size(); i += period) {
         if (other.get_points().empty())

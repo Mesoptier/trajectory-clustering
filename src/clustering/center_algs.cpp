@@ -1,5 +1,5 @@
 #include "center_algs.h"
-
+#include "wedge_method.h"
 //#include "curve_simplification.h"
 #include "../Frechet/frechet_light.h"
 #include "../Frechet/frechet_matching.h"
@@ -186,9 +186,12 @@ Points get_images_of_points(
 		if (distance == 0)
 			continue;
 
-		while (last_index <= x_coords.size() - 2 && x_coords[last_index + 1] <= distance) {
-			++last_index;
-		}
+		// while (last_index <= x_coords.size() - 2 && x_coords[last_index + 1] <= distance) {
+		// 	++last_index;
+		// }
+
+		auto it = std::lower_bound(x_coords.begin(), x_coords.end(), distance);
+		last_index = static_cast<std::size_t>(std::distance(x_coords.begin(), it));
 
 		int prev = last_index;
 		int next = last_index + 1;
@@ -209,6 +212,7 @@ Points get_images_of_points(
 			distance_along_c2 = line.getY(distances[i]);
 			// std::cout << distance_along_c2 << ", " << curve_2.curve_length() << "\n";
 			assert(distance_along_c2 >= 0);
+			// assert(distance_along_c2 <= param_space_path.back().y);
 		}
 
 		if (distance_along_c2 > curve_2.curve_length()) {
@@ -286,25 +290,6 @@ Points get_uniformly_spaced_points(Points param_space_path, Curve curve_1, Curve
 	}
 
 	return points;
-}
-
-
-Point mean_of_points(Points points) {
-
-	distance_t x_mean = 0;
-	distance_t y_mean = 0;
-
-	for (auto p: points) {
-		x_mean += p.x;
-		y_mean += p.y;
-	}
-
-	x_mean /= points.size();
-	y_mean /= points.size();
-
-	Point new_point = Point(x_mean, y_mean);
-
-	return new_point;
 }
 
 bool calcKXCenters(Curves const& curves, Clustering& clustering, int l, C2CDist c2c_dist, distance_t(*dist_func)(Curve, Curve))
@@ -393,8 +378,8 @@ bool computerCenters(Curves const& curves, Clustering& clustering, int l, Center
 		return calcFSACenters(curves, clustering, l, dist_func, C2CDist::Max, CenterCurveUpdateMethod::frechetCentering);
 	case CenterAlg::fMean:
 		return calcFSACenters(curves, clustering, l, dist_func, C2CDist::Median, CenterCurveUpdateMethod::frechetMean);
-	case CenterAlg::dtwMean:
-		return calcFSACenters(curves, clustering, l, dist_func, C2CDist::Median, CenterCurveUpdateMethod::dtwMean);
+	case CenterAlg::dba:
+		return dba(curves, clustering, dist_func, C2CDist::Mean);
 	case CenterAlg::avFCenter:
 		return calcFSACenters(curves, clustering, l, dist_func, C2CDist::Median, CenterCurveUpdateMethod::avFCenter);
 	case CenterAlg::newCenterUpdate:
@@ -405,6 +390,10 @@ bool computerCenters(Curves const& curves, Clustering& clustering, int l, Center
 		return naiveCenterUpdate(curves, clustering, dist_func, C2CDist::Median);
 	case CenterAlg::ensembleMethod1:
 		return ensembleMethod1(curves, clustering, dist_func, C2CDist::Median);
+	case CenterAlg::cdba:
+		return cdba(curves, clustering, dist_func, C2CDist::Median);
+	case CenterAlg::wedge:
+		return wedge_method(curves, clustering, dist_func, C2CDist::Median);
 	}
 
 	ERROR("No matching center_alg enum passed.");
@@ -451,6 +440,7 @@ bool calcFSACenters(Curves const& curves, Clustering& clustering, int /* l */, d
 		auto const& center_curve = cluster.center_curve;
 		Curve new_center_curve;
 
+
 		for (auto curve_id: cluster.curve_ids) {
 			auto const& curve = curves[curve_id];
 			// auto matching = calcMatching(cluster.center_curve, curve);
@@ -474,7 +464,7 @@ bool calcFSACenters(Curves const& curves, Clustering& clustering, int /* l */, d
 				case CenterCurveUpdateMethod::avFCenter:
 					matchings.push_back(
 						get_images_of_points(
-							IntegralFrechet(cluster.center_curve, curve, ParamMetric::LInfinity_NoShortcuts, 1, nullptr)
+							IntegralFrechet(cluster.center_curve, curve, ParamMetric::L1, 1, nullptr)
 							.compute_matching()
 							.matching,
 							cluster.center_curve.get_prefix_length_vector(),
@@ -485,7 +475,7 @@ bool calcFSACenters(Curves const& curves, Clustering& clustering, int /* l */, d
 				case CenterCurveUpdateMethod::frechetMean:
 					matchings.push_back(
 						get_images_of_points(
-							IntegralFrechet(cluster.center_curve, curve, ParamMetric::LInfinity_NoShortcuts, 1, nullptr)
+							IntegralFrechet(cluster.center_curve, curve, ParamMetric::L1, 1, nullptr)
 							.compute_matching()
 							.matching,
 							cluster.center_curve.get_prefix_length_vector(),
@@ -499,10 +489,14 @@ bool calcFSACenters(Curves const& curves, Clustering& clustering, int /* l */, d
 					int index = 0;
 					for (int i = 0; i < cluster.center_curve.get_points().size(); ++i) {
 						while (i != dtw_matching[index].first) {
-							index++;
+							++index;
 						}
-						matching.push_back(curve[index]);
+						while (i == dtw_matching[index].first && index < dtw_matching.size()) {
+							matching.push_back(curve[dtw_matching[index].second]);
+							++index;
+						}
 					}
+					matchings.push_back(matching);
 					break;
 				}
 				case CenterCurveUpdateMethod::newCenterUpdate:
@@ -568,13 +562,247 @@ bool calcFSACenters(Curves const& curves, Clustering& clustering, int /* l */, d
 		if (center_curve != new_center_curve) {
 			auto new_dist = calcC2CDist(curves, new_center_curve, cluster.curve_ids, c2c_dist, dist_func);
 			if (new_dist < cluster.cost) {
+				std::cout << "new cluster center\n";
+				cluster.center_curve = std::move(new_center_curve);
+				cluster.cost = new_dist;
+				found_new_center = true;
+			}
+		}
+
+	}
+	
+	if (found_new_center) {
+		std::cout << "found new center\n";
+	}
+	else {
+		std::cout << "no new center... :( \n";
+	}
+	return found_new_center;
+}
+
+bool dba(Curves const& curves, Clustering& clustering, distance_t(*dist_func)(Curve, Curve), C2CDist c2c_dist) {
+	bool found_new_center = false;
+
+	for (auto& cluster: clustering) {
+		if (cluster.cost == std::numeric_limits<distance_t>::max()) {
+			cluster.cost = calcC2CDist(curves, cluster.center_curve, cluster.curve_ids, c2c_dist, dist_func);
+		}
+	}
+
+	for (auto& cluster: clustering) {
+		const auto& center_curve = cluster.center_curve;
+		Curve new_center_curve;
+		std::vector<std::vector<Points>> matchings = std::vector<std::vector<Points>>();
+
+		for (auto& curve_id: cluster.curve_ids) {
+			Curve curve = curves[curve_id];
+			auto dtw_matching = DTW(cluster.center_curve, curve).matching();
+			std::vector<Points> matching = std::vector<Points>();
+
+			int matching_index = 0;
+			for (int i = 0; i < cluster.center_curve.size(); ++i) {
+				matching.push_back({});
+				while (matching_index < dtw_matching.size() && dtw_matching[matching_index].first == i) {
+					matching.back().push_back(curve[dtw_matching[matching_index].second]);
+					++matching_index;
+				}
+			}
+
+			matchings.push_back(matching);
+		}
+
+		for (int i = 0; i < cluster.center_curve.size(); ++i) {
+			Points points_to_average = Points();
+
+			for (auto& matching: matchings) {
+				// points_to_average.push_back(matching[i][0]);
+				for (auto& point: matching[i]) {
+					points_to_average.push_back(point);
+				}
+			}
+
+			Point new_point = mean_of_points(points_to_average);
+
+			if (new_center_curve.size() == 0 || !approx_equal(new_point, new_center_curve.back())) {
+				new_center_curve.push_back(
+					new_point
+				);
+			}
+
+		}
+
+		if (center_curve != new_center_curve) {
+			auto new_dist = calcC2CDist(curves, new_center_curve, cluster.curve_ids, c2c_dist, dist_func);
+			if (new_dist < cluster.cost) {
+				std::cout << "new cluster center\n";
 				cluster.center_curve = std::move(new_center_curve);
 				cluster.cost = new_dist;
 				found_new_center = true;
 			}
 		} 
+
 	}
+
+	if (found_new_center) {
+		std::cout << "found new center\n";
+	}
+	else {
+		std::cout << "no new center... :( \n";
+	}
+	return found_new_center;
+}
+
+std::pair<distance_t, distance_t> get_y_range(Points& param_space_path, distance_t distance) {
+
+	std::vector<distance_t> x_coords = std::vector<distance_t>();
+
+	for (auto& point: param_space_path) {
+		x_coords.push_back(point.x);
+	}
+
+	if (distance > param_space_path.back().x)
+		distance = param_space_path.back().x;
+
+	int index = 0;
+
+	auto it = std::lower_bound(x_coords.begin(), x_coords.end(), distance);
+	index = static_cast<std::size_t>(std::distance(x_coords.begin(), it));
+
+	// if (index < 0)
+	// 	++index;
+
+	// while (index <= x_coords.size() - 2 && (x_coords[index + 1] <= distance)) {
+	// 	index++;
+	// }
+
+	// if (index > 0)
+	// 	--index;
+
+	if (index == x_coords.size() - 1) {
+		return {param_space_path.back().y, param_space_path.back().y};
+	}
+
+	Point p = param_space_path[index];
+	Point q = param_space_path[index + 1];
+
+	if (approx_equal(p, q)) {
+		std::cout << "...\n";
+	}
+
+	Line line = Line::fromTwoPoints(p, q);
+
+	if (!line.isVertical()) {
+		distance_t num = line.getY(distance);
+
+		if (isnan(num)) {
+			std::cout << "num is nan...\n";
+		}
+
+		if (approx_equal(num, 0.))
+			num = 0.;
+
+		return {num, num};
+	}
+
+	int next_index = index + 1;
+
+	while (next_index < param_space_path.size() && param_space_path[next_index].x == param_space_path[index].x)
+		++next_index;
 	
+
+	if (isnan(param_space_path[index].y))
+		std::cout << "uh-oh spaghetti-ohs\n";
+	
+	return {param_space_path[index].y, param_space_path[next_index - 1].y};
+}
+
+bool cdba(Curves const& curves, Clustering& clustering, distance_t(*dist_func)(Curve, Curve), C2CDist c2c_dist) {
+	bool found_new_center = false;
+
+	for (auto& cluster: clustering) {
+		if (cluster.cost == std::numeric_limits<distance_t>::max()) {
+			cluster.cost = calcC2CDist(curves, cluster.center_curve, cluster.curve_ids, c2c_dist, dist_func);
+		}
+	}
+
+	for (auto& cluster: clustering) {
+		const auto& center_curve = cluster.center_curve;
+		Curve new_center_curve;
+		std::vector<std::vector<Points>> matchings = std::vector<std::vector<Points>>();
+
+		for (auto& curve_id: cluster.curve_ids) {
+			Curve curve = curves[curve_id];
+			Points param_space_path = IntegralFrechet(center_curve, curve, ParamMetric::L1, 1, nullptr)
+			.compute_matching()
+			.matching;
+
+			std::vector<Points> matching = std::vector<Points>();
+
+			for (int i = 0; i < center_curve.size(); ++i) {
+				matching.push_back({});
+				distance_t dist = center_curve.curve_length(i);
+				std::pair<distance_t, distance_t> y_range = get_y_range(param_space_path, dist);
+
+				// if (i == 0) {
+				// 	assert(approx_equal(curve.interpolate_at(curve.get_cpoint_after(y_range.first)), {0, 0}));
+				// }
+
+				if (approx_equal(y_range.first, y_range.second)) {
+					matching.back().push_back(curve.interpolate_at(curve.get_cpoint_after(y_range.first)));
+				}
+				else {
+					distance_t length = y_range.second - y_range.first;
+					distance_t ratio_to_curve_length = length / curve.curve_length();
+					int number_of_samples = 2 * curve.size() * ratio_to_curve_length;
+
+					if (number_of_samples == 0)
+						number_of_samples = 1;
+
+					for (int j = 0; j < number_of_samples; ++j) {
+						distance_t dist_along_curve = y_range.first + j * length / number_of_samples;
+						matching.back().push_back(curve.interpolate_at(curve.get_cpoint_after(dist_along_curve)));
+					}
+				}
+
+				if (matching.back().size() == 0)
+					std::cout << "woah...\n";
+			}
+
+			matchings.push_back(matching);
+		}
+
+		for (int i = 0; i < cluster.center_curve.size(); ++i) {
+			Points points_to_average = Points();
+
+			for (auto& matching: matchings) {
+				// points_to_average.push_back(matching[i][0]);
+				for (auto& point: matching[i]) {
+					points_to_average.push_back(point);
+				}
+			}
+
+			Point new_point = mean_of_points(points_to_average);
+
+			if (new_center_curve.size() == 0 || !approx_equal(new_point, new_center_curve.back())) {
+				new_center_curve.push_back(
+					new_point
+				);
+			}
+
+		}
+
+		if (center_curve != new_center_curve) {
+			auto new_dist = calcC2CDist(curves, new_center_curve, cluster.curve_ids, c2c_dist, dist_func);
+			if (new_dist < cluster.cost) {
+				// std::cout << "new cluster center\n";
+				cluster.center_curve = std::move(new_center_curve);
+				cluster.cost = new_dist;
+				found_new_center = true;
+			}
+		} 
+
+	}
+
 	if (found_new_center) {
 		std::cout << "found new center\n";
 	}
@@ -610,7 +838,7 @@ bool naiveCenterUpdate(Curves const& curves, Clustering& clustering, distance_t(
 				matchings[i].push_back(curve.interpolate_at(curve.get_cpoint_after(dist * i)));
 			}
 		}
-		std::cout << "finished first loop\n";
+
 		Points new_points = Points();
 
 		for (int i = 0; i < matchings.size(); ++i) {
@@ -634,12 +862,12 @@ bool naiveCenterUpdate(Curves const& curves, Clustering& clustering, distance_t(
 
 	}
 
-	if (found_new_center) {
-		std::cout << "found new center\n";
-	}
-	else {
-		std::cout << "no new center... :( \n";
-	}
+	// if (found_new_center) {
+	// 	std::cout << "found new center\n";
+	// }
+	// else {
+	// 	std::cout << "no new center... :( \n";
+	// }
 	return found_new_center;
 
 }
@@ -647,9 +875,10 @@ bool naiveCenterUpdate(Curves const& curves, Clustering& clustering, distance_t(
 bool ensembleMethod1(Curves const& curves, Clustering& clustering, distance_t(*dist_func)(Curve, Curve), C2CDist c2c_dist) {
 
 	if (naiveCenterUpdate(curves, clustering, dist_func, c2c_dist)) {
-		std::cout << "naive method helped...\n";
+		std::cout << "";
 	}
 
-	bool new_centers = calcFSACenters(curves, clustering, 0, dist_func, c2c_dist, CenterCurveUpdateMethod::frechetMean);
+	// bool new_centers = calcFSACenters(curves, clustering, 0, dist_func, c2c_dist, CenterCurveUpdateMethod::frechetMean);
+	bool new_centers = cdba(curves, clustering, dist_func, c2c_dist);
 	return new_centers;
 }

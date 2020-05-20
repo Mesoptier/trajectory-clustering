@@ -4,6 +4,7 @@
 #include <tuple>
 #include <vector>
 
+
 distance_t DTW::dist(const Point& a, const Point& b) {
     auto diff = b - a;
     return norm(diff, n);

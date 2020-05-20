@@ -79,7 +79,7 @@ void characterClassification()
 					training_curves.end(), curves_slots[j].begin(), curves_slots[j].end());
 			}
 			auto clustering = computeCenterClustering(
-				training_curves, k, l, cluster_alg, center_alg, frechet, "", 1);
+				training_curves, k, l, cluster_alg, center_alg, frechet, frechet, "", 1);
 			for (auto const& cluster: clustering) {
 				centers.push_back(std::move(cluster.center_curve));
 			}

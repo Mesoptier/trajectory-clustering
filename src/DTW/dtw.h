@@ -1,6 +1,7 @@
 #ifndef DTWH
 #define DTWH
 
+#include <iostream>
 #include <cstddef>
 #include <utility>
 #include "../Curve.h"

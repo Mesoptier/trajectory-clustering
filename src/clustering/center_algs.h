@@ -19,7 +19,10 @@ enum class CenterAlg {
 	newCenterUpdate,
 	newCenterUpdate2,
 	naiveCenterUpdate,
-	ensembleMethod1
+	ensembleMethod1,
+	dba,
+	cdba,
+	wedge
 };
 
 enum class CenterCurveUpdateMethod {
@@ -51,8 +54,7 @@ bool calcKCenterCenters(Curves const& curves, Clustering& clustering, int l, dis
 bool calcFSACenters(
 	Curves const& curves, Clustering& clustering, int l, distance_t(*dist_func)(Curve, Curve), C2CDist cluster_dist = C2CDist::Max, CenterCurveUpdateMethod method=CenterCurveUpdateMethod::frechetMean);
 bool naiveCenterUpdate(Curves const& curves, Clustering& clustering, distance_t(*dist_func)(Curve, Curve), C2CDist c2c_dist);
-
-// First computes a new center via the naiveCenterUpdateMethod
-// the frechetMean update method is then applied
+bool dba(Curves const& curves, Clustering& clustering, distance_t(*dist_func)(Curve, Curve), C2CDist c2c_dist);
+bool cdba(Curves const& curves, Clustering& clustering, distance_t(*dist_func)(Curve, Curve), C2CDist c2c_dist);
 bool ensembleMethod1(Curves const& curves, Clustering& clustering, distance_t(*dist_func)(Curve, Curve), C2CDist c2c_dist);
 Points matching_of_vertices(Curve curve_1, Curve curve_2);
