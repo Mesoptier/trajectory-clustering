@@ -131,7 +131,6 @@ Point grid_search(Points wedge, WedgePoints wedge_points, distance_t eps = 0.25)
             candidate_wedge[1] = new_point;
             if (!approx_equal(wedge[0], wedge[1]) && !approx_equal(wedge[1], wedge[2])) {
                 distance_t new_cost = wedge_cost(candidate_wedge, wedge_points);
-
                 if (new_cost < min_cost) {
                     min_cost = new_cost;
                     best = new_point;

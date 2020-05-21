@@ -16,6 +16,7 @@ endif()
 # Debug, Release, RelWithDebugInfo, MinSizeRel
 
 add_compile_options("$<$<CONFIG:DEBUG>:${DEBUG_OPTIONS}>")
+add_link_options("$<$<CONFIG:DEBUG>:${DEBUG_OPTIONS}>")
 add_compile_options("$<$<CONFIG:RELEASE>:${RELEASE_OPTIONS}>")
 
 if(CMAKE_BUILD_TYPE STREQUAL "Release")
@@ -35,6 +36,13 @@ add_subdirectory(Google_tests)
 # Main executable
 add_executable(TrajectoryClustering_run main.cpp)
 
+set(GNU_OPTIONS
+    "-pedantic" "-Wall" "-Wextra" "-Wcast-align" "-Wcast-qual" "-Wlogical-op"
+    "-Wctor-dtor-privacy" "-Wdisabled-optimization" "-Wformat=2" "-Winit-self"
+    "-Wmissing-declarations" "-Wshadow" "-Wmissing-include-dirs" "-Wnoexcept"
+    "-Wold-style-cast" "-Woverloaded-virtual" "-Wredundant-decls" "-Wsign-promo"
+    "-Wsign-conversion" "-Wstrict-null-sentinel" "-Wstrict-overflow=2" "-Wundef"
+    "-Wswitch-default")
 
 set(CLANG_OPTIONS
     "-Weverything" "-Wno-c++98-compat" "-Wno-covered-switch-default"
@@ -55,9 +63,5 @@ else()
     target_compile_options(TrajectoryClustering_lib PRIVATE ${MSVC_OPTIONS})
     target_compile_options(TrajectoryClustering_run PRIVATE ${MSVC_OPTIONS})
 endif()
-
-SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pg")
-SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -pg")
-SET(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -pg")
 
 target_link_libraries(TrajectoryClustering_run PRIVATE TrajectoryClustering_lib)

@@ -22,6 +22,10 @@ Cell IntegralFrechet::get_cell(const CPosition& s, const CPosition& t) const {
     const auto s2 = curve2.interpolate_at(s[1]);
     const auto t1 = curve1.interpolate_at(t[0]);
     const auto t2 = curve2.interpolate_at(t[1]);
+    // std::cout << s1 << "\n" << s2 << "\n" << t1 << "\n" << t2 << "\n";
+    // std::cout << s[0] << "\n" << t[0] << "\n";
+    // std::cout << s1 << "\n" << t1 << "\n"; 
+    // std::cout << s1.dist_sqr(t1) << "\n";
     return {s1, s2, t1, t2};
 }
 

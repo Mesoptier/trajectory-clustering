@@ -828,6 +828,15 @@ bool naiveCenterUpdate(Curves const& curves, Clustering& clustering, distance_t(
 		for (int i = 0; i < l; ++i) {
 			matchings.push_back(Points());
 		}
+	}
+
+	for (auto& cluster: clustering) {
+		auto& center_curve = cluster.center_curve;
+		int l = center_curve.get_points().size();
+		std::vector<Points> matchings = std::vector<Points>();
+		for (int i = 0; i < l; ++i) {
+			matchings.push_back(Points());
+		}
 
 
 		for (auto& curve_id: cluster.curve_ids) {
@@ -838,7 +847,7 @@ bool naiveCenterUpdate(Curves const& curves, Clustering& clustering, distance_t(
 				matchings[i].push_back(curve.interpolate_at(curve.get_cpoint_after(dist * i)));
 			}
 		}
-
+		std::cout << "finished first loop\n";
 		Points new_points = Points();
 
 		for (int i = 0; i < matchings.size(); ++i) {

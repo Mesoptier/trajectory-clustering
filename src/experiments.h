@@ -136,7 +136,7 @@ void center_update_experiments() {
     // std::cout << kMedianCost(curves, gonzalez_clustering, average_frechet);
     // plot(gonzalez_clustering, curves, "plot.txt");
 
-    Clustering gonzalez_clustering = computeCenterClustering(curves, 1, 10, ClusterAlg::Gonzalez, CenterAlg::cdba, frechet, average_frechet, "", 1);
+    Clustering gonzalez_clustering = computeCenterClustering(curves, 1, 10, ClusterAlg::Gonzalez, CenterAlg::wedge, frechet, average_frechet, "", 1);
     std::cout << kMedianCost(curves, gonzalez_clustering, average_frechet);
     plot(gonzalez_clustering, curves, "plot.txt");
 }
