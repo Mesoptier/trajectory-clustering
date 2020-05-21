@@ -825,6 +825,15 @@ bool clustering::naiveCenterUpdate(Curves const& curves, Clustering& clustering,
 
     for (auto& cluster: clustering) {
         auto& center_curve = cluster.center_curve;
+        int l = center_curve.get_points().size();
+        std::vector<Points> matchings = std::vector<Points>();
+        for (int i = 0; i < l; ++i) {
+            matchings.push_back(Points());
+        }
+    }
+
+    for (auto& cluster: clustering) {
+        auto& center_curve = cluster.center_curve;
         auto l = center_curve.get_points().size();
         std::vector<Points> matchings = std::vector<Points>();
         for (std::size_t i = 0; i < l; ++i) {
