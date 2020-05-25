@@ -29,10 +29,5 @@ Line linear_regression(Points& points, std::vector<distance_t>& weights) {
 
     MatrixXd beta = (X_trans * W_inv * X).inverse() * X_trans * W_inv * y;
 
-    if (std::isnan(beta(1, 0))) {
-        std::cout << W << "\n";
-        std::cout << "this is a problem...\n";
-    }
-
     return Line::fromPointAndSlope({0, beta(0, 0)}, beta(1, 0));
 }
