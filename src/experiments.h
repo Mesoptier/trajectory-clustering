@@ -134,8 +134,8 @@ void center_update_experiments() {
     // std::cout << kMedianCost(curves, gonzalez_clustering, average_frechet);
     // plot(gonzalez_clustering, curves, "plot.txt");
 
-    Clustering gonzalez_clustering = computeCenterClustering(curves, 1, 10, ClusterAlg::Gonzalez, CenterAlg::cdba, frechet, average_frechet, "", 1);
-    std::cout << kMedianCost(curves, gonzalez_clustering, average_frechet);
+    Clustering gonzalez_clustering = computeCenterClustering(curves, 1, 10, ClusterAlg::Gonzalez, CenterAlg::regression, frechet, average_frechet, "", 1);
+    // std::cout << kMedianCost(curves, gonzalez_clustering, average_frechet);
     plot(gonzalez_clustering, curves, "plot.txt");
 }
 
@@ -216,5 +216,42 @@ void preliminary_experiments() {
     // std::cout << "gonzalez average center: " << kMedianCost(curves, gonzalez_average_center, average_frechet) << "\n";
     // std::cout << "pam + dtw mean centering: " << kMedianCost(curves, pam_dtw, average_frechet) << "\n";
     // std::cout << "gonzalez mean dtw: " << kMedianCost(curves, gonzalez_mean_dtw, average_frechet) << "\n"; 
+}
+
+void wedge_method_experiment() {
+    Curves curves = io::read_curves("data/characters/data");
+    std::cout << "loaded curves...";
+
+    std::map<char, Curves> curves_by_letter = std::map<char, std::vector<Curve>>();
+
+    for (auto& curve: curves) {
+        char letter = curve.name()[21];
+        std::cout << letter << "\n";
+        auto it = curves_by_letter.find(letter);
+
+        if (it == curves_by_letter.end()) {
+            Curves new_vector = {curve};
+            curves_by_letter.emplace(letter, new_vector);
+        }
+        else if (curves_by_letter.at(letter).size() < 11) {
+            curves_by_letter.at(letter).push_back(curve);
+        }
+    }
+
+    std::map<char, std::vector<Curve>>::iterator it;
+
+    std::fstream output_file;
+    output_file.open("wedge_experiment.dat", std::fstream::out | std::fstream::trunc);
+
+    output_file << "character\tcdba_cost\twedge_cost\n";
+
+    for (it = curves_by_letter.begin(); it != curves_by_letter.end(); ++it) {
+        std::cout << "comparing the " << it->first << " curves...\n";
+        Clustering cdba_clustering = computeCenterClustering(it->second, 1, 12, ClusterAlg::Gonzalez, CenterAlg::cdba, frechet, average_frechet, "", 1);
+        Clustering wedge_clustering = computeCenterClustering(it->second, 1, 12, ClusterAlg::Gonzalez, CenterAlg::wedge, frechet, average_frechet, "", 1);
+        output_file << it->first << "\t" << std::to_string(cdba_clustering[0].cost) << "\t" << std::to_string(wedge_clustering[0].cost) << "\n";
+    }
+
+    output_file.close();
 }
 }

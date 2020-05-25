@@ -1,6 +1,7 @@
 #include "clustering/center_algs.h"
 
 #include "clustering/wedge_method.h"
+#include "clustering/regression_method.h"
 #include "DTW/dtw.h"
 #include "Frechet/frechet_light.h"
 #include "Frechet/frechet_matching.h"
@@ -392,6 +393,8 @@ bool clustering::computerCenters(Curves const& curves, Clustering& clustering,
         return cdba(curves, clustering, dist, C2CDist::Median);
     case CenterAlg::wedge:
         return wedge_method(curves, clustering, dist, C2CDist::Median);
+    case CenterAlg::regression:
+        return regression_method(curves, clustering, dist_func, C2CDist::Median);
     }
     ERROR("No matching center_alg enum passed.");
 }
@@ -652,7 +655,7 @@ bool clustering::dba(Curves const& curves, Clustering& clustering, distance_t(*d
     return found_new_center;
 }
 
-std::pair<distance_t, distance_t> clustering::get_y_range(Points& param_space_path, distance_t distance) {
+std::pair<distance_t, distance_t> get_y_range(Points& param_space_path, distance_t distance) {
 
     std::vector<distance_t> x_coords = std::vector<distance_t>();
 
@@ -668,15 +671,15 @@ std::pair<distance_t, distance_t> clustering::get_y_range(Points& param_space_pa
     auto it = std::lower_bound(x_coords.begin(), x_coords.end(), distance);
     index = static_cast<std::size_t>(std::distance(x_coords.begin(), it));
 
+    if (x_coords[index] > distance)
+        index--;
+
     // if (index < 0)
     //  ++index;
 
     // while (index <= x_coords.size() - 2 && (x_coords[index + 1] <= distance)) {
     //  index++;
     // }
-
-    // if (index > 0)
-    //  --index;
 
     if (index == x_coords.size() - 1) {
         return {param_space_path.back().y, param_space_path.back().y};
@@ -700,6 +703,9 @@ std::pair<distance_t, distance_t> clustering::get_y_range(Points& param_space_pa
 
         if (approx_equal(num, 0.))
             num = 0.;
+
+        if (num  < 0)
+            std::cout << "this is weird...\n";
 
         return {num, num};
     }

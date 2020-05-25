@@ -24,7 +24,8 @@ namespace clustering {
         ensembleMethod1,
         dba,
         cdba,
-        wedge
+        wedge,
+        regression
     };
 
     enum class CenterCurveUpdateMethod {

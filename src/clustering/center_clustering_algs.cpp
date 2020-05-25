@@ -15,7 +15,7 @@ namespace {
 
         // iterate as long as there are new centers
         unsigned count = 1;
-        unsigned const max_count = 10;
+        unsigned const max_count = 1;
         while (count <= max_count && clustering::computerCenters(
                 curves, clustering, l, center_alg, dist)) {
             clustering::updateClustering(curves, clustering, dist);
