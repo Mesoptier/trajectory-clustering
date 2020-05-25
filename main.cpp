@@ -11,6 +11,9 @@
 #include "src/IntegralFrechet/MatchingBand.h"
 #include "src/simplification/imaiiri.h"
 #include "src/DTW/dtw.h"
+#include "src/cdtw/cdtw.h"
+#include "src/cdtw/1d-l1-l1.h"
+#include "src/cdtw/1d-l2squared-l1.h"
 
 namespace {
 //
@@ -216,43 +219,55 @@ void experiment_visualize_band() {
     std::cout << "matching cost: " << result.cost << '\n';
     std::cout << "matching (alt) cost: " << result_alt.cost << '\n';
 }
+
+void experiment_compare_heuristic_vs_extact_cdtw() {
+//    const auto curve1 = io::read_curve("data/characters/data/a0001.txt").to_1d();
+//    const auto curve2 = io::read_curve("data/characters/data/a0002.txt").to_1d();
+
+    const auto curve1 = io::read_curve("data/characters/data/a0001.txt").simplify(false).to_1d();
+    const auto curve2 = io::read_curve("data/characters/data/a0002.txt").simplify(false).to_1d();
+
+//    io::export_points("data/out/curve1.csv", curve1.get_points());
+//    io::export_points("data/out/curve2.csv", curve2.get_points());
+
+
+    // Heuristic
+//    {
+//        auto start_time = std::chrono::high_resolution_clock::now();
+//
+//        IntegralFrechet heuristic_alg(curve1, curve2, ParamMetric::L1, 0.1);
+//        const auto heuristic_res = heuristic_alg.compute_matching();
+//
+//        auto end_time = std::chrono::high_resolution_clock::now();
+//        auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time).count();
+//        std::cout << "heuristic cost: " << heuristic_res.cost << '\n';
+//        std::cout << "heuristic time: " << duration << "ms\n";
+//    }
+
+    // Exact
+    {
+        auto start_time = std::chrono::high_resolution_clock::now();
+
+        CDTW<1, Norm::L2Squared, Norm::L1> exact_alg(curve1, curve2);
+
+        auto end_time = std::chrono::high_resolution_clock::now();
+        auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time).count();
+        std::cout << "exact cost: " << exact_alg.cost() << '\n';
+        std::cout << "exact time: " << duration << "ms\n";
+
+        exact_alg.output_visualization_data();
+        exact_alg.print_complexity();
+    }
+
+}
 }
 
 int main() {
-    const auto curves = read_curves("data/characters/data");
-    // const auto dm = compute_distance_matrix(curves);
-    // export_matrix(dm, "data/out/distance_matrix.mtx");
+    // TODO: Compare Heuristic CDTW vs Exact CDTW (timing and result)
+    // TODO: Upgrade to 2D + L2^2
+    // TODO: How to Dijkstra in Exact CDTW?
 
-    // const auto distance_matrix = read_matrix("data/out/distance_matrix.mtx");
-    // compute_clusters(distance_matrix, 19); // "characters" has 19 classes
-{
-    auto start_time = std::chrono::high_resolution_clock::now();
-    auto ret = simplification::imai_iri::simplify(curves[0], 5);
-    auto end_time = std::chrono::high_resolution_clock::now();
-    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time).count();
-    std::cout << "Time: " << duration << "ms\n";
-    std::cout << "Cost: " << ret.first << "\n";
-    std::cout << "Curve:";
-    for (const auto& p: ret.second.get_points())
-        std::cout << " " << p;
-    std::cout << "\n";
-    std::cout << "Length: " << ret.second.size() << std::endl;
-}
-{
-    auto start_time = std::chrono::high_resolution_clock::now();
-    DTW distance(curves[0], curves[1]);
-    auto end_time = std::chrono::high_resolution_clock::now();
-    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time).count();
-    std::cout << "Time: " << duration << "ms\n";
-    std::cout << "Cost: " << distance.cost() << "\n";
-    std::cout << "Matching:";
-    for (const auto& p: distance.matching())
-        std::cout << " (" << p.first << ", " << p.second << ")";
-    std::cout << std::endl;
-}
+    experiment_compare_heuristic_vs_extact_cdtw();
 
-    
-    // experiment_with_or_without_bands();
-    // experiment_visualize_band();
     return 0;
 }

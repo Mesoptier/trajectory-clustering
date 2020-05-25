@@ -12,6 +12,13 @@ class Curve {
 public:
     explicit Curve(std::string name);
     explicit Curve(std::string name, const Points& points);
+    /**
+     * Constructor for 1D curves.
+     *
+     * @param name
+     * @param points - List of X coordinates of the points.
+     */
+    explicit Curve(std::string name, const std::vector<double>& points);
 
     std::string name() const {
         return m_name;
@@ -78,4 +85,9 @@ public:
      * FIXME: Super crappy!
      */
     Curve simplify(bool maintain_lengths) const;
+
+    /**
+     * Get a 1-dimensional  version of the curve.
+     */
+    Curve to_1d() const;
 };

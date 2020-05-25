@@ -56,6 +56,9 @@ struct Cell
             const auto v = dot(l2.direction, l1.direction);
             ell_h = Line(mid, {v, 1});
             ell_v = Line(mid, {1, v});
+
+            // Compute ellipse shape
+            l = -dot(l1.direction, l2.direction);
         }
     }
 
