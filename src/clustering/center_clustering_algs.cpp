@@ -13,7 +13,7 @@ Clustering computeCenterClusteringRound(
 
 	// iterate as long as there are new centers
 	int count = 1;
-	int const max_count = 10;
+	int const max_count = 1;
 	while (count <= max_count && computerCenters(curves, clustering, l, center_alg, dist_func)) {
 		updateClustering(curves, clustering, dist_func);
 		++count;

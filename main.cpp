@@ -23,6 +23,8 @@
 #include "src/experiments.h"
 #include "src/synthetic_curves.h"
 #include "src/classification_experiment.h"
+ 
+
 
 namespace {
 //
@@ -536,6 +538,9 @@ void compute_curve_simp_matrix() {
 }
 
 int main() {
+
+
+
 //    const auto distance_matrix = read_matrix("data/out/distance_matrix.mtx");
 //    compute_clusters(distance_matrix, 19); // "characters" has 19 classes
 
@@ -555,16 +560,15 @@ int main() {
     // const auto curves = read_curves("data/characters/data");
     // const auto dm = compute_distance_matrix(curves);
     // export_matrix(dm, "data/out/distance_matrix.mtx");
-
     // const auto distance_matrix = read_matrix("data/out/distance_matrix.mtx");
     // compute_clusters(distance_matrix, 19); // "characters" has 19 classes
 
     // std::vector<double> vec = {.001, .021, 1.12, 1.121, 1.23, 1.23456};
-
     // auto it = std::lower_bound(vec.begin(), vec.end(), 1.234);
     // auto index = static_cast<std::size_t>(std::distance(vec.begin(), it));
     // std::cout << index << "\n";
 
+    // wedge_method_experiment();
     // test_frechet();
     // compute_curve_simp_matrix();
     // run_experiments();
@@ -577,7 +581,6 @@ int main() {
     // synthetic_curve_experiment();
     // Curve curve1 = Curve({{-13.519655, 518.2176}, {-13.4540596224652, 518.171459590597}, {-13.4312466704293, 518.128483280568}, {-13.3730548740233, 518.11155638744}, {-13.3532487713532, 518.103879442256}, {-13.3012273722711, 518.081146702316}, {-13.2822606164468, 518.062349118219}, {-13.2407413511353, 518.010277368733}, {-13.2249619456808, 517.946611346145}, {-13.2343869456808, 517.908641346145}, {-13.2343869456808, 517.908641346145}, {-13.2343869456808, 517.908641346145}, {-13.1726447645511, 517.82374300373}});
     // std::cout << approx_equal(curve1[curve1.size()-2], curve1[curve1.size()-3]) << "\n";
-
     // Curve curve_1  = Curve({{-0.2320513169, -0.3384415771}, {-0.2061375252,-0.17794736420000001}});
     // Curve curve_2 = Curve({{-0.2320513169, -0.3384415771}, {-0.2061375252, -0.17794736420000001}});
     // Curve curve_1 = Curve({{0, 0}, {1, 0}});

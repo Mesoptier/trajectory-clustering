@@ -104,6 +104,9 @@ CPoint Curve::get_cpoint(PointID id, distance_t dist) const {
 }
 
 CPoint Curve::get_cpoint_after(distance_t dist, PointID after_id) const {
+    if (curve_length(after_id) > dist) {
+        std::cout << "hmmm\n";
+    }
     assert(curve_length(after_id) <= dist);
 
     while (after_id + 1 < size() && curve_length(after_id + 1) < dist) {

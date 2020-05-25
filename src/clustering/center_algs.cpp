@@ -1,5 +1,6 @@
 #include "center_algs.h"
 #include "wedge_method.h"
+#include "regression_method.h"
 //#include "curve_simplification.h"
 #include "../Frechet/frechet_light.h"
 #include "../Frechet/frechet_matching.h"
@@ -394,6 +395,8 @@ bool computerCenters(Curves const& curves, Clustering& clustering, int l, Center
 		return cdba(curves, clustering, dist_func, C2CDist::Median);
 	case CenterAlg::wedge:
 		return wedge_method(curves, clustering, dist_func, C2CDist::Median);
+	case CenterAlg::regression:
+		return regression_method(curves, clustering, dist_func, C2CDist::Median);
 	}
 
 	ERROR("No matching center_alg enum passed.");
@@ -668,15 +671,15 @@ std::pair<distance_t, distance_t> get_y_range(Points& param_space_path, distance
 	auto it = std::lower_bound(x_coords.begin(), x_coords.end(), distance);
 	index = static_cast<std::size_t>(std::distance(x_coords.begin(), it));
 
+	if (x_coords[index] > distance)
+		index--;
+
 	// if (index < 0)
 	// 	++index;
 
 	// while (index <= x_coords.size() - 2 && (x_coords[index + 1] <= distance)) {
 	// 	index++;
 	// }
-
-	// if (index > 0)
-	// 	--index;
 
 	if (index == x_coords.size() - 1) {
 		return {param_space_path.back().y, param_space_path.back().y};
@@ -700,6 +703,9 @@ std::pair<distance_t, distance_t> get_y_range(Points& param_space_path, distance
 
 		if (approx_equal(num, 0.))
 			num = 0.;
+
+		if (num  < 0)
+			std::cout << "this is weird...\n";
 
 		return {num, num};
 	}
@@ -850,7 +856,7 @@ bool naiveCenterUpdate(Curves const& curves, Clustering& clustering, distance_t(
 		std::cout << "finished first loop\n";
 		Points new_points = Points();
 
-		for (int i = 0; i < matchings.size(); ++i) {
+		for (size_t i = 0; i < matchings.size(); ++i) {
 			if (matchings[i].size() > 0) {
 				Point point = mean_of_points(matchings[i]);
 				// if (new_points.size() > 0 && !approx_equal(new_points.back(), point))
