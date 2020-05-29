@@ -126,6 +126,41 @@ MatchingBand compute_band(const Curve& curve1, const Curve& curve2, const Points
 // Experiments
 //
 
+/**
+ * Reparametrize a matching over simplified curves to a matching over the original curves.
+ *
+ * @param matching - Simplified matching, will be reparametrized in-place.
+ * @param c1 - Original curve for x-axis
+ * @param c1_s - Simplified curve for x-axis
+ * @param c2 - Original curve for y-axis
+ * @param c2_s - Simplified curve for y-axis
+ */
+void reparametrize_matching(Points& matching, const Curve& c1, const SimplifiedCurve& c1_s, const Curve& c2, const SimplifiedCurve& c2_s) {
+    PointID prev_id1 = 0;
+    PointID prev_id2 = 0;
+
+    for (auto& p : matching) {
+        // For p.x/p.y:
+        // - Find PointID's of corresponding edge in (c1_s/c2_s).curve
+        // - Find corresponding PointID's in c1/c2 from (c1_s/c2_s).original_points
+        // - Update p.x/p.y by linear interpolation
+
+        const auto cp1 = c1_s.curve.get_cpoint_after(p.x, prev_id1);
+        prev_id1 = cp1.getPoint();
+        p.x = c1.curve_length(c1_s.original_points[cp1.getPoint()]) * (1 - cp1.getFraction());
+        if (cp1.getFraction() != 0) {
+            p.x += c1.curve_length(c1_s.original_points[cp1.getPoint() + 1]) * cp1.getFraction();
+        }
+
+        const auto cp2 = c2_s.curve.get_cpoint_after(p.y, prev_id2);
+        prev_id2 = cp2.getPoint();
+        p.y = c2.curve_length(c2_s.original_points[cp2.getPoint()]) * (1 - cp2.getFraction());
+        if (cp2.getFraction() != 0) {
+            p.y += c2.curve_length(c2_s.original_points[cp2.getPoint() + 1]) * cp2.getFraction();
+        }
+    }
+}
+
 void experiment_with_or_without_bands() {
     struct Stat {
         distance_t band_cost;
@@ -135,7 +170,6 @@ void experiment_with_or_without_bands() {
     };
     std::vector<Stat> stats;
 
-    bool maintain_lengths = true;
     distance_t simple_resolution = 10;
     distance_t resolution = 1;
     distance_t band_radius = 1;
@@ -156,8 +190,12 @@ void experiment_with_or_without_bands() {
 
         // With band
         auto start_band = std::chrono::high_resolution_clock::now();
-        const auto result_alt = compute_matching(curve1.simplify(maintain_lengths), curve2.simplify(maintain_lengths), simple_resolution,nullptr);
-        const auto band = compute_band(curve1, curve2, result_alt.matching, band_radius);
+        const auto curve1_simpl = curve1.simplify();
+        const auto curve2_simpl = curve2.simplify();
+        auto matching_simpl = compute_matching(curve1_simpl.curve, curve2_simpl.curve, simple_resolution, nullptr).matching;
+        reparametrize_matching(matching_simpl, curve1, curve1_simpl, curve2, curve2_simpl);
+
+        const auto band = compute_band(curve1, curve2, matching_simpl, band_radius);
         const auto result_band = compute_matching(curve1, curve2, resolution, &band);
         auto end_band = std::chrono::high_resolution_clock::now();
         auto duration_band = std::chrono::duration_cast<std::chrono::milliseconds>(end_band - start_band).count();
@@ -187,20 +225,24 @@ void experiment_with_or_without_bands() {
 }
 
 void experiment_visualize_band() {
-    bool maintain_lengths = true;
-
     const auto curve1 = io::read_curve("data/characters/data/a0001.txt");
     const auto curve2 = io::read_curve("data/characters/data/a0002.txt");
 
+    // Without band
     const auto result_no_band = compute_matching(curve1, curve2, 1, nullptr);
     io::export_points("data/out/debug_points_old.csv", result_no_band.search_stat.nodes_as_points);
     io::export_points("data/out/matching3.csv", result_no_band.matching);
     std::cout << "matching (no band) cost: " << result_no_band.cost << '\n';
 
+    // With band
     auto start_time = std::chrono::high_resolution_clock::now();
 
-    const auto result_alt = compute_matching(curve1.simplify(maintain_lengths), curve2.simplify(maintain_lengths), 10,nullptr);
-    const auto band = compute_band(curve1, curve2, result_alt.matching,     2);
+    const auto curve1_simpl = curve1.simplify();
+    const auto curve2_simpl = curve2.simplify();
+    auto matching_simpl = compute_matching(curve1_simpl.curve, curve2_simpl.curve, 10, nullptr).matching;
+    reparametrize_matching(matching_simpl, curve1, curve1_simpl, curve2, curve2_simpl);
+
+    const auto band = compute_band(curve1, curve2, matching_simpl, 2);
     const auto result = compute_matching(curve1, curve2, 1, &band);
 
     auto end_time = std::chrono::high_resolution_clock::now();
@@ -210,49 +252,48 @@ void experiment_visualize_band() {
     io::export_points("data/out/curve1.csv", curve1.get_points());
     io::export_points("data/out/curve2.csv", curve2.get_points());
     io::export_points("data/out/matching1.csv", result.matching);
-    io::export_points("data/out/matching2.csv", result_alt.matching);
+    io::export_points("data/out/matching2.csv", matching_simpl);
     io::export_points("data/out/debug_points.csv", result.search_stat.nodes_as_points);
 
     std::cout << "matching cost: " << result.cost << '\n';
-    std::cout << "matching (alt) cost: " << result_alt.cost << '\n';
 }
 }
 
 int main() {
-    const auto curves = read_curves("data/characters/data");
+//    const auto curves = read_curves("data/characters/data");
     // const auto dm = compute_distance_matrix(curves);
     // export_matrix(dm, "data/out/distance_matrix.mtx");
 
     // const auto distance_matrix = read_matrix("data/out/distance_matrix.mtx");
     // compute_clusters(distance_matrix, 19); // "characters" has 19 classes
-{
-    auto start_time = std::chrono::high_resolution_clock::now();
-    auto ret = simplification::imai_iri::simplify(curves[0], 5);
-    auto end_time = std::chrono::high_resolution_clock::now();
-    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time).count();
-    std::cout << "Time: " << duration << "ms\n";
-    std::cout << "Cost: " << ret.first << "\n";
-    std::cout << "Curve:";
-    for (const auto& p: ret.second.get_points())
-        std::cout << " " << p;
-    std::cout << "\n";
-    std::cout << "Length: " << ret.second.size() << std::endl;
-}
-{
-    auto start_time = std::chrono::high_resolution_clock::now();
-    DTW distance(curves[0], curves[1]);
-    auto end_time = std::chrono::high_resolution_clock::now();
-    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time).count();
-    std::cout << "Time: " << duration << "ms\n";
-    std::cout << "Cost: " << distance.cost() << "\n";
-    std::cout << "Matching:";
-    for (const auto& p: distance.matching())
-        std::cout << " (" << p.first << ", " << p.second << ")";
-    std::cout << std::endl;
-}
+//{
+//    auto start_time = std::chrono::high_resolution_clock::now();
+//    auto ret = simplification::imai_iri::simplify(curves[0], 5);
+//    auto end_time = std::chrono::high_resolution_clock::now();
+//    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time).count();
+//    std::cout << "Time: " << duration << "ms\n";
+//    std::cout << "Cost: " << ret.first << "\n";
+//    std::cout << "Curve:";
+//    for (const auto& p: ret.second.get_points())
+//        std::cout << " " << p;
+//    std::cout << "\n";
+//    std::cout << "Length: " << ret.second.size() << std::endl;
+//}
+//{
+//    auto start_time = std::chrono::high_resolution_clock::now();
+//    DTW distance(curves[0], curves[1]);
+//    auto end_time = std::chrono::high_resolution_clock::now();
+//    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time).count();
+//    std::cout << "Time: " << duration << "ms\n";
+//    std::cout << "Cost: " << distance.cost() << "\n";
+//    std::cout << "Matching:";
+//    for (const auto& p: distance.matching())
+//        std::cout << " (" << p.first << ", " << p.second << ")";
+//    std::cout << std::endl;
+//}
 
     
     // experiment_with_or_without_bands();
-    // experiment_visualize_band();
+     experiment_visualize_band();
     return 0;
 }
