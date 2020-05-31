@@ -9,14 +9,15 @@
 #include "src/SymmetricMatrix.h"
 #include "src/clustering/pam.h"
 #include "src/IntegralFrechet/MatchingBand.h"
-#include "src/greedy_simplification.h"
-#include "src/curve_simplification.h"
+// #include "src/greedy_simplification.h"
+// #include "src/curve_simplification.h"
 // #include "src/clustering/clustering.h"
 #include "src/CurveSimpMatrix.h"
 #include "src/clustering/pam_with_simplifications.h"
 #include "src/clustering/clustering_algs.h"
 #include "src/clustering/center_algs.h"
-#include "src/greedy_l_simplification.h"
+// #include "src/greedy_l_simplification.h"
+#include "src/simplification/agarwal.h"
 #include "src/simplification/imaiiri.h"
 #include "src/DTW/dtw.h"
 #include "src/distance_functions.h"
@@ -260,7 +261,11 @@ void evaluate_greedy_simplification() {
         std::cout << curve.name() << "\n";
 
         Curve simplification = curve.simplify(false);
-        Curve greedy_simp = greedy_simplification(curve, 0.25);
+        Curve greedy_simp = simplification::greedy::simplify(curve, 0.25,
+            [](const Curve& a, const Curve& b, distance_t t) {
+                return IntegralFrechet(a, b, ParamMetric::LInfinity_NoShortcuts,
+                    1, nullptr).compute_matching().cost <= t;
+            });
 
         // io::export_points(curve.name() + "-simplification.txt", greedy_simp.get_points());
         // io::export_points(curve.name() + "-regular-simplification.txt", simplification.get_points());
@@ -320,7 +325,11 @@ void write_simplifications() {
     std::cout << "computing greedy simplifications... \n";
     for (auto curve: curves) {
         greedy_simplifications.push_back(
-            greedy_simplification(curve, 0.25)
+            simplification::greedy::simplify(curve, 0.25,
+            [](const Curve& a, const Curve& b, distance_t t) {
+                return IntegralFrechet(a, b, ParamMetric::LInfinity_NoShortcuts,
+                    1, nullptr).compute_matching().cost <= t;
+            })
         );
     }
 
@@ -502,7 +511,10 @@ void test_frechet() {
     for (auto& curve: curves) {
         std::cout << curve.name() << "\n";
         simplifications.push_back(
-            simplify(curve, 10, frechet)
+            simplification::greedy::simplify(curve, 10,
+                [](const Curve& a, const Curve& b, distance_t t) {
+                    return frechet(a, b) <= t;
+                })
         );
     }
     // Clustering pam_clustering = pam_with_centering(curves, 10, 10, average_frechet, "characters_matrix.txt");

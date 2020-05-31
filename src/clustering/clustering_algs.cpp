@@ -4,7 +4,8 @@
 #include "../union_find.h"
 #include <limits>
 #include "../IntegralFrechet/IntegralFrechet.h"
-#include "../curve_simplification.h"
+// #include "../curve_simplification.h"
+#include "simplification/agarwal.h"
 
 namespace
 {
@@ -148,7 +149,7 @@ Clustering runGonzalez(Curves const& curves, std::size_t k, int l, distance_t(*d
 
 	// add as center and update closest distances to center
 	// auto center_curve = simplify(curves[center_id], l);
-	auto center_curve = naive_simplification ? curves[center_id].naive_l_simplification(l) : simplify(curves[center_id], l, dist_func);
+	auto center_curve = naive_simplification ? curves[center_id].naive_l_simplification(l) : simplification::greedy::simplify(curves[center_id], l, [dist_func](const Curve& a, const Curve& b, distance_t t) { return dist_func(a, b) <= t; });
 	
 	result.push_back({{}, center_curve});
 	for (CurveID curve_id = 0; curve_id < curves.size(); ++curve_id) {
@@ -173,7 +174,7 @@ Clustering runGonzalez(Curves const& curves, std::size_t k, int l, distance_t(*d
 		// auto center_curve = simplify(curves[center_id], l);
 		Curve cent_curve = naive_simplification ? 
 		curves[cid].naive_l_simplification(l) : 
-		simplify(curves[cid], l, dist_func);
+		simplification::greedy::simplify(curves[cid], l, [dist_func](const Curve& a, const Curve& b, distance_t t) { return dist_func(a, b) <= t; });
 		
 		result.push_back({{}, cent_curve});
 		for (CurveID curve_id = 0; curve_id < curves.size(); ++curve_id) {

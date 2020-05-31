@@ -1,7 +1,7 @@
 #pragma once
 
 #include "../Curve.h"
-#include "../greedy_simplification.h"
+// #include "../greedy_simplification.h"
 #include <limits>
 
 using Curves = std::vector<Curve>;

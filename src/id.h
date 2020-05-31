@@ -1,6 +1,7 @@
 #ifndef IDTYPE
 #define IDTYPE
 
+#include <cstddef>
 #include <functional>
 #include <limits>
 
@@ -10,10 +11,10 @@
 template <typename T>
 struct ID {
 public:
-    using IDType = unsigned long long;
+    using IDType = std::size_t;
     static constexpr IDType invalid_value = std::numeric_limits<IDType>::max();
 
-    ID(IDType nid = invalid_value) : id(nid) {}
+    ID(IDType nid = invalid_value) noexcept : id(nid) {}
 
     operator IDType() const {
         return id;
@@ -25,6 +26,10 @@ public:
 
     IDType operator-=(ID<T> other) {
         return id -= other.id;
+    }
+
+    IDType operator*=(ID<T> other) {
+        return id *= other.id;
     }
 
     IDType operator++() {
