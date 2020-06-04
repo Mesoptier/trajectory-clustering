@@ -159,6 +159,13 @@ bool approx_equal(const Polynomial<D>& a, const Polynomial<D>& b, double tol = A
     return approx_equal(a.coefficients, b.coefficients, tol);
 }
 
+template<size_t NewD, size_t D>
+Polynomial<NewD> change_degree(const Polynomial<D>& f) {
+    Polynomial<NewD> result;
+    std::copy(f.coefficients.begin(), f.coefficients.begin() + std::min(D, NewD) + 1, result.coefficients.begin());
+    return result;
+}
+
 template<size_t D>
 std::ostream& operator<<(std::ostream& os, const Polynomial<D>& p) {
     os << std::fixed;
