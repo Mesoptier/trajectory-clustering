@@ -72,7 +72,7 @@ void verify_minimum(const PiecewisePolynomial<D>& f, const std::vector<Constrain
  *
  * @tparam D - Degree of the polynomials
  * @param h - Bivariate polynomial function H(x,y)
- * @param interval - Domain of Y
+ * @param interval_y - Domain of Y
  * @param left_constraints - Constraints of shape a*y+b >= 0
  * @param right_constraints - Constraints of shape a*y+b <= 0
  * @return
@@ -80,7 +80,7 @@ void verify_minimum(const PiecewisePolynomial<D>& f, const std::vector<Constrain
 template<size_t D>
 PiecewisePolynomial<D> find_minimum(
     const BivariatePolynomial<D>& h,
-    const Interval& interval,
+    const Interval& interval_y,
     std::vector<Polynomial<1>> left_constraints,
     std::vector<Polynomial<1>> right_constraints
 ) {
@@ -110,14 +110,14 @@ PiecewisePolynomial<D> find_minimum(
     lines.insert(lines.end(), critical_lines.begin(), critical_lines.end());
 
     std::set<double> events;
-    events.insert(interval.min);
-    events.insert(interval.max);
+    events.insert(interval_y.min);
+    events.insert(interval_y.max);
 
     for (size_t i = 0; i < lines.size(); ++i) {
         for (size_t j = i + 1; j < lines.size(); ++j) {
             auto intersections = find_intersections(lines[i], lines[j]);
             for (auto intersection : intersections) {
-                if (interval.contains(intersection)) {
+                if (interval_y.contains(intersection)) {
                     events.insert(intersection);
                 }
             }
@@ -194,33 +194,7 @@ PiecewisePolynomial<D> find_minimum(
         pieces.emplace_back(edge.interval, h.embed_x(edge.polynomial));
     }
 
-    const PiecewisePolynomial<D> result = naive_lower_envelope(pieces);
-
-    #ifndef NDEBUG
-    if (!result.empty()) {
-        // Checking whether the supposed minimum is actually the minimum
-        const Interval result_interval = result.interval();
-        const ConstrainedBivariatePolynomial<D> hc{
-            h,
-            interval,
-            left_constraints,
-            right_constraints,
-        };
-
-        size_t n = 100;
-        for (size_t i = 0; i <= n; ++i) {
-            double y = result_interval.interpolate(i / static_cast<double>(n));
-            double supposed_minimum = result(y);
-            auto slice = hc.slice_at_y(y);
-
-            double real_minimum = slice.min_value();
-            assert(approx_equal(supposed_minimum, real_minimum));
-        }
-
-    }
-    #endif
-
-    return result;
+    return naive_lower_envelope(pieces);
 }
 
 template<size_t D>
