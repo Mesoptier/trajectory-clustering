@@ -1,5 +1,7 @@
 #include "Polynomial.h"
 
+#include <unsupported/Eigen/Polynomials>
+
 //
 // find_roots
 //
@@ -51,41 +53,12 @@ std::vector<double> find_roots<3>(const Polynomial<3>& f) {
         return find_roots(Polynomial<2>({d, c, b}));
     }
 
-    // Depressed cubic equation
-    // t^3 + pt + q = 0
-    double shift = b / (3*a); // t = x + shift
-    double p = (3*a*c - b*b) / (3*a*a);
-    double q = (2*b*b*b - 9*a*b*c + 27*a*a*d) / (27*a*a*a);
+    Eigen::PolynomialSolver<double, 3> solver;
+    Eigen::Array4d poly(d, c, b, a);
+    solver.compute(poly);
 
-    double D = -(4*p*p*p + 27*q*q);
-
-    if (approx_zero(D)) {
-        if (approx_zero(p)) { // 1 triple root
-            double t1 = 0;
-            return { t1 - shift };
-        }
-
-        // 1 simple root + 1 double root
-        double t1 = (3*q) / p;
-        double t2 = (-3*q) / (2*p);
-        return { t1 - shift, t2 - shift };
-    }
-
-    if (D < 0) { // 1 real root + 2 complex roots
-        double term1 = std::sqrt((q*q)/4 + (p*p*p)/27);
-        double t1 = std::cbrt(-q/2 + term1) + std::cbrt(-q/2 - term1);
-        return { t1 - shift };
-    }
-
-    // 3 real roots
-    double term1 = 2 * std::sqrt(-p/3);
-    double term2 = 1./3 * std::acos((3*q) / (2*p) * std::sqrt(-3/p));
-    std::vector<double> roots(3);
-
-    for (size_t k = 0; k < 3; ++k) {
-        roots[k] = term1 * std::cos(term2 - (2 * M_PIl * k) / 3) - shift;
-    }
-
+    std::vector<double> roots;
+    solver.realRoots(roots);
     return roots;
 }
 
