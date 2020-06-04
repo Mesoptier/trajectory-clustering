@@ -19,43 +19,26 @@ std::vector<double> find_roots<1>(const Polynomial<1>& f) {
 
 template<>
 std::vector<double> find_roots<2>(const Polynomial<2>& f) {
-    double c0 = f.coefficients[0];
-    double c1 = f.coefficients[1];
-    double c2 = f.coefficients[2];
-
-    if (c2 == 0) {
-        return find_roots(Polynomial<1>({c0, c1}));
+    if (approx_zero(f.coefficients.back())) {
+        return find_roots(change_degree<1>(f));
     }
 
-    double discriminant = c1 * c1 - 4 * c2 * c0;
-    if (approx_zero(discriminant)) {
-        return {-c1 / (2 * c2)};
-    }
-    if (discriminant < 0) {
-        // Complex roots
-        return {};
-    }
+    Eigen::PolynomialSolver<double, 2> solver;
+    solver.compute(Eigen::Array3d(f.coefficients.data()));
 
-    return {
-        (-c1 + sqrt(discriminant)) / (2 * c2),
-        (-c1 - sqrt(discriminant)) / (2 * c2),
-    };
+    std::vector<double> roots;
+    solver.realRoots(roots);
+    return roots;
 }
 
 template<>
 std::vector<double> find_roots<3>(const Polynomial<3>& f) {
-    double d = f.coefficients[0];
-    double c = f.coefficients[1];
-    double b = f.coefficients[2];
-    double a = f.coefficients[3];
-
-    if (approx_zero(a)) {
-        return find_roots(Polynomial<2>({d, c, b}));
+    if (approx_zero(f.coefficients.back())) {
+        return find_roots(change_degree<2>(f));
     }
 
     Eigen::PolynomialSolver<double, 3> solver;
-    Eigen::Array4d poly(d, c, b, a);
-    solver.compute(poly);
+    solver.compute(Eigen::Array4d(f.coefficients.data()));
 
     std::vector<double> roots;
     solver.realRoots(roots);
