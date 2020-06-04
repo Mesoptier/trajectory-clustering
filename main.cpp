@@ -14,6 +14,7 @@
 #include "src/cdtw/cdtw.h"
 #include "src/cdtw/1d-l1-l1.h"
 #include "src/cdtw/1d-l2squared-l1.h"
+#include "src/cdtw/2d-l2squared-l1.h"
 
 namespace {
 //
@@ -221,42 +222,50 @@ void experiment_visualize_band() {
 }
 
 void experiment_compare_heuristic_vs_extact_cdtw() {
-//    const auto curve1 = io::read_curve("data/characters/data/a0001.txt").to_1d();
-//    const auto curve2 = io::read_curve("data/characters/data/a0002.txt").to_1d();
+//    const std::string data_dir = "D:/TUe/MSc Project/code/data";
+    const std::string data_dir = "data";
 
-    const auto curve1 = io::read_curve("data/characters/data/a0001.txt").simplify(false).to_1d();
-    const auto curve2 = io::read_curve("data/characters/data/a0002.txt").simplify(false).to_1d();
+    const auto curve1 = io::read_curve(data_dir + "/characters/data/a0001.txt");
+    const auto curve2 = io::read_curve(data_dir + "/characters/data/a0002.txt");
+
+//    const auto curve1 = io::read_curve("data/characters/data/a0003.txt").simplify(false);
+//    const auto curve2 = io::read_curve("data/characters/data/a0002.txt").simplify(false);
+
+//    const Curve curve2("segment", {{0, 0}, {10, 10}});
 
 //    io::export_points("data/out/curve1.csv", curve1.get_points());
 //    io::export_points("data/out/curve2.csv", curve2.get_points());
 
 
     // Heuristic
-//    {
-//        auto start_time = std::chrono::high_resolution_clock::now();
-//
-//        IntegralFrechet heuristic_alg(curve1, curve2, ParamMetric::L1, 0.1);
-//        const auto heuristic_res = heuristic_alg.compute_matching();
-//
-//        auto end_time = std::chrono::high_resolution_clock::now();
-//        auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time).count();
-//        std::cout << "heuristic cost: " << heuristic_res.cost << '\n';
-//        std::cout << "heuristic time: " << duration << "ms\n";
-//    }
+    {
+        auto start_time = std::chrono::high_resolution_clock::now();
+
+        IntegralFrechet heuristic_alg(curve1, curve2, ParamMetric::L1, .1);
+        const auto heuristic_res = heuristic_alg.compute_matching();
+
+        auto end_time = std::chrono::high_resolution_clock::now();
+        auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time).count();
+        std::cout << "heuristic cost: " << heuristic_res.cost << '\n';
+        std::cout << "heuristic time: " << duration << "ms\n";
+        std::cout << "heuristic nodes_handled: " << heuristic_res.search_stat.nodes_handled << "\n";
+        std::cout << "heuristic nodes_skipped: " << heuristic_res.search_stat.nodes_skipped << "\n";
+        std::cout << "heuristic nodes_opened: " << heuristic_res.search_stat.nodes_opened << "\n";
+    }
 
     // Exact
     {
         auto start_time = std::chrono::high_resolution_clock::now();
 
-        CDTW<1, Norm::L2Squared, Norm::L1> exact_alg(curve1, curve2);
+        CDTW<2, Norm::L2Squared, Norm::L1> exact_alg(curve1, curve2);
 
         auto end_time = std::chrono::high_resolution_clock::now();
         auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time).count();
-        std::cout << "exact cost: " << exact_alg.cost() << '\n';
+//        std::cout << "exact cost: " << exact_alg.cost() << '\n';
         std::cout << "exact time: " << duration << "ms\n";
 
-        exact_alg.output_visualization_data();
-        exact_alg.print_complexity();
+//        exact_alg.output_visualization_data();
+//        exact_alg.print_complexity();
     }
 
 }
