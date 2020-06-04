@@ -14,10 +14,9 @@
  */
 template<size_t D>
 PiecewisePolynomial<D> naive_lower_envelope(const std::vector<PolynomialPiece<D>>& pieces) {
-//    for (auto piece : pieces) {
-//        std::cout << "Piecewise[{" << piece << "}, None],\n";
-//    }
-//    std::cout << std::endl;
+    if (pieces.empty()) {
+        return {};
+    }
 
     // State:
     //  - Open pieces sorted by value (and derivatives) at x
@@ -124,14 +123,33 @@ PiecewisePolynomial<D> naive_lower_envelope(const std::vector<PolynomialPiece<D>
             // Add SWAP events
             for (const auto other_id : state) {
                 const PolynomialPiece<D>& other = pieces[other_id];
+                double overlap_min = std::max(piece.interval.min, other.interval.min);
+                double overlap_max = std::min(piece.interval.max, other.interval.max);
+                if (overlap_max < overlap_min) {
+                    continue;
+                }
+
                 const auto diff = piece.polynomial - other.polynomial;
                 const auto roots = find_roots(diff);
+                auto debug_diff = diff.to_string();
                 for (double root : roots) {
                     // Check that intersection is is contained in the pieces' interval.
-                    // Exclude intersections at piece endpoints, as those are handled by OPEN / CLOSE events.
-                    if (!piece.interval.contains_excl(root) || !other.interval.contains_excl(root)) {
+                    // Exclude intersections at piece endpoints, if those would be handled by OPEN / CLOSE events.
+                    if (overlap_min <= root && root <= overlap_min + ABS_TOL) {
+                        if (approx_zero(diff(overlap_min))) {
+                            continue;
+                        }
+                    }
+                    if (overlap_max - ABS_TOL <= root && root <= overlap_max) {
+                        if (approx_zero(diff(overlap_max))) {
+                            continue;
+                        }
+                    }
+                    if (root < overlap_min || overlap_max < root) {
                         continue;
                     }
+
+                    assert(approx_zero(diff(root)));
 
                     // Check that the intersection actually swaps the order (and not just touches).
                     if (!diff.changes_sign_at(root)) {
@@ -153,14 +171,8 @@ PiecewisePolynomial<D> naive_lower_envelope(const std::vector<PolynomialPiece<D>
             ComparePieceID compare_pieces_prev(pieces, prev_x);
 
             // Iterator to the position of event.id in the state
-            auto it = std::lower_bound(state.begin(), state.end(), event.id, compare_pieces_prev);
-
-            // TODO: Ensure the correct position is found right away
-            while (it != state.end() && *it != event.id) {
-                ++it;
-            }
-
-
+//            auto it = std::lower_bound(state.begin(), state.end(), event.id, compare_pieces_prev);
+            auto it = std::find_if(state.begin(), state.end(), [event](auto id) { return id == event.id; });
             assert(*it == event.id);
 
             if (event.type == EventType::CLOSE) {
@@ -198,7 +210,11 @@ PiecewisePolynomial<D> naive_lower_envelope(const std::vector<PolynomialPiece<D>
             // Close previous piece
             if (prev_open_id != INVALID_PIECE_ID) {
                 if (!approx_equal(start_x, event.x)) {
-                    result_pieces.emplace_back(Interval{start_x, event.x}, pieces[prev_open_id].polynomial);
+                    if (!result_pieces.empty() && approx_equal(result_pieces.back().polynomial, pieces[prev_open_id].polynomial)) {
+                        result_pieces.back().interval.max = event.x;
+                    } else {
+                        result_pieces.emplace_back(Interval{start_x, event.x}, pieces[prev_open_id].polynomial);
+                    }
                 }
             }
 
