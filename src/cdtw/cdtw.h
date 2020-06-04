@@ -461,7 +461,7 @@ public:
                 }
             }
         }
-        file << "BoxRatios -> {Automatic, Automatic, 10}]" << std::endl;
+        file << "BoxRatios -> {Automatic, Automatic, 10}, PlotRange -> {Automatic, Automatic, {0, 1500}}]" << std::endl;
 
         file.close();
     }
@@ -602,28 +602,21 @@ CDTW<dimension, image_norm, param_norm>::CDTW(const Curve& curve1, const Curve& 
 
     {
         const Cell cell(curve1[0], curve2[0], curve1[1], curve2[1]);
-        const Cell cell_t(curve2[0], curve1[0], curve2[1], curve1[1]);
 
         const Function f1{base_bottom(cell), 0, true};
         const Coord c1{0, 0, Side::BOTTOM};
         functions.insert_or_assign(c1, f1);
         open_set.push({f1.f.min_value(), c1});
-
-        const Function f2{base_bottom(cell_t), 0, true};
-        const Coord c2{0, 0, Side::LEFT};
-        functions.insert_or_assign(c2, f2);
-        open_set.push({f2.f.min_value(), c2});
     }
 
     distance_t min_result_cost = std::numeric_limits<distance_t>::infinity();
 
     size_t nodes_handled = 0;
     size_t nodes_skipped = 0;
+    size_t nodes_opened = open_set.size();
+    size_t nodes_reopened = 0;
 
     while (!open_set.empty()) {
-        nodes_handled += 1;
-        nodes_skipped += 1;
-
         const PQNode node = open_set.top();
         open_set.pop();
 
@@ -638,6 +631,7 @@ CDTW<dimension, image_norm, param_norm>::CDTW(const Curve& curve1, const Curve& 
         }
 
         if (node.min_cost > f.min_cost) {
+            ++nodes_skipped;
             continue;
         }
 
@@ -645,10 +639,11 @@ CDTW<dimension, image_norm, param_norm>::CDTW(const Curve& curve1, const Curve& 
             if (coord.i1 == curve1.size() - 2 || coord.i2 == curve2.size() - 2) {
                 min_result_cost = std::min(min_result_cost, f.f.right_value());
             }
+            ++nodes_skipped;
             continue;
         }
 
-        nodes_skipped -= 1;
+        ++nodes_handled;
 
         // Cell and transposed cell
         const Cell cell(curve1[coord.i1], curve2[coord.i2], curve1[coord.i1 + 1], curve2[coord.i2 + 1]);
@@ -668,6 +663,7 @@ CDTW<dimension, image_norm, param_norm>::CDTW(const Curve& curve1, const Curve& 
             if (it == functions.end()) {
                 functions.emplace(out_coord, Function{out_f, min_cost, true});
                 open_set.push({min_cost, out_coord});
+                ++nodes_opened;
             } else {
                 Function& prev_out = it->second;
                 // TODO: Only re-open function if lower_envelope has changed
@@ -676,10 +672,12 @@ CDTW<dimension, image_norm, param_norm>::CDTW(const Curve& curve1, const Curve& 
                 if (min_cost < prev_out.min_cost) {
                     prev_out.open = true;
                     open_set.push({min_cost, out_coord});
+                    ++nodes_reopened;
                 } else { // min_cost == prev_out.min_cost
                     if (!prev_out.open) {
                         prev_out.open = true;
                         open_set.push({min_cost, out_coord});
+                        ++nodes_reopened;
                     }
                 }
             }
@@ -689,5 +687,7 @@ CDTW<dimension, image_norm, param_norm>::CDTW(const Curve& curve1, const Curve& 
     std::cout << min_result_cost << "\n";
     std::cout << "nodes_handled: " << nodes_handled << "\n";
     std::cout << "nodes_skipped: " << nodes_skipped << "\n";
+    std::cout << "nodes_opened: " << nodes_opened << "\n";
+    std::cout << "nodes_reopened: " << nodes_reopened << "\n";
     std::cout << "nodes remaining: " << open_set.size() << "\n";
 }
