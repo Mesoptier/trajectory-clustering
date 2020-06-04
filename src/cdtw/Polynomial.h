@@ -146,6 +146,12 @@ struct Polynomial
             return f(x) < g(x);
         }
     };
+
+    inline std::string to_string() const {
+        std::stringstream ss;
+        ss << *this;
+        return ss.str();
+    }
 };
 
 template<size_t D>
