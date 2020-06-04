@@ -105,7 +105,7 @@ struct PiecewisePolynomial
             // Verify that piece intervals line up
             assert(approx_equal(p1.interval.max, p2.interval.min));
             // Verify that pieces connect
-            assert(approx_equal(p1.polynomial(p1.interval.max), p2.polynomial(p2.interval.min)));
+            assert(approx_equal(p1.polynomial(p1.interval.max), p2.polynomial(p2.interval.min), 1e-5));
         }
     }
 
