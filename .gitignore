@@ -28,3 +28,8 @@ cmake_install.cmake
 gmon.out
 src/experiments
 analysis.txt
+
+# and random things
+compile_commands.json
+*.tar.xz
+test_script.txt
