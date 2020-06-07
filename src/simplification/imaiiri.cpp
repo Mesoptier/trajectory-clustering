@@ -5,7 +5,7 @@
 #include <queue>
 #include <unordered_set>
 #include <vector>
-#include "SymmetricMatrix.h"
+#include "utils/SymmetricMatrix.h"
 
 namespace {
     /**

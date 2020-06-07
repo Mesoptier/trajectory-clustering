@@ -171,8 +171,10 @@ BFDirection getMonotoneDirection(const Point& a, const Point& b) {
 
 bool MonotoneComparator::operator()(const Point& a, const Point& b) {
     return direction == BFDirection::Forward
-           ? (a.x < b.x + ABS_TOL && a.y < b.y - ABS_TOL) || (a.x < b.x - ABS_TOL && a.y < b.y + ABS_TOL)
-           : (a.x + ABS_TOL > b.x && a.y - ABS_TOL > b.y) || (a.x - ABS_TOL > b.x && a.y + ABS_TOL > b.y);
+        ? (a.x < b.x + ABS_TOL && a.y < b.y - ABS_TOL) ||
+        	(a.x < b.x - ABS_TOL && a.y < b.y + ABS_TOL)
+        : (a.x + ABS_TOL > b.x && a.y - ABS_TOL > b.y) ||
+        	(a.x - ABS_TOL > b.x && a.y + ABS_TOL > b.y);
 }
 
 //
@@ -197,7 +199,8 @@ Point intersect(const Line& line1, const Line& line2) {
 	// std::cout << line1.direction << "\n";
 	// std::cout << line2.origin << "\n";
 	// std::cout << line2.direction << "\n";
-    const auto t1 = perp(line2.origin - line1.origin, line2.direction) / perp(line1.direction, line2.direction);
+    const auto t1 = perp(line2.origin - line1.origin, line2.direction) /
+    	perp(line1.direction, line2.direction);
     assert(line1.includesPoint(line1(t1)));
     assert(line2.includesPoint(line1(t1)));
     return line1(t1);
@@ -223,16 +226,22 @@ std::ostream& operator<<(std::ostream& out, const CPosition& pos) {
 // intersection_interval
 //
 
-inline bool IntersectionAlgorithm::smallDistanceAt(distance_t interpolate, Point line_start, Point line_end, Point circle_center, distance_t radius_sqr) {
-	return circle_center.dist_sqr(line_start * (1. - interpolate) + line_end * interpolate) <= radius_sqr;
+inline bool IntersectionAlgorithm::smallDistanceAt(distance_t interpolate,
+		Point line_start, Point line_end, Point circle_center,
+		distance_t radius_sqr) {
+	return circle_center.dist_sqr(line_start * (1. - interpolate)
+		+ line_end * interpolate) <= radius_sqr;
 }
 
-inline distance_t IntersectionAlgorithm::distanceAt(distance_t interpolate, Point line_start, Point line_end, Point circle_center) {
-	return circle_center.dist_sqr(line_start * (1. - interpolate) + line_end * interpolate);
+inline distance_t IntersectionAlgorithm::distanceAt(distance_t interpolate,
+		Point line_start, Point line_end, Point circle_center) {
+	return circle_center.dist_sqr(line_start * (1. - interpolate)
+		+ line_end * interpolate);
 }
 
-Interval IntersectionAlgorithm::intersection_interval(Point circle_center, distance_t radius, Point line_start, Point line_end, Interval * outer /* = nullptr*/)
-{
+Interval IntersectionAlgorithm::intersection_interval(Point circle_center,
+		distance_t radius, Point line_start, Point line_end,
+		Interval * outer /* = nullptr*/) {
     // The line can be represented as line_start + lambda * v
     const Point v = line_end - line_start;
 	const distance_t rad_sqr = radius * radius;
@@ -252,15 +261,20 @@ Interval IntersectionAlgorithm::intersection_interval(Point circle_center, dista
     // <=> lambda1/2 = - (b / a) +/- sqrt((b / a)^2 - c / a)
 	
     const distance_t a = pow2(v.x) + pow2(v.y);
-    const distance_t b = (line_start.x - circle_center.x) * v.x + (line_start.y - circle_center.y) * v.y;
-    const distance_t c = pow2(line_start.x - circle_center.x) + pow2(line_start.y - circle_center.y) - pow2(radius);
+    const distance_t b = (line_start.x - circle_center.x) * v.x
+    	+ (line_start.y - circle_center.y) * v.y;
+    const distance_t c = pow2(line_start.x - circle_center.x)
+    	+ pow2(line_start.y - circle_center.y) - pow2(radius);
 
 	distance_t mid = - b / a;
     distance_t discriminant = pow2(mid) - c / a;
 
-	const bool smallDistAtZero = smallDistanceAt(0., line_start, line_end, circle_center, rad_sqr);
-	const bool smallDistAtOne = smallDistanceAt(1., line_start, line_end, circle_center, rad_sqr);
-	bool smallDistAtMid = smallDistanceAt(mid, line_start, line_end, circle_center, rad_sqr);
+	const bool smallDistAtZero = smallDistanceAt(0., line_start, line_end,
+		circle_center, rad_sqr);
+	const bool smallDistAtOne = smallDistanceAt(1., line_start, line_end,
+		circle_center, rad_sqr);
+	bool smallDistAtMid = smallDistanceAt(mid, line_start, line_end,
+		circle_center, rad_sqr);
 	
 	if (smallDistAtZero && smallDistAtOne) {
 		if (outer != nullptr) { *outer = Interval(-eps, 1. + eps); }
@@ -309,9 +323,14 @@ Interval IntersectionAlgorithm::intersection_interval(Point circle_center, dista
 		sqrt_discr_computed = true;
 		
 		const distance_t lambda1 = mid - sqrt_discr;
-		const distance_t innershift = std::min<distance_t>(lambda1 + save_eps_half, std::min<distance_t>(1., mid));
+		const distance_t innershift = std::min(lambda1 + save_eps_half,
+			std::min(1., mid));
 		const distance_t outershift = lambda1 - save_eps_half;
-		if (innershift >= outershift && smallDistanceAt(innershift, line_start, line_end, circle_center, rad_sqr) && !smallDistanceAt(outershift, line_start, line_end, circle_center, rad_sqr)) {
+		if (innershift >= outershift &&
+			smallDistanceAt(innershift, line_start, line_end, circle_center,
+				rad_sqr) &&
+			!smallDistanceAt(outershift, line_start, line_end, circle_center,
+				rad_sqr)) {
 			begin = innershift;
 			if (outer != nullptr) { outer->begin = outershift; }
 		}
@@ -329,7 +348,8 @@ Interval IntersectionAlgorithm::intersection_interval(Point circle_center, dista
 			// Finally, since !smallDistanceAt(left) we cannot have mid <= 0 by the second rule. Thus, right = min(mid,1) >= 0. = left
 			while (right - left > save_eps) {
 				distance_t m = 0.5 * (left + right);
-				if (smallDistanceAt(m, line_start, line_end, circle_center, rad_sqr)) { right = m; }
+				if (smallDistanceAt(m, line_start, line_end, circle_center,
+					rad_sqr)) { right = m; }
 				else { left = m; }
 			}
 			begin = right;
@@ -347,21 +367,27 @@ Interval IntersectionAlgorithm::intersection_interval(Point circle_center, dista
 		}
 		
 		const distance_t lambda2 = mid + sqrt_discr;
-		const distance_t innershift = std::max<distance_t>(lambda2 - save_eps_half, std::max<distance_t>(0., mid));
+		const distance_t innershift = std::max(lambda2 - save_eps_half,
+			std::max(0., mid));
 		const distance_t outershift = lambda2 + save_eps_half;
-		if (innershift <= outershift && smallDistanceAt(innershift, line_start, line_end, circle_center, rad_sqr) && !smallDistanceAt(outershift, line_start, line_end, circle_center, rad_sqr)) {
+		if (innershift <= outershift &&
+			smallDistanceAt(innershift, line_start, line_end, circle_center,
+				rad_sqr) &&
+			!smallDistanceAt(outershift, line_start, line_end, circle_center,
+				rad_sqr)) {
 			end = innershift;
 			if (outer != nullptr) { outer->end = outershift; }
 		}
 		else {
-			distance_t left = std::max<distance_t>(mid, 0.), right = 1.;
+			distance_t left = std::max(mid, 0.), right = 1.;
 			// invariants throughout binary search:
 			//  * smallDistanceAt(left)
 			//  * !smallDistanceAt(right)
 			//  * max(mid,0) <= left <= right <= 1
 			while (right - left > save_eps) {
 				distance_t m = 0.5 * (left + right);
-				if (smallDistanceAt(m, line_start, line_end, circle_center, rad_sqr)) { left = m; }
+				if (smallDistanceAt(m, line_start, line_end, circle_center,
+					rad_sqr)) { left = m; }
 				else { right = m; }
 			}
 			end = left;
@@ -373,9 +399,14 @@ Interval IntersectionAlgorithm::intersection_interval(Point circle_center, dista
 	assert(smallDistanceAt(end, line_start, line_end, circle_center, rad_sqr));
 	assert(0. <= begin && begin <= end && end <= 1.);
 	
-	assert(outer == nullptr || outer->begin < 0. || !smallDistanceAt(outer->begin, line_start, line_end, circle_center, rad_sqr));
-	assert(outer == nullptr || outer->end > 1. || !smallDistanceAt(outer->end, line_start, line_end, circle_center, rad_sqr));
-	assert(outer == nullptr || (outer->begin < begin && begin - outer->begin <= eps));
+	assert(outer == nullptr || outer->begin < 0. ||
+		!smallDistanceAt(outer->begin, line_start, line_end, circle_center,
+			rad_sqr));
+	assert(outer == nullptr || outer->end > 1. ||
+		!smallDistanceAt(outer->end, line_start, line_end, circle_center,
+			rad_sqr));
+	assert(outer == nullptr ||
+		(outer->begin < begin && begin - outer->begin <= eps));
 	assert(outer == nullptr || (outer->end > end && outer->end - end <= eps));
 	
 	assert(outer == nullptr || (outer->begin <= 1.));
@@ -388,7 +419,8 @@ Interval IntersectionAlgorithm::intersection_interval(Point circle_center, dista
 	return Interval{ begin, end };
 }
 
-Ellipse segmentsToEllipse(Point const& a1, Point const& b1, Point const& a2, Point const& b2, distance_t distance)
+Ellipse segmentsToEllipse(Point const& a1, Point const& b1, Point const& a2,
+	Point const& b2, distance_t distance)
 {
 	Ellipse e;
 
@@ -406,12 +438,18 @@ Ellipse segmentsToEllipse(Point const& a1, Point const& b1, Point const& a2, Poi
 
 	// First assign coefficients of x^2, y^2, ...
 	// Those are calculated by hand
-	auto A = pow2(a1.x) - 2*a1.x*b1.x + pow2(a1.y) - 2*a1.y*b1.y + pow2(b1.x) + pow2(b1.y);
-	auto B = -2*a1.x*a2.x + 2*a1.x*b2.x - 2*a1.y*a2.y + 2*a1.y*b2.y + 2*a2.x*b1.x + 2*a2.y*b1.y - 2*b1.x*b2.x - 2*b1.y*b2.y;
-	auto C = pow2(a2.x) - 2*a2.x*b2.x + pow2(a2.y) - 2*a2.y*b2.y + pow2(b2.x) + pow2(b2.y);
-	auto D = 2*a1.x*b1.x - 2*a1.x*b2.x + 2*a1.y*b1.y - 2*a1.y*b2.y - 2*pow2(b1.x) + 2*b1.x*b2.x - 2*pow2(b1.y) + 2*b1.y*b2.y;
-	auto E = -2*a2.x*b1.x + 2*a2.x*b2.x - 2*a2.y*b1.y + 2*a2.y*b2.y + 2*b1.x*b2.x + 2*b1.y*b2.y - 2*pow2(b2.x) - 2*pow2(b2.y);
-	auto F = pow2(b1.x) - 2*b1.x*b2.x + pow2(b1.y) - 2*b1.y*b2.y + pow2(b2.x) + pow2(b2.y) - pow2(distance);
+	auto A = pow2(a1.x) - 2*a1.x*b1.x + pow2(a1.y) - 2*a1.y*b1.y
+		+ pow2(b1.x) + pow2(b1.y);
+	auto B = -2*a1.x*a2.x + 2*a1.x*b2.x - 2*a1.y*a2.y + 2*a1.y*b2.y
+		+ 2*a2.x*b1.x + 2*a2.y*b1.y - 2*b1.x*b2.x - 2*b1.y*b2.y;
+	auto C = pow2(a2.x) - 2*a2.x*b2.x + pow2(a2.y) - 2*a2.y*b2.y
+		+ pow2(b2.x) + pow2(b2.y);
+	auto D = 2*a1.x*b1.x - 2*a1.x*b2.x + 2*a1.y*b1.y - 2*a1.y*b2.y
+		- 2*pow2(b1.x) + 2*b1.x*b2.x - 2*pow2(b1.y) + 2*b1.y*b2.y;
+	auto E = -2*a2.x*b1.x + 2*a2.x*b2.x - 2*a2.y*b1.y + 2*a2.y*b2.y
+		+ 2*b1.x*b2.x + 2*b1.y*b2.y - 2*pow2(b2.x) - 2*pow2(b2.y);
+	auto F = pow2(b1.x) - 2*b1.x*b2.x + pow2(b1.y) - 2*b1.y*b2.y
+		+ pow2(b2.x) + pow2(b2.y) - pow2(distance);
 
 	// This should not fail if they are not parallel
 	assert(pow2(B) - 4*A*C <= 0.0);
@@ -420,8 +458,12 @@ Ellipse segmentsToEllipse(Point const& a1, Point const& b1, Point const& a2, Poi
 	// See: https://en.wikipedia.org/wiki/Ellipse#Canonical_form
 	e.center.x = (2*C*D - B*E)/(pow2(B) - 4*A*C);
 	e.center.y = (2*A*E - B*D)/(pow2(B) - 4*A*C);
-	e.width = -std::sqrt(2*(A*pow2(E) + C*pow2(D) - B*D*E + (pow2(B) - 4*A*C)*F)*(A+C+std::sqrt(pow2(A-C) + pow2(B))))/(pow2(B) - 4*A*C);
-	e.height = -std::sqrt(2*(A*pow2(E) + C*pow2(D) - B*D*E + (pow2(B) - 4*A*C)*F)*(A+C-std::sqrt(pow2(A-C) + pow2(B))))/(pow2(B) - 4*A*C);
+	e.width = -std::sqrt(2*(A*pow2(E) + C*pow2(D) - B*D*E
+		+ (pow2(B) - 4*A*C)*F)*(A+C+std::sqrt(pow2(A-C) + pow2(B))))
+		/ (pow2(B) - 4*A*C);
+	e.height = -std::sqrt(2*(A*pow2(E) + C*pow2(D) - B*D*E
+		+ (pow2(B) - 4*A*C)*F)*(A+C-std::sqrt(pow2(A-C) + pow2(B))))
+		/ (pow2(B) - 4*A*C);
 
 	if (B == 0) {
 		e.alpha = A < C ? 0 : pi/2;

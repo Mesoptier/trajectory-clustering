@@ -2,12 +2,12 @@
 
 #include <iostream>
 #include <utility>
-#include "metrics.h"
-#include "../geom.h"
-#include "../Curve.h"
-#include "Cell.h"
-#include "../a_star.h"
-#include "MatchingBand.h"
+#include "IntegralFrechet/metrics.h"
+#include "geom.h"
+#include "Curve.h"
+#include "IntegralFrechet/Cell.h"
+#include "utils/a_star.h"
+#include "IntegralFrechet/MatchingBand.h"
 
 class IntegralFrechet
 {

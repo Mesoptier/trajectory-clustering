@@ -1,8 +1,8 @@
-#include "IntegralFrechet.h"
+#include "IntegralFrechet/IntegralFrechet.h"
 
-#include "a_star.h"
-#include "Cell.h"
-#include "metrics/include.h"
+#include "utils/a_star.h"
+#include "IntegralFrechet/Cell.h"
+#include "IntegralFrechet/metrics/include.h"
 
 IntegralFrechet::IntegralFrechet(
     const Curve& c1,

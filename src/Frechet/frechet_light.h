@@ -1,13 +1,13 @@
 #pragma once
 
-#include "../defs.h"
-#include "../filter.h"
-#include "frechet_abstract.h"
-#include "frechet_light_types.h"
-#include "../geom.h"
-#include "../id.h"
-#include "../Curve.h"
-#include "../certificate.h"
+#include "utils/defs.h"
+#include "Frechet/filter.h"
+#include "Frechet/frechet_abstract.h"
+#include "Frechet/frechet_light_types.h"
+#include "geom.h"
+#include "utils/id.h"
+#include "Curve.h"
+#include "Frechet/certificate.h"
 
 #include <array>
 #include <vector>
@@ -21,16 +21,16 @@ public:
 	
 	FrechetLight() = default;
 	void buildFreespaceDiagram(distance_t distance, Curve const& curve1, Curve const& curve2);
-	bool lessThan(distance_t distance, Curve const& curve1, Curve const& curve2);
+	bool lessThan(distance_t distance, Curve const& curve1, Curve const& curve2) override;
 	bool lessThanWithFilters(distance_t distance, Curve const& curve1, Curve const& curve2);
 	distance_t calcDistance(Curve const& curve1, Curve const& curve2);
 	void clear();
 
 	CurvePair getCurvePair() const;
-	Certificate& computeCertificate();
+	Certificate& computeCertificate() override;
 	const Certificate& getCertificate() const { return cert; } 
 
-	void setPruningLevel(int pruning_level);
+	void setPruningLevel(int pruning_level) override;
 	void setRules(std::array<bool,5> const& enable) override;
 
 	std::size_t getNumberOfBoxes() const;

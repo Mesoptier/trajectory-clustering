@@ -1,71 +1,53 @@
-#pragma once
+#ifndef SYNTHETIC_CURVES_H
+#define SYNTHETIC_CURVES_H
 
-#include "distance_functions.h"
-#include "io.cpp"
-#include <fstream>
-#include <math.h>
+#include <random>
 
-class DisplacementGenerator {
-    
-    std::mt19937_64 rng;
-    double lower_lim;
-    double upper_lim;
-    
+#include "Curve.h"
+#include "utils/io.h"
+
+namespace synth {
+    /**
+     * \brief Generate displacement vectors for points.
+     */
+    class DisplacementGenerator {
+        std::mt19937_64 rng;
+        double lower;
+        double upper;
+
     public:
-        DisplacementGenerator(int seed, double lower_lim, double upper_lim) : 
-        rng(std::mt19937_64(seed)), lower_lim(lower_lim), upper_lim(upper_lim) {};
+        /**
+         * \brief Set up the generator.
+         * \param lower_lim Lower bound limit for displacement magnitude.
+         * \param upper_lim Upper bound limit for displacement magnitude.
+         * \param seed The random generator seed (if it needs to be fixed).
+         */
+        DisplacementGenerator(double lower_lim, double upper_lim,
+            std::mt19937_64::result_type seed = std::random_device()());
 
-        Point generate_disp_vec() {
-            
-            std::uniform_real_distribution<double> uniform_dist_angle(0, 2*M_PI);
-            std::uniform_real_distribution<double> uniform_dist_length(lower_lim, upper_lim);
-            double theta = uniform_dist_angle(rng);
-            double length = uniform_dist_length(rng);
-            
-            return {length * std::cos(theta), length * std::sin(theta)};
-        };
-};
+        /**
+         * \brief Generate a displacement vector in 2D. Any angle; magnitude
+         * between lower_lim and upper_lim.
+         * \return x and y coordinates of displacement vector.
+         */
+        Point generate_disp_vec();
+    };
 
-Curves generate_curves(Curve curve, int count) {
+    /**
+     * \brief Using the base curve, generate a certain number of randomly
+     * displaced curves. All are translated; individual points are also
+     * translated.
+     * \param curve The true curve.
+     * \param count The number of curves to generate.
+     * \return The generated curves.
+     */
+    std::vector<Curve> generate_curves(const Curve& curve, std::size_t count);
 
-    DisplacementGenerator disp_gen = DisplacementGenerator(1234, 0, 1);
-    
-    Curves curves = Curves();
-
-    for (int i = 0; i < count; ++i) {
-        Curve new_curve = Curve();
-        Point translation = disp_gen.generate_disp_vec();
-        for (auto& p: curve.get_points()) {
-            Point disp_vec = disp_gen.generate_disp_vec() / 20;
-            Point new_point = {p.x + translation.x + disp_vec.x, p.y + translation.y + disp_vec.y};
-
-            new_curve.push_back(new_point);
-        }
-
-        // std::cout << new_curve.get_points() << "\n";
-        curves.push_back(new_curve);
-    }
-
-
-    return curves;
+    /**
+     * \brief Generate 20 curves starting from base curve and save them in files
+     * in a subdirectory.
+     * \param base The true curve.
+     */
+    void write_curves(const Curve& base);
 }
-
-void write_curves() {
-    Curves curves = io::read_curves("data/characters/data");
-    Curve curve = curves[0];
-    
-    Curves synthetic_curves = generate_curves(curve, 20);
-    std::fstream dataset;
-    dataset.open("synthetic_curves/dataset.txt", std::fstream::out | std::fstream::trunc);
-
-    for (int i = 0; i < synthetic_curves.size(); ++i) {
-        Curve synth_curve = synthetic_curves[i];
-        std::string file_name = "synthetic_curves/curve_" + std::to_string(i) + ".txt";
-        io::export_points(file_name, synth_curve.get_points());
-        dataset << "curve_" + std::to_string(i) + ".txt" << "\n";
-    }
-
-    dataset.close();
-    io::export_points("synthetic_curves/true_center.txt", curve.get_points());
-}
-
+#endif

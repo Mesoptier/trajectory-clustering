@@ -1,6 +1,6 @@
 #include <iostream>
-#include "../io.h"
-#include "MatchingBand.h"
+#include "utils/io.h"
+#include "IntegralFrechet/MatchingBand.h"
 
 namespace {
     Point lowest_with_x(const Points& matching, distance_t x, size_t i) {

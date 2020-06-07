@@ -2,20 +2,23 @@
 #include <chrono>
 #include <fstream>
 #include <random>
+#include <limits>
 
-#include "src/io.h"
+#include "src/geom.h"
+#include "src/utils/io.h"
 #include "src/Curve.h"
 #include "src/IntegralFrechet/IntegralFrechet.h"
-#include "src/SymmetricMatrix.h"
+#include "src/IntegralFrechet/metrics.h"
+#include "src/utils/SymmetricMatrix.h"
 #include "src/clustering/pam.h"
 #include "src/IntegralFrechet/MatchingBand.h"
 // #include "src/greedy_simplification.h"
 // #include "src/curve_simplification.h"
 // #include "src/clustering/clustering.h"
-#include "src/CurveSimpMatrix.h"
-#include "src/clustering/pam_with_simplifications.h"
+#include "src/utils/CurveSimpMatrix.h"
 #include "src/clustering/clustering_algs.h"
 #include "src/clustering/center_algs.h"
+#include "src/clustering/center_clustering_algs.h"
 // #include "src/greedy_l_simplification.h"
 #include "src/simplification/agarwal.h"
 #include "src/simplification/imaiiri.h"
@@ -56,9 +59,7 @@ SymmetricMatrix read_matrix(const std::string& filename) {
 }
 
 void export_matrix(const SymmetricMatrix& matrix, const std::string& filename) {
-    std::ofstream file(filename);
-    matrix.write(file);
-    file.close();
+    matrix.write(filename);
 }
 
 
@@ -316,11 +317,11 @@ void evaluate_frechet_simplifications() {
 }
 
 void write_simplifications() {
-
+    using Curves = std::vector<Curve>;
     Curves curves = read_curves("data/characters/data");
 
-    Curves greedy_simplifications = Curves();
-    Curves regular_simplifications = Curves();
+    Curves greedy_simplifications;
+    Curves regular_simplifications;
 
     std::cout << "computing greedy simplifications... \n";
     for (auto curve: curves) {
@@ -372,12 +373,15 @@ void write_simplifications() {
 
 
 void test_clustering_algs() {
+    using Curves = std::vector<Curve>;
+    using namespace clustering;
+    using namespace df;
     // Curves curves = sample_curves(io::read_pigeon_curves("data/Data_for_Mann_et_al_RSBL 2/Bladon & Church route recapping/bladon heath"), 30);
     Curves curves = sample_curves(read_curves("data/characters/data"), 25);
     std::cout << "read curves...\n";
     std::cout << curves.size() << "\n";
 
-    Clustering gonzalez_clustering = runGonzalez(curves, 26, 5, integral_frechet, true);
+    Clustering gonzalez_clustering = gonzalez(curves, 26, 5, integral_frechet, true);
     std::cout << "finshed gonzalez...\n";
 
     Clustering single_linkage_clustering = singleLinkage(curves, 26, 5, integral_frechet, true);
@@ -499,7 +503,7 @@ distance_t evaluate_clustering(Clustering clustering, Curves curves, distance_t(
 
 void test_pam_with_centering() {
     Curves curves = sample_curves(read_curves("data/characters/data"), 30);
-    Clustering clustering = pam_with_centering(curves, 10, 10, integral_frechet, "");
+    Clustering clustering = clustering::pam_with_centering(curves, 10, 10, df::integral_frechet, "");
 }
 
 void test_frechet() {
@@ -513,7 +517,7 @@ void test_frechet() {
         simplifications.push_back(
             simplification::greedy::simplify(curve, 10,
                 [](const Curve& a, const Curve& b, distance_t t) {
-                    return frechet(a, b) <= t;
+                    return df::frechet(a, b) <= t;
                 })
         );
     }
@@ -528,8 +532,8 @@ void test_frechet() {
 }
 
 void compute_curve_simp_matrix() {
-    Curves curves = read_data();
-    Curves simplifications = Curves();
+    Curves curves = experiments::read_data();
+    Curves simplifications;
 
     for (auto curve: curves) {
         simplifications.push_back(
@@ -541,13 +545,17 @@ void compute_curve_simp_matrix() {
 
     std::cout << "computed simplifications...\n";
 
-    CurveSimpMatrix matrix = CurveSimpMatrix(curves, simplifications, average_frechet);
+    CurveSimpMatrix matrix = CurveSimpMatrix(curves, simplifications, df::average_frechet);
     matrix.write("pigeon_matrix.txt");
 }
 
 }
 
 int main() {
+    static_assert(std::numeric_limits<distance_t>::is_iec559,
+        "IEEE 754 arithmetic is assumed.");
+    // io::read_curves("data/Data_for_Mann_et_al_RSBL 2/Bladon & Church route recapping/bladon heath", 1);
+    // io::read_curves("data");
 //    const auto distance_matrix = read_matrix("data/out/distance_matrix.mtx");
 //    compute_clusters(distance_matrix, 19); // "characters" has 19 classes
 
@@ -575,10 +583,10 @@ int main() {
     // compute_curve_simp_matrix();
     // run_experiments();
     // preliminary_experiments();
-    center_update_experiments();
+    experiments::center_update_experiments();
     // characterClassification();
-    // generate_curves(Curve({{0, 0}, {10, 10}, {20, 20}, {30, 30}, {40, 40}, {50, 50}, {60, 60}, {70, 70}, {80, 80}, {90, 90}, {100, 100}, {110, 110}, {120, 120}, {130, 130}}), 5);
-    // write_curves();
+    // synth::generate_curves(Curve({{0, 0}, {10, 10}, {20, 20}, {30, 30}, {40, 40}, {50, 50}, {60, 60}, {70, 70}, {80, 80}, {90, 90}, {100, 100}, {110, 110}, {120, 120}, {130, 130}}), 5);
+    // synth::write_curves();
     // synthetic_curve_experiment();
     // Curve curve1 = Curve({{-13.519655, 518.2176}, {-13.4540596224652, 518.171459590597}, {-13.4312466704293, 518.128483280568}, {-13.3730548740233, 518.11155638744}, {-13.3532487713532, 518.103879442256}, {-13.3012273722711, 518.081146702316}, {-13.2822606164468, 518.062349118219}, {-13.2407413511353, 518.010277368733}, {-13.2249619456808, 517.946611346145}, {-13.2343869456808, 517.908641346145}, {-13.2343869456808, 517.908641346145}, {-13.2343869456808, 517.908641346145}, {-13.1726447645511, 517.82374300373}});
     // std::cout << approx_equal(curve1[curve1.size()-2], curve1[curve1.size()-3]) << "\n";

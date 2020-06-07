@@ -14,7 +14,7 @@ std::pair<std::size_t, std::size_t> DTW::min_prev(std::size_t i, std::size_t j) 
                                  costs[i - 1][j - 1].cost});
     if (mdist == costs[i - 1][j - 1].cost)
         return {i - 1, j - 1};
-    if (mdist == costs[i - 1][j].cost) 
+    if (mdist == costs[i - 1][j].cost)
         return {i - 1, j};
     return {i, j - 1};
 }
@@ -49,4 +49,3 @@ distance_t DTW::cost() const {
 const std::vector<std::pair<PointID, PointID>>& DTW::matching() const {
     return m_matching;
 }
-

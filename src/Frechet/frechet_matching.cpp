@@ -1,7 +1,7 @@
-#include "frechet_matching.h"
+#include "Frechet/frechet_matching.h"
 
-#include "defs.h"
-#include "frechet_light.h"
+#include "utils/defs.h"
+#include "Frechet/frechet_light.h"
 
 Points calcMatching(Curve const& curve1, Curve const& curve2)
 {

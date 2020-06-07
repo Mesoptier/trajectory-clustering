@@ -1,6 +1,7 @@
 #ifndef MATRIXH
 #define MATRIXH
 
+#include <cstddef>
 #include <vector>
 
 template <typename T>

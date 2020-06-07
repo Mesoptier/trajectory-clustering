@@ -21,7 +21,7 @@ public:
 	void setAnswer(bool answer) { lessThan = answer; }
 	void setCurves(const Curve * curve1, const Curve * curve2) { curve_pair[0] = curve1; curve_pair[1] = curve2; }
 	void setDistance(distance_t distance) { dist = distance; dist_sqr = std::pow(distance, 2); }
-	void validate() { valid = true; };
+	void validate() { valid = true; }
 	void reset() { valid = false; traversal.clear(); }
 	void clear() { traversal.clear(); }
 

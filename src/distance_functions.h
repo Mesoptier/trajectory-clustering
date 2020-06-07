@@ -1,37 +1,37 @@
-#pragma once
+#ifndef DISTANCE_FUNCTIONS
+#define DISTANCE_FUNCTIONS
 
-#include "IntegralFrechet/IntegralFrechet.h"
-#include "Frechet/frechet_light.h"
-#include "DTW/dtw.h"
+#include "Curve.h"
 
-distance_t dtw(Curve curve_1, Curve curve_2) {
-    return DTW(curve_1, curve_2).cost();
+namespace df {
+    distance_t dtw(const Curve& curve_1, const Curve& curve_2);
+
+    distance_t integral_frechet(const Curve& curve_1, const Curve& curve_2);
+
+    distance_t integral_frechet_fast(const Curve& curve_1,
+        const Curve& curve_2);
+
+    distance_t frechet(const Curve& curve_1, const Curve& curve_2);
+
+    distance_t average_frechet(const Curve& curve_1, const Curve& curve_2);
+
+    distance_t average_frechet_fast(const Curve& curve_1, const Curve& curve_2);
+
+    bool dtw_lt(const Curve& curve_1, const Curve& curve_2, distance_t delta);
+
+    bool integral_frechet_lt(const Curve& curve_1, const Curve& curve_2,
+        distance_t delta);
+
+    bool integral_frechet_fast_lt(const Curve& curve_1, const Curve& curve_2,
+        distance_t delta);
+
+    bool frechet_lt(const Curve& curve_1, const Curve& curve_2,
+        distance_t delta);
+
+    bool average_frechet_lt(const Curve& curve_1, const Curve& curve_2,
+        distance_t delta);
+
+    bool average_frechet_fast_lt(const Curve& curve_1, const Curve& curve_2,
+        distance_t delta);
 }
-
-distance_t integral_frechet(Curve curve_1, Curve curve_2) {
-    return IntegralFrechet(
-        curve_1, curve_2, ParamMetric::L1, 1, nullptr
-    ).compute_matching()
-    .cost;
-}
-
-distance_t integral_frechet_fast(Curve curve_1, Curve curve_2) {
-    const auto result_alt = IntegralFrechet(curve_1.simplify(true), curve_2, ParamMetric::L1, 1, nullptr).compute_matching();
-    const auto band = MatchingBand(curve_1, curve_2, result_alt.matching, 1);
-    const auto result = IntegralFrechet(curve_1, curve_1, ParamMetric::L1, 1, &band).compute_matching();
-    return result.cost;
-}
-
-distance_t frechet(Curve curve_1, Curve curve_2) {
-    FrechetLight fl;
-    return fl.calcDistance(curve_1, curve_2);
-}
-
-distance_t average_frechet(Curve curve_1, Curve curve_2) {
-    return (1 / (curve_1.curve_length() + curve_2.curve_length())) * integral_frechet(curve_1, curve_2);
-};
-
-distance_t average_frechet_fast(Curve curve_1, Curve curve_2) {
-    return (1 / (curve_1.curve_length() + curve_2.curve_length())) * integral_frechet_fast(curve_1, curve_2);
-}
-
+#endif

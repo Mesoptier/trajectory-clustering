@@ -6,8 +6,8 @@
 #include <unordered_set>
 #include <vector>
 
-#include "id.h"
-#include "random.h"
+#include "utils/id.h"
+#include "utils/random.h"
 
 template <typename T>
 class UnionFind
@@ -23,7 +23,7 @@ public:
 
         ID<Element> parent_id;
 
-        Element(ID<Element> eid, Value val)
+        Element(ID<Element> eid, Value val) noexcept
             : id(eid), value(val) {}
     };
     using ElementID = ID<Element>;

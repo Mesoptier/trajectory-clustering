@@ -5,7 +5,7 @@
 #include <unordered_map>
 #include <algorithm>
 #include <iostream>
-#include "io.h"
+#include "utils/io.h"
 
 //#define A_STAR_LOGGING
 #define A_STAR_STATS

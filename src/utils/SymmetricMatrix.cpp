@@ -1,4 +1,7 @@
-#include "SymmetricMatrix.h"
+#include "utils/SymmetricMatrix.h"
+
+#include <stdexcept>
+#include <system_error>
 #include "geom.h"
 
 template<typename T>
@@ -11,7 +14,7 @@ SymmetricMatrixT<T> SymmetricMatrixT<T>::read(std::ifstream& file) {
     }
 
     // Parse matrix size
-    size_t m, n;
+    std::size_t m, n;
     file >> m >> n;
     if (m != n) {
         throw std::runtime_error("matrix is not square");
@@ -27,13 +30,21 @@ SymmetricMatrixT<T> SymmetricMatrixT<T>::read(std::ifstream& file) {
 }
 
 template<typename T>
-void SymmetricMatrixT<T>::write(std::ofstream& file, unsigned int precision) const {
+void SymmetricMatrixT<T>::write(const std::string& path,
+        unsigned int precision) const {
+    std::ofstream file(path, std::ios::out | std::ios::trunc);
+    if (!file)
+        throw std::system_error(errno, std::system_category(),
+                                "Failed to open " + path);
+
     file << "%%MatrixMarket matrix array real symmetric\n";
     file << n << ' ' << n << '\n';
     file.precision(precision);
     for (T value : data) {
         file << value << '\n';
     }
+
+    file.close();
 }
 
 template

@@ -1,7 +1,5 @@
-#pragma once
-
-// #define MEASURE
-// #include "measurement_tool.h"
+#ifndef DEFS_H
+#define DEFS_H
 
 #include <cstdlib>
 #include <iostream>
@@ -28,3 +26,4 @@
                       std::exit(EXIT_FAILURE); } while (0)
 
 #include <cassert>
+#endif

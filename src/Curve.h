@@ -1,4 +1,7 @@
-#pragma once
+#ifndef CURVE_H
+#define CURVE_H
+
+#include <cstddef>
 
 #include "Edge.h"
 
@@ -9,12 +12,11 @@ class Curve {
     // Total arc length of the curve up to the i-th point
     std::vector<distance_t> prefix_length;
 
-
 public:
     Curve() = default;
     explicit Curve(std::string name);
     explicit Curve(std::string name, const Points& points);
-    Curve(const Points& points);
+    explicit Curve(const Points& points);
 
     std::string name() const {
         return m_name;
@@ -29,12 +31,13 @@ public:
     const Point& operator[](PointID id) const { return points[id]; }
 
     bool operator==(Curve& other) const {
-		return std::equal(points.cbegin(), points.cend(), other.points.cbegin(), other.points.cend());
-	}
+        return std::equal(points.cbegin(), points.cend(),
+            other.points.cbegin(), other.points.cend());
+    }
 
     bool operator!=(Curve& other) const {
-		return !(*this == other);
-	}
+        return !(*this == other);
+    }
 
     distance_t curve_length() const {
         return prefix_length.back();
@@ -90,19 +93,26 @@ public:
      */
     Curve simplify(bool maintain_lengths) const;
 
-    Curve naive_l_simplification(int l) const;
+    Curve naive_l_simplification(std::size_t l) const;
 
     struct ExtremePoints { distance_t min_x, min_y, max_x, max_y; };
-	ExtremePoints const& getExtremePoints() const;
+    ExtremePoints const& getExtremePoints() const;
 
     distance_t getUpperBoundDistance(Curve const& other) const;
     
-    std::vector<distance_t> get_prefix_length_vector() { return prefix_length; };
+    std::vector<distance_t> get_prefix_length_vector() {
+        return prefix_length;
+    }
 
 private:
-        ExtremePoints extreme_points = {
-		std::numeric_limits<distance_t>::max(), std::numeric_limits<distance_t>::max(),
-		std::numeric_limits<distance_t>::lowest(), std::numeric_limits<distance_t>::lowest()
-	};
-
+    ExtremePoints extreme_points = {
+        std::numeric_limits<distance_t>::max(),
+        std::numeric_limits<distance_t>::max(),
+        std::numeric_limits<distance_t>::lowest(),
+        std::numeric_limits<distance_t>::lowest()
+    };
 };
+
+using CurveID = ID<Curve>;
+using CurveIDs = std::vector<CurveID>;
+#endif

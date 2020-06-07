@@ -5,28 +5,30 @@
 
 Curve::Curve(std::string name) : m_name(std::move(name)) {}
 
-Curve::Curve(const Points& pts) : m_name("name"), points(pts), prefix_length(pts.size()) {
+Curve::Curve(const Points& pts) : m_name("name"), points(pts),
+        prefix_length(pts.size()) {
 
     if (points.empty()) { return; }
 
-	auto const& front = points.front();
-	extreme_points = { front.x, front.y, front.x, front.y };
-	prefix_length[0] = 0;
+    auto const& front = points.front();
+    extreme_points = { front.x, front.y, front.x, front.y };
+    prefix_length[0] = 0;
 
 
     for (PointID i = 1; i < points.size(); ++i)
-	{
-		auto segment_distance = points[i - 1].dist(points[i]);
+    {
+        auto segment_distance = points[i - 1].dist(points[i]);
         prefix_length[i] = prefix_length[i - 1] + segment_distance;
 
-		extreme_points.min_x = std::min(extreme_points.min_x, points[i].x);
-		extreme_points.min_y = std::min(extreme_points.min_y, points[i].y);
-		extreme_points.max_x = std::max(extreme_points.max_x, points[i].x);
-		extreme_points.max_y = std::max(extreme_points.max_y, points[i].y);
-	}
+        extreme_points.min_x = std::min(extreme_points.min_x, points[i].x);
+        extreme_points.min_y = std::min(extreme_points.min_y, points[i].y);
+        extreme_points.max_x = std::max(extreme_points.max_x, points[i].x);
+        extreme_points.max_y = std::max(extreme_points.max_y, points[i].y);
+    }
 }
 
-Curve::Curve(std::string name, const Points& pts): m_name(std::move(name)), points(pts) {
+Curve::Curve(std::string name, const Points& pts): m_name(std::move(name)),
+        points(pts) {
     if (points.empty()) {
         return;
     }
@@ -40,15 +42,15 @@ Curve::Curve(std::string name, const Points& pts): m_name(std::move(name)), poin
     }
 
     for (PointID i = 1; i < points.size(); ++i)
-	{
-		auto segment_distance = points[i - 1].dist(points[i]);
-		prefix_length[i] = prefix_length[i - 1] + segment_distance;
+    {
+        auto segment_distance = points[i - 1].dist(points[i]);
+        prefix_length[i] = prefix_length[i - 1] + segment_distance;
 
-		extreme_points.min_x = std::min(extreme_points.min_x, points[i].x);
-		extreme_points.min_y = std::min(extreme_points.min_y, points[i].y);
-		extreme_points.max_x = std::max(extreme_points.max_x, points[i].x);
-		extreme_points.max_y = std::max(extreme_points.max_y, points[i].y);
-	}
+        extreme_points.min_x = std::min(extreme_points.min_x, points[i].x);
+        extreme_points.min_y = std::min(extreme_points.min_y, points[i].y);
+        extreme_points.max_x = std::max(extreme_points.max_x, points[i].x);
+        extreme_points.max_y = std::max(extreme_points.max_y, points[i].y);
+    }
 }
 
 void Curve::push_back(const Point& point) {
@@ -60,27 +62,31 @@ void Curve::push_back(const Point& point) {
     }
 
     extreme_points.min_x = std::min(extreme_points.min_x, point.x);
-	extreme_points.min_y = std::min(extreme_points.min_y, point.y);
-	extreme_points.max_x = std::max(extreme_points.max_x, point.x);
-	extreme_points.max_y = std::max(extreme_points.max_y, point.y);
+    extreme_points.min_y = std::min(extreme_points.min_y, point.y);
+    extreme_points.max_x = std::max(extreme_points.max_x, point.x);
+    extreme_points.max_y = std::max(extreme_points.max_y, point.y);
 
     points.push_back(point);
 }
 
 distance_t Curve::curve_length(const CPoint& p) const {
     assert(p.getFraction() >= 0. && p.getFraction() <= 1.);
-    assert((p.getPoint() < points.size() - 1) || (p.getPoint() == points.size() - 1 && p.getFraction() == 0.));
+    assert((p.getPoint() < points.size() - 1) ||
+        (p.getPoint() == points.size() - 1 && p.getFraction() == 0.));
     return p.getFraction() == 0.
         ? prefix_length[p.getPoint()]
-        : prefix_length[p.getPoint()] * (1. - p.getFraction()) + prefix_length[p.getPoint() + 1] * p.getFraction();
+        : prefix_length[p.getPoint()] * (1. - p.getFraction())
+            + prefix_length[p.getPoint() + 1] * p.getFraction();
 }
 
 Point Curve::interpolate_at(const CPoint& p) const {
     assert(p.getFraction() >= 0. && p.getFraction() <= 1.);
-    assert((p.getPoint() < points.size() - 1) || (p.getPoint() == points.size() - 1 && p.getFraction() == 0.));
+    assert((p.getPoint() < points.size() - 1) ||
+        (p.getPoint() == points.size() - 1 && p.getFraction() == 0.));
     return p.getFraction() == 0.
         ? points[p.getPoint()]
-        : points[p.getPoint()] * (1. - p.getFraction()) + points[p.getPoint() + 1] * p.getFraction();
+        : points[p.getPoint()] * (1. - p.getFraction())
+            + points[p.getPoint() + 1] * p.getFraction();
 }
 
 Curve Curve::slice(PointID i, PointID j) const {
@@ -139,7 +145,7 @@ Curve Curve::simplify(bool maintain_lengths) const {
     return other;
 }
 
-Curve Curve::naive_l_simplification(int l) const {
+Curve Curve::naive_l_simplification(std::size_t l) const {
     Curve other(m_name);
 
     size_t period = points.size() / l;
@@ -161,18 +167,18 @@ Curve Curve::naive_l_simplification(int l) const {
 
 auto Curve::getExtremePoints() const -> ExtremePoints const&
 {
-	return extreme_points;
+    return extreme_points;
 }
 
 distance_t Curve::getUpperBoundDistance(Curve const& other) const
 {
-	auto const& extreme1 = this->getExtremePoints();
-	auto const& extreme2 = other.getExtremePoints();
+    auto const& extreme1 = this->getExtremePoints();
+    auto const& extreme2 = other.getExtremePoints();
 
-	Point min_point{ std::min(extreme1.min_x, extreme2.min_x),
-		std::min(extreme1.min_y, extreme2.min_y) };
-	Point max_point = { std::max(extreme1.max_x, extreme2.max_x),
-		std::max(extreme1.max_y, extreme2.max_y) };
+    Point min_point{ std::min(extreme1.min_x, extreme2.min_x),
+        std::min(extreme1.min_y, extreme2.min_y) };
+    Point max_point = { std::max(extreme1.max_x, extreme2.max_x),
+        std::max(extreme1.max_y, extreme2.max_y) };
 
-	return min_point.dist(max_point);
+    return min_point.dist(max_point);
 }

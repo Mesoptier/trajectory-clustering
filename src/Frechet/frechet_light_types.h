@@ -1,8 +1,8 @@
 #pragma once
 
-#include "../geom.h"
-#include "../id.h"
-#include "../Curve.h"
+#include "geom.h"
+#include "utils/id.h"
+#include "Curve.h"
 
 #include <vector>
 
@@ -16,8 +16,8 @@ struct Box {
 	PointID min2;
 	PointID max2;
 
-	Box(PointID min1, PointID max1, PointID min2, PointID max2)
-		: min1(min1), max1(max1), min2(min2), max2(max2) {}
+	Box(PointID min_1, PointID max_1, PointID min_2, PointID max_2)
+		: min1(min_1), max1(max_1), min2(min_2), max2(max_2) {}
 
 	bool isCell() const {
 		return max1 - min1 == 1 && max2 - min2 == 1;

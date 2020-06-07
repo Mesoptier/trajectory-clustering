@@ -1,11 +1,12 @@
 #ifndef BASIC_TYPES_H
 #define BASIC_TYPES_H
 
+#include <limits>
 #include <vector>
 
 #include "Curve.h"
 #include "geom.h"
-#include "id.h"
+#include "utils/id.h"
 
 struct Cluster
 {

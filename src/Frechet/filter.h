@@ -2,7 +2,7 @@
 
 #include "geom.h"
 #include "Curve.h"
-#include "certificate.h"
+#include "Frechet/certificate.h"
 
 class Filter
 {
@@ -12,15 +12,15 @@ private:
 	distance_t distance;
 
 public:
-	Filter(const Curve& curve1, const Curve& curve2, distance_t distance) {
+	Filter(const Curve& curve1, const Curve& curve2, distance_t dist) {
 		this->curve1_pt = &curve1;
 		this->curve2_pt = &curve2;
-		this->distance = distance;
+		this->distance = dist;
 		cert.setCurves(&curve1, &curve2);
 		cert.setDistance(distance);
 	}
 
-	Certificate const& getCertificate() { return cert; };
+	Certificate const& getCertificate() { return cert; }
 
 	bool bichromaticFarthestDistance();
 	bool greedy();

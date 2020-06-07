@@ -1,8 +1,8 @@
 #ifndef CELL
 #define CELL
 
-#include "../geom.h"
-#include "metrics.h"
+#include "geom.h"
+#include "IntegralFrechet/metrics.h"
 #include <iostream>
 #include <math.h>
 

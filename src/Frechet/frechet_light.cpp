@@ -1,7 +1,7 @@
-#include "frechet_light.h"
+#include "Frechet/frechet_light.h"
 
-#include "../defs.h"
-#include "../filter.h"
+#include "utils/defs.h"
+#include "Frechet/filter.h"
 
 #include <algorithm>
 
@@ -18,6 +18,8 @@ void FrechetLight::visAddReachable(CInterval const& cinterval)
 #ifdef VIS
     if (cinterval.is_empty()) { return; }
 	reachable_intervals.push_back(cinterval);
+#else
+	(void)cinterval;
 #endif
 }
 
@@ -34,6 +36,11 @@ void FrechetLight::visAddUnknown(CPoint begin, CPoint end, CPoint fixed_point, C
 
 	assert(unknown_intervals.back().begin >= 0);
 	assert(unknown_intervals.back().end <= curve_pair[1-unknown_intervals.back().fixed_curve]->size() - 1);
+#else
+	(void)begin;
+	(void)end;
+	(void)fixed_point;
+	(void)fixed_curve;
 #endif
 }
 
@@ -51,6 +58,11 @@ void FrechetLight::visAddConnection(CPoint begin, CPoint end, CPoint fixed_point
 
 	assert(connections.back().begin >= 0);
 	assert(connections.back().end <= curve_pair[1-connections.back().fixed_curve]->size() - 1);
+#else
+	(void)begin;
+	(void)end;
+	(void)fixed_point;
+	(void)fixed_curve;
 #endif
 }
 
@@ -67,6 +79,11 @@ void FrechetLight::visAddFreeNonReachable(CPoint begin, CPoint end, CPoint fixed
 
 	assert(free_non_reachable.back().begin >= 0);
 	assert(free_non_reachable.back().end <= curve_pair[1-free_non_reachable.back().fixed_curve]->size() - 1);
+#else
+	(void)begin;
+	(void)end;
+	(void)fixed_point;
+	(void)fixed_curve;
 #endif
 }
 
@@ -287,6 +304,7 @@ inline void FrechetLight::continueQSimpleSearch(QSimpleInterval& qsimple, Point 
 	return;
 }
 
+namespace {
 CIntervals::iterator getIntervalContainingNumber(const CIntervals::iterator& begin, const CIntervals::iterator& end, CPoint const& x) {
 	auto it = std::upper_bound(begin, end, CInterval{x, CPoint{std::numeric_limits<PointID::IDType>::max(),0.}});
 	if (it != begin) {
@@ -308,6 +326,7 @@ CIntervals::iterator getIntervalContainingNumber(const CIntervals::iterator& beg
 	}
 	return end;
 }
+}
 
 void FrechetLight::getReachableIntervals(BoxData& data)
 {
@@ -315,7 +334,7 @@ void FrechetLight::getReachableIntervals(BoxData& data)
 
 	auto const& box = data.box;
 	auto const& inputs = data.inputs;
-	CInterval const empty;
+	// CInterval const empty;
 
 	assert(box.max1 > box.min1 && box.max2 > box.min2);
 	assert(data.outputs.id1.valid() || data.outputs.id2.valid());
@@ -325,7 +344,7 @@ void FrechetLight::getReachableIntervals(BoxData& data)
 
 	if (emptyInputsRule(data)) { return; }
 
-	min1_frac = 0., min2_frac = 0.;
+	min1_frac = min2_frac = 0.;
 	boxShrinkingRule(data);
 
 	if (box.isCell()) {
@@ -739,11 +758,11 @@ CPoint FrechetLight::getLastReachablePoint(Point const& point, Curve const& curv
 	return CPoint{max, 0.};
 }
 
-void FrechetLight::buildFreespaceDiagram(distance_t distance, Curve const& curve1, Curve const& curve2)
+void FrechetLight::buildFreespaceDiagram(distance_t dist, Curve const& curve1, Curve const& curve2)
 {
 	this->curve_pair[0] = &curve1;
 	this->curve_pair[1] = &curve2;
-	this->distance = distance;
+	this->distance = dist;
 	this->dist_sqr = distance * distance;
 
 	clear();
@@ -758,11 +777,11 @@ void FrechetLight::buildFreespaceDiagram(distance_t distance, Curve const& curve
 	computeOutputs(initial_box, initial_inputs, final_outputs);
 }
 
-bool FrechetLight::lessThan(distance_t distance, Curve const& curve1, Curve const& curve2)
+bool FrechetLight::lessThan(distance_t dist, Curve const& curve1, Curve const& curve2)
 {
 	this->curve_pair[0] = &curve1;
 	this->curve_pair[1] = &curve2;
-	this->distance = distance;
+	this->distance = dist;
 	this->dist_sqr = distance * distance;
 
 	// curves empty or start or end are already far
@@ -789,11 +808,11 @@ bool FrechetLight::lessThan(distance_t distance, Curve const& curve1, Curve cons
 	return isTopRightReachable(final_outputs);
 }
 
-bool FrechetLight::lessThanWithFilters(distance_t distance, Curve const& curve1, Curve const& curve2)
+bool FrechetLight::lessThanWithFilters(distance_t dist, Curve const& curve1, Curve const& curve2)
 {
 	this->curve_pair[0] = &curve1;
 	this->curve_pair[1] = &curve2;
-	this->distance = distance;
+	this->distance = dist;
 	this->dist_sqr = distance * distance;
 
 	assert(curve1.size());
@@ -844,6 +863,8 @@ inline void FrechetLight::visAddCell(Box const& box)
 {
 #ifdef VIS
 	cells.emplace_back(box.min1, box.min2);
+#else
+	(void)box;
 #endif
 }
 
@@ -868,8 +889,8 @@ inline void FrechetLight::initCertificate(Inputs const& initial_inputs)
 	auto const& curve1 = *curve_pair[0];
 	auto const& curve2 = *curve_pair[1];
 
-	CInterval origin = CInterval(0,0);
-	certSetValues(origin, origin, 0, -1);
+	CInterval origin = CInterval(0, 0);
+	certSetValues(origin, origin, 0, CurveID());
 	certSetValues(*initial_inputs.begin1, origin, 0, 1);
 	certSetValues(*initial_inputs.begin2, origin, 0, 0);
 
@@ -979,7 +1000,6 @@ Certificate& FrechetLight::computeCertificate() {
 		return cert;
        	}
 	if (curve1.back().dist_sqr(curve2.back()) > dist_sqr) { 
-		distance_t dist = curve1.back().dist_sqr(curve2.back());
 		cert.setAnswer(false);
 		cert.addPoint({ CPoint(curve1.size()-1, 0.), CPoint(curve2.size()-1, 0.) });
 		cert.validate();
@@ -1041,7 +1061,7 @@ Certificate& FrechetLight::computeCertificate() {
 	CIntervals const& outputs2 = reachable_intervals_vec[3];
 
 	bool answer = false;
-	CInterval const* last_interval;
+	CInterval const* last_interval = nullptr;
 	if (outputs1.size() && (outputs1.back().end.getPoint() == curve1.size()-1)) {
 		answer = true;
 		last_interval = &outputs1.back();
@@ -1079,9 +1099,8 @@ Certificate& FrechetLight::computeCertificate() {
 
 		cert.validate();
 
-		for (int t = rev_traversal.size() - 1; t >= 0; t--) {
-			cert.addPoint(rev_traversal[t]);
-		}
+		for (auto it = rev_traversal.rbegin(); it != rev_traversal.rend(); ++it)
+			cert.addPoint(*it);
 	}
 
 	return cert;
@@ -1092,9 +1111,9 @@ auto FrechetLight::getCurvePair() const -> CurvePair
 	return curve_pair;
 }
 
-void FrechetLight::setPruningLevel(int pruning_level)
+void FrechetLight::setPruningLevel(int pr_level)
 {
-	this->pruning_level = pruning_level;
+	this->pruning_level = pr_level;
 }
 
 void FrechetLight::setRules(std::array<bool,5> const& enable)

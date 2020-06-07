@@ -1,5 +1,5 @@
-#include "Cell.h"
-#include "metrics/include.h"
+#include "IntegralFrechet/Cell.h"
+#include "IntegralFrechet/metrics/include.h"
 
 std::pair<Point, Point> Cell::interpolate_at(const Point& p) const {
     return {

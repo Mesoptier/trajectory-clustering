@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../Curve.h"
+#include "Curve.h"
 
 class MatchingBand
 {

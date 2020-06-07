@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../Cell.h"
+#include "IntegralFrechet/Cell.h"
 
 /**
  * Compute the optimal matching from the bottom-left corner to the top-right

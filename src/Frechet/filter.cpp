@@ -1,4 +1,4 @@
-#include "filter.h"
+#include "Frechet/filter.h"
 
 bool Filter::isPointTooFarFromCurve(Point fixed, const Curve& curve, distance_t distance)
 {
@@ -54,7 +54,7 @@ bool Filter::isFree(Curve const& curve1, PointID start1, PointID end1, Curve con
 
 void Filter::increase(size_t& step)
 {
-	step = std::ceil(1.5*step);
+	step = static_cast<std::size_t>(std::ceil(1.5*step));
 }
 
 void Filter::decrease(size_t& step)
@@ -77,7 +77,7 @@ bool Filter::bichromaticFarthestDistance()
 
 	distance_t distance_sqr = distance*distance;
 	distance_t d;
-;
+
 	d = Point{extreme1.min_x, extreme1.min_y}.dist_sqr(Point{extreme2.max_x, extreme2.max_y});
 	if (d > distance_sqr) { return false; }
 	d = Point{extreme1.min_x, extreme1.max_y}.dist_sqr(Point{extreme2.max_x, extreme2.min_y});

@@ -3,9 +3,9 @@
 #include <utility>
 #include <ostream>
 
-#include "util.h"
+#include "utils/util.h"
 #include "geom.h"
-#include "expressionml.h"
+#include "utils/expressionml.h"
 
 class Edge
 {

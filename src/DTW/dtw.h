@@ -3,8 +3,8 @@
 
 #include <cstddef>
 #include <utility>
-#include "../Curve.h"
-#include "../geom.h"
+#include "Curve.h"
+#include "geom.h"
 
 class DTW {
     // Entry in the dynamic program
