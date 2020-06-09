@@ -25,6 +25,7 @@
 #include "src/DTW/dtw.h"
 #include "src/distance_functions.h"
 #include "src/experiments.h"
+#include "src/simplification_experiment.h"
 #include "src/synthetic_curves.h"
 #include "src/classification_experiment.h"
 
@@ -590,6 +591,13 @@ void compute_curve_simp_matrix() {
     matrix.write("pigeon_matrix.txt");
 }
 
+void simplification_comparison() {
+    Curves curves = io::read_curves("data/characters/data");
+    Curves cut(curves.begin(), curves.begin() + 150);
+    Curves samples = experiments::sample(cut, 15);
+    experiments::evaluate(samples, 12);
+}
+
 }
 
 int main() {
@@ -624,7 +632,8 @@ int main() {
     // compute_curve_simp_matrix();
     // run_experiments();
     // preliminary_experiments();
-    experiments::center_update_experiments();
+    simplification_comparison();
+    // experiments::center_update_experiments();
     // characterClassification();
     // synth::generate_curves(Curve({{0, 0}, {10, 10}, {20, 20}, {30, 30}, {40, 40}, {50, 50}, {60, 60}, {70, 70}, {80, 80}, {90, 90}, {100, 100}, {110, 110}, {120, 120}, {130, 130}}), 5);
     // synth::write_curves();
