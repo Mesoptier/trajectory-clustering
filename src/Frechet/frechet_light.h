@@ -20,18 +20,23 @@ public:
 	static constexpr distance_t eps = 1e-10;
 	
 	FrechetLight() = default;
-	void buildFreespaceDiagram(distance_t distance, Curve const& curve1, Curve const& curve2);
-	bool lessThan(distance_t distance, Curve const& curve1, Curve const& curve2) override;
-	bool lessThanWithFilters(distance_t distance, Curve const& curve1, Curve const& curve2);
+	void buildFreespaceDiagram(distance_t distance, Curve const& curve1,
+		Curve const& curve2);
+	bool lessThan(distance_t distance, Curve const& curve1,
+		Curve const& curve2) override;
+	bool lessThanWithFilters(distance_t distance, Curve const& curve1,
+		Curve const& curve2);
 	distance_t calcDistance(Curve const& curve1, Curve const& curve2);
 	void clear();
 
 	CurvePair getCurvePair() const;
 	Certificate& computeCertificate() override;
-	const Certificate& getCertificate() const { return cert; } 
+	const Certificate& getCertificate() const {
+		return cert;
+	} 
 
 	void setPruningLevel(int pruning_level) override;
-	void setRules(std::array<bool,5> const& enable) override;
+	void setRules(std::array<bool, 5> const& enable) override;
 
 	std::size_t getNumberOfBoxes() const;
 
@@ -68,13 +73,17 @@ private:
 	};
 
 	std::vector<Cell> cells;
-	std::vector<Cell> const& getCells() const { return cells; }
+	std::vector<Cell> const& getCells() const {
+		return cells;
+	}
 #endif
 
 	Certificate cert;
 
-	CInterval getInterval(Point const& point, Curve const& curve, PointID i) const;
-	CInterval getInterval(Point const& point, Curve const& curve, PointID i, CInterval* ) const;
+	CInterval getInterval(Point const& point, Curve const& curve,
+		PointID i) const;
+	CInterval getInterval(Point const& point, Curve const& curve,
+		PointID i, CInterval* ) const;
 	void merge(CIntervals& v, CInterval const& i) const;
 
 	Outputs createFinalOutputs();
@@ -84,7 +93,8 @@ private:
 	bool isClose(Point const& point, Curve const& curve) const;
 	CPoint getLastReachablePoint(Point const& point, Curve const& curve) const;
 	bool isTopRightReachable(Outputs const& outputs) const;
-	void computeOutputs(Box const& initial_box, Inputs const& initial_inputs, Outputs& final_outputs);
+	void computeOutputs(Box const& initial_box, Inputs const& initial_inputs,
+		Outputs& final_outputs);
 
 	void getReachableIntervals(BoxData& data);
 
@@ -109,22 +119,32 @@ private:
 	bool out1_valid = false, out2_valid = false;
 
 	// qsimple interval calculation functions
-	QSimpleInterval getFreshQSimpleInterval(const Point& fixed_point, PointID min1, PointID max1, const Curve& curve) const;
-	bool updateQSimpleInterval(QSimpleInterval& qsimple, const Point& fixed_point, PointID min1, PointID max1, const Curve& curve) const;
-	void continueQSimpleSearch(QSimpleInterval& qsimple, const Point& fixed_point, PointID min1, PointID max1, const Curve& curve) const;
+	QSimpleInterval getFreshQSimpleInterval(const Point& fixed_point,
+		PointID min1, PointID max1, const Curve& curve) const;
+	bool updateQSimpleInterval(QSimpleInterval& qsimple,
+		const Point& fixed_point, PointID min1, PointID max1,
+		const Curve& curve) const;
+	void continueQSimpleSearch(QSimpleInterval& qsimple,
+		const Point& fixed_point, PointID min1, PointID max1,
+		const Curve& curve) const;
 
 	bool isOnLowerRight(const CPosition& pt) const;
 	bool isOnUpperLeft(const CPosition& pt) const;
 
 	void initCertificate(Inputs const& initial_inputs);
-	void certSetValues(CInterval& interval, CInterval const& parent, PointID point_id, CurveID curve_id);
-	void certAddEmpty(CPoint begin, CPoint end, CPoint fixed_point, CurveID fixed_curve);
+	void certSetValues(CInterval& interval, CInterval const& parent,
+		PointID point_id, CurveID curve_id);
+	void certAddEmpty(CPoint begin, CPoint end, CPoint fixed_point,
+		CurveID fixed_curve);
 
 	// Those are empty function if VIS is not defined
 	void visAddReachable(CInterval const& cinterval);
-	void visAddUnknown(CPoint begin, CPoint end, CPoint fixed_point, CurveID fixed_curve);
-	void visAddConnection(CPoint begin, CPoint end, CPoint fixed_point, CurveID fixed_curve);
-	void visAddFreeNonReachable(CPoint begin, CPoint end, CPoint fixed_point, CurveID fixed_curve);
+	void visAddUnknown(CPoint begin, CPoint end, CPoint fixed_point,
+		CurveID fixed_curve);
+	void visAddConnection(CPoint begin, CPoint end, CPoint fixed_point,
+		CurveID fixed_curve);
+	void visAddFreeNonReachable(CPoint begin, CPoint end, CPoint fixed_point,
+		CurveID fixed_curve);
 	void visAddCell(Box const& box);
 
 	// Could also be done via getter member functions, but vis is a special

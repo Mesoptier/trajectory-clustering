@@ -14,7 +14,7 @@ using Curves = std::vector<Curve>;
  * \brief Matrix specifically used for storing pairwise distances between curves
  * and simplifications (asymmetric).
  *
- * Suppose we have n curves. Compute  a simplification for each, getting n
+ * Suppose we have n curves. Compute a simplification for each, getting n
  * simplifications. The entry at (i, j) stores the distance between curve i and
  * simplification of curve j. As a special case, the diagonal is all zeros.
  */

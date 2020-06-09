@@ -2,22 +2,23 @@
 
 namespace {
     void join_paths(Points& path_forward, const Points& path_backward) {
-        if (!approx_equal(path_forward.back(), path_backward.back())) {
+        if (!approx_equal(path_forward.back(), path_backward.back()))
             path_forward.push_back(path_backward.back());
-        }
-        path_forward.insert(path_forward.end(), path_backward.rbegin() + 1, path_backward.rend());
+        path_forward.insert(path_forward.end(), path_backward.rbegin() + 1,
+            path_backward.rend());
     }
 
     void join_forward_paths(Points& path_left, const Points& path_right) {
         assert(approx_equal(path_left.back(), path_right.front()));
-        path_left.insert(path_left.end(), path_right.begin() + 1, path_right.end());
+        path_left.insert(path_left.end(), path_right.begin() + 1,
+            path_right.end());
     }
 
-    Point linf_sd_diag(Points& path, const Cell& cell, const Point& s, const Point& t, BFDirection dir) {
+    Point linf_sd_diag(Points& path, const Cell& cell,
+            const Point& s, const Point& t, BFDirection dir) {
         const auto line_left = (dir == BFDirection::Forward ? -1 : 1);
-        if (cell.ell_v.side(s) != -line_left || cell.ell_h.side(s) != line_left) {
+        if (cell.ell_v.side(s) != -line_left || cell.ell_h.side(s) != line_left)
             return s;
-        }
 
         MonotoneComparator compare(dir);
         const Line diag(s, {1, 1});
@@ -35,7 +36,8 @@ namespace {
         return s;
     }
 
-    Point linf_sd_hv(Points& path, const Cell& cell, const Point& s, const Point& t, BFDirection dir) {
+    Point linf_sd_hv(Points& path, const Cell& cell,
+            const Point& s, const Point& t, BFDirection dir) {
         const auto line_left = (dir == BFDirection::Forward ? -1 : 1);
         MonotoneComparator compare(dir);
 
@@ -44,24 +46,30 @@ namespace {
         if (cell.ell_v.side(s) != -line_left && cell.ell_h.side(s) == line_left) {
             if (compare(s, cell.mid)) {
                 if (!cell.ell_v.isHorizontal()) {
-                    new_s = std::min(new_s, intersect(Line::horizontal(s), cell.ell_v), compare);
+                    new_s = std::min(new_s,
+                        intersect(Line::horizontal(s), cell.ell_v), compare);
                 }
             } else {
-                new_s = std::min(new_s, intersect(Line::horizontal(s), cell.ell_h), compare);
+                new_s = std::min(new_s,
+                    intersect(Line::horizontal(s), cell.ell_h), compare);
             }
-            new_s = std::min(new_s, intersect(Line::horizontal(s), Line::vertical(t)), compare);
-        } else if (cell.ell_h.side(s) != line_left && cell.ell_v.side(s) == -line_left) {
+            new_s = std::min(new_s,
+                intersect(Line::horizontal(s), Line::vertical(t)), compare);
+        } else if (cell.ell_h.side(s) != line_left
+                && cell.ell_v.side(s) == -line_left) {
             if (compare(s, cell.mid)) {
                 if (!cell.ell_h.isVertical()) {
-                    new_s = std::min(new_s, intersect(Line::vertical(s), cell.ell_h), compare);
+                    new_s = std::min(new_s,
+                        intersect(Line::vertical(s), cell.ell_h), compare);
                 }
             } else {
-                new_s = std::min(new_s, intersect(Line::vertical(s), cell.ell_v), compare);
+                new_s = std::min(new_s,
+                    intersect(Line::vertical(s), cell.ell_v), compare);
             }
-            new_s = std::min(new_s, intersect(Line::vertical(s), Line::horizontal(t)), compare);
-        } else {
+            new_s = std::min(new_s,
+                intersect(Line::vertical(s), Line::horizontal(t)), compare);
+        } else
             return s;
-        }
 
         if (!approx_equal(new_s, s)) {
             path.push_back(new_s);
@@ -70,12 +78,12 @@ namespace {
         return s;
     }
 
-    Point linf_sd_ell(Points& path, const Cell& cell, const Point& s, const Point& t, BFDirection dir) {
+    Point linf_sd_ell(Points& path, const Cell& cell,
+            const Point& s, const Point& t, BFDirection dir) {
         MonotoneComparator compare(dir);
 
-        if (!compare(s, cell.mid)) {
+        if (!compare(s, cell.mid))
             return s;
-        }
 
         Point new_s;
 
@@ -86,7 +94,8 @@ namespace {
             }, compare);
 
             if (!cell.ell_v.isHorizontal()) {
-                new_s = std::min(new_s, intersect(cell.ell_v, Line::horizontal(t)), compare);
+                new_s = std::min(new_s,
+                    intersect(cell.ell_v, Line::horizontal(t)), compare);
             }
         } else if (cell.ell_h.side(s) == 0) {
             new_s = std::min({
@@ -95,11 +104,11 @@ namespace {
             }, compare);
 
             if (!cell.ell_h.isVertical()) {
-                new_s = std::min(new_s, intersect(cell.ell_h, Line::vertical(t)), compare);
+                new_s = std::min(new_s,
+                    intersect(cell.ell_h, Line::vertical(t)), compare);
             }
-        } else {
+        } else
             return s;
-        }
 
         if (!approx_equal(new_s, s)) {
             path.push_back(new_s);
@@ -110,11 +119,13 @@ namespace {
 }
 
 template<>
-Points compute_matching<ParamMetric::LInfinity_NoShortcuts>(const Cell& cell, const Point& cell_s, const Point& cell_t) {
+Points compute_matching<ParamMetric::LInfinity_NoShortcuts>(const Cell& cell,
+        const Point& cell_s, const Point& cell_t) {
     const auto& ell_h = cell.ell_h;
     const auto& ell_v = cell.ell_v;
 
-    const bool is_opposite_direction = !approx_zero(cell.ell_v.direction.y) && cell.ell_v.direction.y < 0;
+    const bool is_opposite_direction = !approx_zero(cell.ell_v.direction.y)
+        && cell.ell_v.direction.y < 0;
 
     const auto cell_len1 = std::abs(cell_s.x - cell_t.x);
     const auto cell_len2 = std::abs(cell_s.y - cell_t.y);
@@ -139,7 +150,8 @@ Points compute_matching<ParamMetric::LInfinity_NoShortcuts>(const Cell& cell, co
     // paths would not meet in a single point:
     if (is_opposite_direction && !approx_equal(cell_len1, cell_len2)) {
         if (cell_len2 > cell_len1) {
-            if (ell_h.side(cell_s) != 0 && ell_h.side(cell_t) != 0 && ell_h.side(cell_s) != ell_h.side(cell_t)) {
+            if (ell_h.side(cell_s) != 0 && ell_h.side(cell_t) != 0
+                    && ell_h.side(cell_s) != ell_h.side(cell_t)) {
                 // Vertical plateau case
 
                 const Line diag(
@@ -161,14 +173,20 @@ Points compute_matching<ParamMetric::LInfinity_NoShortcuts>(const Cell& cell, co
                     }, compare);
                 }
 
-                Points path_left = compute_matching<ParamMetric::LInfinity_NoShortcuts>(cell, cell_s, p);
-                Points path_right = compute_matching<ParamMetric::LInfinity_NoShortcuts>(cell, p, cell_t);
+                Points path_left =
+                    compute_matching<ParamMetric::LInfinity_NoShortcuts>(
+                        cell, cell_s, p);
+                Points path_right =
+                    compute_matching<ParamMetric::LInfinity_NoShortcuts>(
+                        cell, p, cell_t);
 
                 join_forward_paths(path_left, path_right);
                 return path_left;
             }
-        } else {
-            if (ell_v.side(cell_s) != 0 && ell_v.side(cell_t) != 0 && ell_v.side(cell_s) != ell_v.side(cell_t)) {
+        }
+        else {
+            if (ell_v.side(cell_s) != 0 && ell_v.side(cell_t) != 0
+                    && ell_v.side(cell_s) != ell_v.side(cell_t)) {
                 // Horizontal plateau case
 
                 const Line diag(
@@ -190,8 +208,12 @@ Points compute_matching<ParamMetric::LInfinity_NoShortcuts>(const Cell& cell, co
                     }, compare);
                 }
 
-                Points path_left = compute_matching<ParamMetric::LInfinity_NoShortcuts>(cell, cell_s, p);
-                Points path_right = compute_matching<ParamMetric::LInfinity_NoShortcuts>(cell, p, cell_t);
+                Points path_left =
+                    compute_matching<ParamMetric::LInfinity_NoShortcuts>(
+                        cell, cell_s, p);
+                Points path_right =
+                    compute_matching<ParamMetric::LInfinity_NoShortcuts>(
+                        cell, p, cell_t);
 
                 join_forward_paths(path_left, path_right);
                 return path_left;
@@ -233,6 +255,7 @@ Points compute_matching<ParamMetric::LInfinity_NoShortcuts>(const Cell& cell, co
 }
 
 template<>
-distance_t integrate_linear_dist<ParamMetric::LInfinity_NoShortcuts>(const Cell& /*cell*/, const Point& s, const Point& t) {
+distance_t integrate_linear_dist<ParamMetric::LInfinity_NoShortcuts>(
+        const Cell& /*cell*/, const Point& s, const Point& t) {
     return std::max(std::abs(t.x - s.x), std::abs(t.y - s.y));
 }

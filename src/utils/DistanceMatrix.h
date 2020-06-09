@@ -7,6 +7,10 @@
 template<typename T>
 class DistanceMatrix {
 public:
+    DistanceMatrix() = default;
+
+    DistanceMatrix(DistanceMatrix<T> const&) = default;
+
     virtual ~DistanceMatrix() {}
 
     /**

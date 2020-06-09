@@ -9,8 +9,7 @@
 #include "utils/a_star.h"
 #include "IntegralFrechet/MatchingBand.h"
 
-class IntegralFrechet
-{
+class IntegralFrechet {
 private:
     const Curve& curve1;
     const Curve& curve2;
@@ -20,8 +19,10 @@ private:
 
     Cell get_cell(const CPosition& s, const CPosition& t) const;
 
-    Points compute_cell_matching(const Cell& cell, const Point& s, const Point& t) const;
-    distance_t compute_cell_cost(const Cell& cell, const Points& matching) const;
+    Points compute_cell_matching(const Cell& cell,
+        const Point& s, const Point& t) const;
+    distance_t compute_cell_cost(const Cell& cell,
+        const Points& matching) const;
 
     /**
      * Compute the cost of the optimal matching from the bottom-left corner to
@@ -48,7 +49,8 @@ public:
 
     using cost_t = distance_t;
     using Node = CPosition;
-    void get_neighbors(const Node& node, std::vector<Node>& neighbors, std::vector<cost_t>& costs, BFDirection dir) const;
+    void get_neighbors(const Node& node, std::vector<Node>& neighbors,
+        std::vector<cost_t>& costs, BFDirection dir) const;
 
     Point node_as_point(const Node& node) const {
         return {

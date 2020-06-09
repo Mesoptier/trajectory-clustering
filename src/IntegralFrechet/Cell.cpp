@@ -15,12 +15,13 @@ Cell Cell::subcell(const Point& start, const Point& end) const {
 }
 
 // TODO: Move methods out of Cell namespace
-
-distance_t integrate_linear_cost(const Cell& cell, const Point& s, const Point& t) {
+distance_t integrate_linear_cost(const Cell& cell,
+        const Point& s, const Point& t) {
     const auto[s1, s2] = cell.interpolate_at(s);
     const auto[t1, t2] = cell.interpolate_at(t);
 
-    // Get difference in x- and y-coordinates at the start and end of linear matching (s, t)
+    // Get difference in x- and y-coordinates at the start and end of linear
+    // matching (s, t)
     const auto[dx1, dy1] = s1 - s2;
     const auto[dx2, dy2] = t1 - t2;
 

@@ -15,8 +15,8 @@ namespace simplification::imai_iri {
      * local simplification (every simplified segment has to be close enough to
      * the subcurve); with max = false, the condition is relaxed and we consider
      * the sum of the costs of individual segments instead. Assuming distance
-     * computation takes time proportional to the number of vertices, this runs
-     * in time O(ln^3).
+     * computation on curves of length k and m O(km) time, this runs in time
+     * O(n^2 * (n + l)) = O(n^3) assuming l = o(n).
      * \param in The original curve.
      * \param ell The maximum complexity of the simplification.
      * \param dist The distance function.

@@ -5,6 +5,7 @@ set(SOURCE_FILES
     Curve.cpp
     distance_functions.cpp
     geom.cpp
+    simplification_experiment.cpp
     synthetic_curves.cpp
     clustering/center_algs.cpp
     clustering/center_clustering_algs.cpp

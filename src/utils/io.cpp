@@ -1,7 +1,6 @@
 #include "utils/io.h"
 
 #include <fstream>
-#include <iostream>
 #include <stdexcept>
 
 void io::read_curve(const std::string& filename, Curve& curve,
@@ -18,7 +17,6 @@ void io::read_curve(const std::string& filename, Curve& curve,
 
     distance_t x, y;
     while (file >> x >> y && std::getline(file, line)) {
-        std::cout << x << " " << y << "\n";
         // Ignore duplicate coordinates
         if (!curve.empty() && approx_equal(curve.back(), {x, y}))
             continue;

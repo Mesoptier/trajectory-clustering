@@ -14,10 +14,10 @@ namespace
 std::vector<distance_t> get_redistributed_distances(Curve curve, 
         double lower_threshold=1./10, double upper_threshold=1./5) {
 
-    Points new_points = Points();
+    Points new_points;
 
     //indices of new points
-    std::vector<size_t> indices = std::vector<size_t>();
+    std::vector<std::size_t> indices;
     
     int point_budget = 0;
 
@@ -57,9 +57,9 @@ std::vector<distance_t> get_redistributed_distances(Curve curve,
 
     // Second pass over the curve, add extra
     // points to sections with high curvature
-    Points final_points = Points();
-    std::vector<distance_t> final_distances = std::vector<distance_t>();
-    size_t last_index = 0;
+    Points final_points;
+    std::vector<distance_t> final_distances;
+    std::size_t last_index = 0;
 
     std::size_t i = 0;
 
@@ -70,8 +70,8 @@ std::vector<distance_t> get_redistributed_distances(Curve curve,
             Point b = new_points[i];
             Point c = new_points[i+1];
 
-            Point dir_1 = Point(b.x - a.x, b.y - a.y);
-            Point dir_2 = Point(c.x - b.x, c.y - c.y);
+            Point dir_1(b.x - a.x, b.y - a.y);
+            Point dir_2(c.x - b.x, c.y - c.y);
 
             distance_t theta = acute_angle(dir_1, dir_2);
 
@@ -169,14 +169,13 @@ std::vector<distance_t> get_redistributed_distances(Curve curve,
 Points get_images_of_points(
     Points param_space_path, std::vector<distance_t> distances,  Curve curve_2
 ) {
-    Points points = Points();
+    Points points;
 
-    std::vector<distance_t> x_coords = std::vector<distance_t>();
+    std::vector<distance_t> x_coords;
     for (auto p: param_space_path) {
         x_coords.push_back(p.x);
     }
     points.push_back(curve_2[0]);
-
 
     std::size_t last_index = 0;
 
@@ -346,8 +345,11 @@ std::string clustering::toString(CenterAlg center_alg) {
     case CenterAlg::kCenter: return "kCenter";
     case CenterAlg::fCenter: return "fCenter";
     case CenterAlg::fMean: return "fMean";
+    case CenterAlg::dtwMean: return "dtwMean";
+    case CenterAlg::avFCenter: return "avFCenter";
     case CenterAlg::newCenterUpdate: return "newCenterUpdate";
     case CenterAlg::newCenterUpdate2: return "newCenterUpdate2";
+    case CenterAlg::naiveCenterUpdate: return "naiveCenterUpdate";
     case CenterAlg::ensembleMethod1: return "ensembleMethod1";
     }
     ERROR("Unknown center_alg.");
@@ -629,7 +631,7 @@ bool clustering::naiveCenterUpdate(Curves const& curves, Clustering& clustering,
             }
         }
 
-        Curve new_center_curve = Curve(new_points);
+        Curve new_center_curve(new_points);
 
         if (center_curve != new_center_curve) {
             auto new_dist = calcC2CDist(curves, new_center_curve, cluster.curve_ids, c2c_dist, dist);

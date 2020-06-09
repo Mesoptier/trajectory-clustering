@@ -2,7 +2,6 @@
 #define CURVE_H
 
 #include <cstddef>
-
 #include "Edge.h"
 
 struct SimplifiedCurve;
@@ -16,8 +15,11 @@ class Curve {
 
 public:
     Curve() = default;
+
     explicit Curve(std::string name);
+
     explicit Curve(std::string name, const Points& points);
+
     explicit Curve(const Points& points);
 
     std::string name() const {
@@ -27,36 +29,49 @@ public:
     std::size_t size() const {
         return points.size();
     }
+
     bool empty() const {
         return points.empty();
     }
-    const Point& operator[](PointID id) const { return points[id]; }
 
-    bool operator==(Curve& other) const {
+    const Point& operator[](PointID id) const {
+        return points[id];
+    }
+
+    bool operator==(Curve const& other) const {
         return std::equal(points.cbegin(), points.cend(),
             other.points.cbegin(), other.points.cend());
     }
 
-    bool operator!=(Curve& other) const {
+    bool operator!=(Curve const& other) const {
         return !(*this == other);
     }
 
     distance_t curve_length() const {
         return prefix_length.back();
     }
+
     distance_t curve_length(PointID id) const {
         return prefix_length.at(id);
     }
+
     distance_t curve_length(PointID i, PointID j) const {
         return curve_length(j) - curve_length(i);
     }
+
     distance_t curve_length(const CPoint& point) const;
+
     distance_t curve_length(const CPoint& i, const CPoint j) const {
         return curve_length(j) - curve_length(i);
     }
 
-    Point front() const { return points.front(); }
-    Point back() const { return points.back(); }
+    Point front() const {
+        return points.front();
+    }
+
+    Point back() const {
+        return points.back();
+    }
 
     const Points& get_points() const {
         return points;
@@ -93,7 +108,10 @@ public:
 
     Curve naive_l_simplification(std::size_t l) const;
 
-    struct ExtremePoints { distance_t min_x, min_y, max_x, max_y; };
+    struct ExtremePoints {
+        distance_t min_x, min_y, max_x, max_y;
+    };
+
     ExtremePoints const& getExtremePoints() const;
 
     distance_t getUpperBoundDistance(Curve const& other) const;

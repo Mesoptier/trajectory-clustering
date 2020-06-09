@@ -35,7 +35,8 @@ namespace {
             const auto& point = in[id];
             prefix_curve.push_back(point);
             auto segment = Curve({prefix_curve.front(), prefix_curve.back()});
-            bool fits = less_than(segment, prefix_curve, delta);
+            bool fits = prefix_curve.size() > 2 ?
+                less_than(segment, prefix_curve, delta) : true;
             if (!fits) {
                 simplified_curve.push_back(point);
                 prefix_curve = Curve({point});

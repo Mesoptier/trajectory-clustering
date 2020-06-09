@@ -6,8 +6,7 @@
 #include <iostream>
 #include <math.h>
 
-struct Cell
-{
+struct Cell {
     // Bottom-left corner of the cell
     Point s1; // Image space: start of edge 1
     Point s2; // Image space: start of edge 2
@@ -63,17 +62,18 @@ struct Cell
     }
 
     /**
-     * Get points in image space corresponding to the given point in
+     * \brief Get points in image space corresponding to the given point in
      * parameter space.
      */
     [[nodiscard]]
     std::pair<Point, Point> interpolate_at(const Point& p) const;
 
     /**
-     * Get a subcell of this cell.
-     *
-     * @param s Bottom-left corner (in coordinates relative to this cell) of the subcell.
-     * @param t Top-right corner (in coordinates relative to this cell) of the subcell.
+     * \brief Get a subcell of this cell.
+     * \param s Bottom-left corner (in coordinates relative to this cell) of the
+     * subcell.
+     * \param t Top-right corner (in coordinates relative to this cell) of the
+     * subcell.
      */
     [[nodiscard]]
     Cell subcell(const Point& s, const Point& t) const;

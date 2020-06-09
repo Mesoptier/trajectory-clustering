@@ -2,6 +2,7 @@
 #define DTWH
 
 #include <cstddef>
+#include <limits>
 #include <utility>
 #include "Curve.h"
 #include "geom.h"

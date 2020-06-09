@@ -7,8 +7,7 @@
 #include "geom.h"
 #include "utils/expressionml.h"
 
-class Edge
-{
+class Edge {
 public:
     const Point first;
     const Point second;
@@ -26,7 +25,7 @@ public:
      * Get the Point that lies distance `d` along the edge.
      */
     Point interpolate_at(distance_t d) const {
-//        assert(0 <= d && d <= length);
+        assert(0 <= d && d <= length);
         return interp(d / length);
     }
 
@@ -36,12 +35,9 @@ public:
 
     distance_t param(const Point& point) const {
         // ASSUMPTION: point lies on this edge's infinite line
-
-        if (line.isVertical()) {
+        if (line.isVertical())
             return (first.y - point.y) / (first.y - second.y) * length;
-        } else {
-            return (first.x - point.x) / (first.x - second.x) * length;
-        }
+        return (first.x - point.x) / (first.x - second.x) * length;
     }
 
     void writeExpressionML(ExpressionML::Writer& writer) const {

@@ -53,7 +53,7 @@ set(GNU_OPTIONS
 set(CLANG_OPTIONS
     "-Weverything" "-Wno-c++98-compat" "-Wno-covered-switch-default"
     "-Wno-float-equal" "-Wno-double-promotion" "-Wno-unused-template"
-    "-Wno-c++98-compat-pedantic" "-Wno-padded")
+    "-Wno-c++98-compat-pedantic" "-Wno-padded" "-Wno-weak-template-vtables")
 
 set(MSVC_OPTIONS "/W4")
 
