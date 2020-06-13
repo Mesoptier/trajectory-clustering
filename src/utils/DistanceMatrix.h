@@ -7,11 +7,14 @@
 template<typename T>
 class DistanceMatrix {
 public:
+    // The following is to avoid -Wdeprecated warnings of having a destructor
+    // but not copy / move constructor / assignment.
     DistanceMatrix() = default;
-
     DistanceMatrix(DistanceMatrix<T> const&) = default;
-
-    virtual ~DistanceMatrix() {}
+    DistanceMatrix(DistanceMatrix<T>&&) noexcept = default;
+    DistanceMatrix<T>& operator=(DistanceMatrix<T> const&) = default;
+    DistanceMatrix<T>& operator=(DistanceMatrix<T>&&) noexcept = default;
+    virtual ~DistanceMatrix() = default;
 
     /**
      * \brief Access the element at (i, j).

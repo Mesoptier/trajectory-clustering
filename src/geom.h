@@ -241,7 +241,6 @@ public:
     }
 
     CPoint() : point(PointID::invalid_value), fraction(0.) {}
-    // CPoint(CPoint const&) = default;
 
     PointID getPoint() const {
         return point;
@@ -456,10 +455,6 @@ struct CInterval {
     CInterval()
         : begin(std::numeric_limits<PointID::IDType>::max(), 0.),
           end(std::numeric_limits<PointID::IDType>::lowest(), 0.) {}
-
-    CInterval(CInterval const&) = default;
-
-    CInterval& operator=(CInterval const&) = default;
 
     CInterval(CPoint const& b, CPoint const& e): begin(b), end(e) {}
 

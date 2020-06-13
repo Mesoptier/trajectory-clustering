@@ -4,8 +4,6 @@
 
 class Certificate {
 public:
-    Certificate() = default;
-
     bool isYes() const { 
         assert(isValid());
         return lessThan;
