@@ -18,8 +18,8 @@ Curve simplify(Curve const& curve, distance_t distance, distance_t(*dist_func)(C
 		auto const& point = curve[id];
 		prefix_curve.push_back(point);
 		auto line_segment = Curve({prefix_curve.front(), prefix_curve.back()});
-		bool less_than = dist_func(line_segment, prefix_curve) < distance;
-		// bool less_than = fl.lessThanWithFilters(distance, line_segment, prefix_curve);
+		// bool less_than = dist_func(line_segment, prefix_curve) < distance;
+		bool less_than = fl.lessThanWithFilters(distance, line_segment, prefix_curve);
 		if (!less_than) {
 			simplified_curve.push_back(point);
 			prefix_curve = Curve({point});

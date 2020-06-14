@@ -9,4 +9,5 @@ namespace io {
     std::vector<Curve> read_curves(const std::string& directory);
     void export_points(const std::string& filename, const Points& points);
     std::vector<Curve> read_pigeon_curves(const std::string& directory);
+    std::vector<Curve> read_pigeon_curves_utm(const std::string& directory);
 }

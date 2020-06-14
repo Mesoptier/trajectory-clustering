@@ -157,6 +157,10 @@ void IntegralFrechet::get_neighbors(const Node& node, std::vector<Node>& neighbo
         const size_t n_h = static_cast<size_t>(std::ceil(full_cell.len1 / resolution)) + 1;
         const size_t n_v = static_cast<size_t>(std::ceil(full_cell.len2 / resolution)) + 1;
 
+        if (n_h > 10 || n_v  > 10) {
+            std::cout << "this is weird...\n";
+        }
+
         // TODO: Add intersections of ell_h/ell_v/ell_m with cell boundaries (and of adjacent cells)
         // Cell boundary lines
         // const Line bound_h = Line::horizontal(dir == BFDirection::Forward ? full_cell.t : full_cell.s);

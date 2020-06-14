@@ -21,6 +21,7 @@ set(SOURCE_FILES
     filter.cpp
     clustering/center_clustering_algs.cpp
     DTW/dtw.cpp
+    clustering/center_update.cpp
 )
 
 add_library(TrajectoryClustering_lib STATIC ${SOURCE_FILES} ${HEADER_FILES})

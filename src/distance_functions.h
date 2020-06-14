@@ -9,10 +9,14 @@ distance_t dtw(Curve curve_1, Curve curve_2) {
 }
 
 distance_t integral_frechet(Curve curve_1, Curve curve_2) {
-    return IntegralFrechet(
-        curve_1, curve_2, ParamMetric::L1, 1, nullptr
+    // auto start = std::chrono::high_resolution_clock::now();
+    auto dist = IntegralFrechet(
+        curve_1, curve_2, ParamMetric::L1, 5, nullptr
     ).compute_matching()
     .cost;
+    // auto end = std::chrono::high_resolution_clock::now();
+    // std::cout << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() << std::endl;
+    return dist;
 }
 
 distance_t integral_frechet_fast(Curve curve_1, Curve curve_2) {

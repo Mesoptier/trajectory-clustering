@@ -70,6 +70,33 @@ Curve read_pigeon_curve(const std::string& filename) {
     return curve;
 }
 
+Curve read_pigeon_curve_utm(const std::string& filename) {
+    // std::cout << filename << "\n";
+    Curve curve(filename);
+    std::ifstream file(filename);
+    std::string line;
+    std::getline(file, line);
+    std::string x_string, y_string, num;
+
+    int index = 0;
+    while (std::getline(file, line)) {
+        std::istringstream tokenStream(line);
+        std::getline(tokenStream, num, '\t');
+        std::getline(tokenStream, x_string, '\t');
+        std::getline(tokenStream, y_string, '\t');
+        distance_t x = std::stod(x_string);
+        distance_t y = std::stod(y_string);
+
+        if (!curve.empty() && curve.back().dist_sqr({x, y}) < 1e-18) {
+            continue;
+        }   
+        curve.push_back({x, y});
+        index++;
+
+    }
+    return curve;
+}
+
 std::vector<Curve> io::read_pigeon_curves(const std::string& directory) {
     const auto index_filename = directory + "/dataset.txt";
     std::cout << index_filename << "\n";
@@ -85,6 +112,23 @@ std::vector<Curve> io::read_pigeon_curves(const std::string& directory) {
 
     return curves;
 }
+
+std::vector<Curve> io::read_pigeon_curves_utm(const std::string& directory) {
+    const auto index_filename = directory + "/dataset.txt";
+    std::cout << index_filename << "\n";
+    std::ifstream index(index_filename);
+
+    std::vector<Curve> curves;
+
+    std::string line;
+    while (std::getline(index, line)) {
+        auto filename = directory + "/utm/" + line;
+        curves.push_back(read_pigeon_curve_utm(filename));
+    }
+
+    return curves;
+}
+
 
 void io::export_points(const std::string& filename, const Points& points) {
     std::ofstream file(filename);

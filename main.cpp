@@ -11,7 +11,6 @@
 #include "src/IntegralFrechet/MatchingBand.h"
 #include "src/greedy_simplification.h"
 #include "src/curve_simplification.h"
-// #include "src/clustering/clustering.h"
 #include "src/CurveSimpMatrix.h"
 #include "src/clustering/pam_with_simplifications.h"
 #include "src/clustering/clustering_algs.h"
@@ -568,12 +567,14 @@ int main() {
     // auto index = static_cast<std::size_t>(std::distance(vec.begin(), it));
     // std::cout << index << "\n";
 
-    // wedge_method_experiment();
+    // find_params();
+    // pigeon_experiment();
+    wedge_method_experiment();
     // test_frechet();
     // compute_curve_simp_matrix();
     // run_experiments();
     // preliminary_experiments();
-    center_update_experiments();
+    // center_update_experiments();
     // ensemble_experiment();
     // characterClassification();
     // generate_curves(Curve({{0, 0}, {10, 10}, {20, 20}, {30, 30}, {40, 40}, {50, 50}, {60, 60}, {70, 70}, {80, 80}, {90, 90}, {100, 100}, {110, 110}, {120, 120}, {130, 130}}), 5);

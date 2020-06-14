@@ -1,9 +1,9 @@
 #pragma once
 
+#include "center_update.h"
 #include "../basic_types.h"
 #include "../defs.h"
 #include "../DTW/dtw.h"
-
 #include <string>
 
 using Curves = std::vector<Curve>;
@@ -23,7 +23,9 @@ enum class CenterAlg {
 	dba,
 	cdba,
 	wedge,
-	regression
+	wedge_2,
+	regression,
+	regression_3d
 };
 
 enum class CenterCurveUpdateMethod {
@@ -58,4 +60,9 @@ bool naiveCenterUpdate(Curves const& curves, Clustering& clustering, distance_t(
 bool dba(Curves const& curves, Clustering& clustering, distance_t(*dist_func)(Curve, Curve), C2CDist c2c_dist);
 bool cdba(Curves const& curves, Clustering& clustering, distance_t(*dist_func)(Curve, Curve), C2CDist c2c_dist);
 bool ensembleMethod1(Curves const& curves, Clustering& clustering, distance_t(*dist_func)(Curve, Curve), C2CDist c2c_dist);
+bool updateCenters(Curves const& curves, Clustering& clustering, distance_t(*dist_func)(Curve, Curve), 
+C2CDist c2c_dist, Curve(*compute_new_curve)(Curves const& curves, Cluster const& cluster));
 Points matching_of_vertices(Curve curve_1, Curve curve_2);
+
+bool wedge_parameter_search(Curves const& curves, Clustering& clustering, distance_t(*dist_func)(Curve, Curve), 
+C2CDist c2c_dist, distance_t eps, int radius);

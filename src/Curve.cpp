@@ -94,6 +94,9 @@ distance_t Curve::get_fraction(PointID id, distance_t dist) const {
     if (dist < 1e-10) {
         dist = 0.;
     }
+    if (!((id < points.size() - 1) || (id == points.size() - 1 && dist == 0.))) {
+        std::cout << "oops...\n";
+    }
     assert((id < points.size() - 1) || (id == points.size() - 1 && dist == 0.));
     assert(dist == 0. || (0. < dist && dist <= curve_length(id, id + 1) + ABS_TOL));
     return dist == 0. ? dist : std::min(1., dist / curve_length(id, id + 1));
