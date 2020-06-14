@@ -13,6 +13,8 @@ out/
 #plotting
 curves
 plot.txt
+figures
+results
 
 cluster
 benchmark_stats.csv

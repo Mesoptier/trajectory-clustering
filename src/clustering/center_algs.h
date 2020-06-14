@@ -6,6 +6,7 @@
 #include <vector>
 
 #include "basic_types.h"
+#include "clustering/center_update.h"
 
 namespace clustering {
     using Curves = std::vector<Curve>;
@@ -25,7 +26,9 @@ namespace clustering {
         dba,
         cdba,
         wedge,
-        regression
+        wedge_2,
+        regression,
+        regression_3d
     };
 
     enum class CenterCurveUpdateMethod {
@@ -85,6 +88,13 @@ namespace clustering {
     bool ensembleMethod1(Curves const& curves, Clustering& clustering,
         std::function<distance_t(Curve const&, Curve const&)> const& dist,
         C2CDist c2c_dist);
+
+    bool updateCenters(Curves const& curves, Clustering& clustering, distance_t(*dist_func)(Curve, Curve), 
+C2CDist c2c_dist, Curve(*compute_new_curve)(Curves const& curves, Cluster const& cluster));
     // Points matching_of_vertices(Curve curve_1, Curve curve_2);
+
+
+    bool wedge_parameter_search(Curves const& curves, Clustering& clustering, distance_t(*dist_func)(Curve, Curve), 
+C2CDist c2c_dist, distance_t eps, int radius);
 }
 #endif

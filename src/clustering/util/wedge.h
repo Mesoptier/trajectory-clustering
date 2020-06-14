@@ -7,10 +7,11 @@ struct WedgePoint {
     Point point;
     size_t matching_segment_index;
     distance_t weight;
+	distance_t height;
 
     WedgePoint (Point p, size_t i, distance_t w) 
-    : point(p), matching_segment_index(i), weight(w) {}
-     
+    : point(p), matching_segment_index(i), weight(w) {}    
+
 };
 
 using WedgePoints = std::vector<WedgePoint>;
@@ -29,7 +30,7 @@ WedgePoints get_points_matched_to_segment(Points& param_space_path, const Curve&
 size_t src_index, size_t seg_index) {
 	
 	assert(src_index < curve_1.size() - 1);
-    assert(seg_index == 0 || seg_index == 1);
+    // assert(seg_index == 0 || seg_index == 1);
 
 	WedgePoints wedge_points = WedgePoints();
 
@@ -49,6 +50,9 @@ size_t src_index, size_t seg_index) {
 	it = std::lower_bound(it, x_coords.end(), tgt_dist);
 	tgt_ind = static_cast<std::size_t>(std::distance(x_coords.begin(), it));
 
+	if (tgt_ind == param_space_path.size())
+		--tgt_ind;
+
 	distance_t src_y = param_space_path[src_ind].y;
 	distance_t tgt_y = param_space_path[tgt_ind].y;
 
@@ -64,6 +68,10 @@ size_t src_index, size_t seg_index) {
         wedge_points.push_back(WedgePoint(
             curve_2[i], seg_index, weight
         ));
+
+		// set the 'height' for the 3D linear regression
+		distance_t height = curve_2.curve_length(start_ind, i) * (i - start_ind) * (i - start_ind) * (i - start_ind);
+		wedge_points.back().height = height;
     }
 
 	return wedge_points;

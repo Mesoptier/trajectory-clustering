@@ -9,6 +9,7 @@ set(SOURCE_FILES
     synthetic_curves.cpp
     clustering/center_algs.cpp
     clustering/center_clustering_algs.cpp
+    clustering/center_update.cpp
     clustering/clustering_algs.cpp
     clustering/pam.cpp
     DTW/dtw.cpp
