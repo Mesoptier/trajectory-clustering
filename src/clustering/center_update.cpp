@@ -462,7 +462,7 @@ Curve cdba_update(Curves const& curves, Cluster const& cluster) {
 
     new_center_curve.push_back(cluster.center_curve[0]);
 
-	for (int i = 1; i < cluster.center_curve.size() - 1; ++i) {
+	for (int i = 1; i < cluster.center_curve.size() ; ++i) {
 		Points points_to_average = Points();
 
 		for (auto& matching: matchings) {
@@ -479,7 +479,7 @@ Curve cdba_update(Curves const& curves, Cluster const& cluster) {
 	}
 
     // Fix last point for pigeon data
-    new_center_curve.push_back(cluster.center_curve.back());
+    // new_center_curve.push_back(cluster.center_curve.back());
 
     return new_center_curve;
 }
