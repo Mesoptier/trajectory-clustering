@@ -74,7 +74,10 @@ Points compute_matching<ParamMetric::L1>(const Cell& cell, const Point& s, const
     // Steepest descent from both ends should find the same minimum
     #ifndef NDEBUG
     if (!approx_equal(path1.back(), path2.back())) {
-        throw std::logic_error("paths should find same minimum");
+        std::cout << "precision issue? ...\n";
+        std::cout << std::abs(path1.back().x - path2.back().x) << std::endl;;
+        std::cout << std::abs(path1.back().y - path2.back().y) << std::endl;
+        // throw std::logic_error("paths should find same minimum");
     }
     #endif
 

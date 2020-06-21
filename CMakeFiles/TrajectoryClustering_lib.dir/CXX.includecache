@@ -39,6 +39,8 @@ vector
 -
 
 /mnt/c/projects/trajectory-clustering/src/DTW/dtw.h
+iostream
+-
 cstddef
 -
 utility
@@ -253,6 +255,8 @@ limits
 -
 
 /mnt/c/projects/trajectory-clustering/src/clustering/center_algs.h
+center_update.h
+/mnt/c/projects/trajectory-clustering/src/clustering/center_update.h
 ../basic_types.h
 /mnt/c/projects/trajectory-clustering/src/basic_types.h
 ../defs.h
@@ -273,6 +277,36 @@ clustering_algs.h
 /mnt/c/projects/trajectory-clustering/src/clustering/clustering_algs.h
 ../Curve.h
 /mnt/c/projects/trajectory-clustering/src/Curve.h
+
+/mnt/c/projects/trajectory-clustering/src/clustering/center_update.cpp
+center_update.h
+/mnt/c/projects/trajectory-clustering/src/clustering/center_update.h
+math.h
+-
+stdio.h
+-
+../IntegralFrechet/IntegralFrechet.h
+/mnt/c/projects/trajectory-clustering/src/IntegralFrechet/IntegralFrechet.h
+../Frechet/frechet_light.h
+/mnt/c/projects/trajectory-clustering/src/Frechet/frechet_light.h
+../Frechet/frechet_matching.h
+/mnt/c/projects/trajectory-clustering/src/Frechet/frechet_matching.h
+../DTW/dtw.h
+/mnt/c/projects/trajectory-clustering/src/DTW/dtw.h
+../geom.h
+/mnt/c/projects/trajectory-clustering/src/geom.h
+map
+-
+util/wedge.h
+/mnt/c/projects/trajectory-clustering/src/clustering/util/wedge.h
+util/linear_regression.h
+/mnt/c/projects/trajectory-clustering/src/clustering/util/linear_regression.h
+
+/mnt/c/projects/trajectory-clustering/src/clustering/center_update.h
+../basic_types.h
+/mnt/c/projects/trajectory-clustering/src/basic_types.h
+../defs.h
+/mnt/c/projects/trajectory-clustering/src/defs.h
 
 /mnt/c/projects/trajectory-clustering/src/clustering/clustering_algs.cpp
 clustering_algs.h
@@ -341,6 +375,16 @@ cstddef
 -
 ../CurveSimpMatrix.h
 /mnt/c/projects/trajectory-clustering/src/CurveSimpMatrix.h
+
+/mnt/c/projects/trajectory-clustering/src/clustering/util/linear_regression.h
+../../geom.h
+/mnt/c/projects/trajectory-clustering/src/geom.h
+Eigen/Dense
+-
+
+/mnt/c/projects/trajectory-clustering/src/clustering/util/wedge.h
+../../Curve.h
+/mnt/c/projects/trajectory-clustering/src/Curve.h
 
 /mnt/c/projects/trajectory-clustering/src/curve_simplification.cpp
 curve_simplification.h
@@ -472,63 +516,63 @@ cmath
 functional
 -
 
-src/../src/Curve.h
+src/Curve.h
 Edge.h
-src/../src/Edge.h
+src/Edge.h
 
-src/../src/Edge.h
+src/Edge.h
 utility
 -
 ostream
 -
 util.h
-src/../src/util.h
+src/util.h
 geom.h
-src/../src/geom.h
+src/geom.h
 expressionml.h
-src/../src/expressionml.h
+src/expressionml.h
 
-src/../src/IntegralFrechet/Cell.h
+src/IntegralFrechet/Cell.h
 ../geom.h
-src/../src/geom.h
+src/geom.h
 metrics.h
-src/../src/IntegralFrechet/metrics.h
+src/IntegralFrechet/metrics.h
 iostream
 -
 math.h
 -
 
-src/../src/IntegralFrechet/IntegralFrechet.h
+src/IntegralFrechet/IntegralFrechet.h
 iostream
 -
 utility
 -
 metrics.h
-src/../src/IntegralFrechet/metrics.h
+src/IntegralFrechet/metrics.h
 ../geom.h
-src/../src/geom.h
+src/geom.h
 ../Curve.h
-src/../src/Curve.h
+src/Curve.h
 Cell.h
-src/../src/IntegralFrechet/Cell.h
+src/IntegralFrechet/Cell.h
 ../a_star.h
-src/../src/a_star.h
+src/a_star.h
 MatchingBand.h
-src/../src/IntegralFrechet/MatchingBand.h
+src/IntegralFrechet/MatchingBand.h
 
-src/../src/IntegralFrechet/MatchingBand.h
+src/IntegralFrechet/MatchingBand.h
 ../Curve.h
-src/../src/Curve.h
+src/Curve.h
 
-src/../src/IntegralFrechet/metrics.h
+src/IntegralFrechet/metrics.h
 
-src/../src/SymmetricMatrix.h
+src/SymmetricMatrix.h
 vector
 -
 fstream
 -
 
-src/../src/a_star.h
+src/a_star.h
 queue
 -
 ostream
@@ -540,9 +584,9 @@ algorithm
 iostream
 -
 io.h
-src/../src/io.h
+src/io.h
 
-src/../src/defs.h
+src/defs.h
 cstdlib
 -
 iostream
@@ -550,13 +594,13 @@ iostream
 cassert
 -
 
-src/../src/expressionml.h
+src/expressionml.h
 sstream
 -
 geom.h
-src/../src/geom.h
+src/geom.h
 
-src/../src/geom.h
+src/geom.h
 cassert
 -
 iomanip
@@ -568,31 +612,31 @@ sstream
 array
 -
 util.h
-src/../src/util.h
+src/util.h
 id.h
-src/../src/id.h
+src/id.h
 SymmetricMatrix.h
-src/../src/SymmetricMatrix.h
+src/SymmetricMatrix.h
 
-src/../src/id.h
+src/id.h
 functional
 -
 limits
 -
 
-src/../src/io.h
+src/io.h
 geom.h
-src/../src/geom.h
+src/geom.h
 Curve.h
-src/../src/Curve.h
+src/Curve.h
 
-src/../src/simplification/imaiiri.h
+src/simplification/imaiiri.h
 utility
 -
 ../Curve.h
-src/../src/Curve.h
+src/Curve.h
 
-src/../src/util.h
+src/util.h
 cmath
 -
 functional

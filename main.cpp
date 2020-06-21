@@ -369,7 +369,7 @@ void test_clustering_algs() {
     std::cout << "read curves...\n";
     std::cout << curves.size() << "\n";
 
-    Clustering gonzalez_clustering = runGonzalez(curves, 26, 5, integral_frechet, true);
+    Clustering gonzalez_clustering = runGonzalez(curves, 26, 5, integral_frechet, true, "");
     std::cout << "finshed gonzalez...\n";
 
     Clustering single_linkage_clustering = singleLinkage(curves, 26, 5, integral_frechet, true);
@@ -567,13 +567,17 @@ int main() {
     // auto index = static_cast<std::size_t>(std::distance(vec.begin(), it));
     // std::cout << index << "\n";
 
+    // compute_matrices();
+    // full_clustering_experiment();
     // find_params();
     // pigeon_experiment();
-    wedge_method_experiment();
+    // wedge_method_experiment();
     // test_frechet();
     // compute_curve_simp_matrix();
     // run_experiments();
     // preliminary_experiments();
+    center_update_experiment_characters();
+    // center_update_experiment_pigeons();
     // center_update_experiments();
     // ensemble_experiment();
     // characterClassification();

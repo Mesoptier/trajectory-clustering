@@ -8,14 +8,14 @@ Clustering computeCenterClusteringRound(
 	Curves const& curves, int k, int l, ClusterAlg cluster_alg, CenterAlg center_alg,
 	distance_t(*initial_dist)(Curve, Curve), distance_t(*dist_func)(Curve, Curve), std::string dist_matrix)
 {
-	auto clustering = computeClustering(curves, k, l, ClusterAlg::Gonzalez, initial_dist, dist_matrix, false);
+	auto clustering = computeClustering(curves, k, l, cluster_alg, initial_dist, dist_matrix, false);
 	updateClustering(curves, clustering, dist_func);
 
 	// iterate as long as there are new centers
 	int count = 1;
 	int const max_count = 20;
 	while (count <= max_count && computerCenters(curves, clustering, l, center_alg, dist_func)) {
-		updateClustering(curves, clustering, dist_func);
+		updateClustering(curves, clustering, dist_func, nullptr);
 		++count;
 	}
 	// std::cout << "Number of iterations: " << count << std::endl;

@@ -12,6 +12,7 @@ struct Cluster
     CurveIDs curve_ids;
     Curve center_curve;
     distance_t cost = std::numeric_limits<distance_t>::max();
+    CurveID center_id;
 };
 
 using Clustering = std::vector<Cluster>;

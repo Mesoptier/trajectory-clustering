@@ -7,6 +7,8 @@ using Curves = std::vector<Curve>;
 
 Curve cdba_update(Curves const& curves, Cluster const& cluster);
 
+Curve cdba_update(Curves const& curves, Cluster const& cluster, int res);
+
 Curve wedge_update(Curves const& curves, Cluster const& cluster);
 
 Curve regression_update(Curves const& curves, Cluster const& cluster);

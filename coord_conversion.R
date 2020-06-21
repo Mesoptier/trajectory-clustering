@@ -10,8 +10,8 @@ LongLatToUTM<-function(x,y,zone){
     return(as.data.frame(res))
 }
 
-pigeons = list("a55", "brc", "c17", "c35", "p29", "p39", "p94")
-dir = "data/Data_for_Mann_et_al_RSBL 2/Bladon & Church route recapping/bladon heath/"
+pigeons = list("r47")
+dir = "data/Data_for_Mann_et_al_RSBL 2/Bladon & Church route recapping/church hanborough/"
 
 for (i in 1:length(pigeons)) {
     pigeon = pigeons[i]

@@ -4,7 +4,7 @@
 #include <cmath>
 #include <functional>
 
-const double ABS_TOL = 1e-9;
+const double ABS_TOL = 1e-6;
 
 template<class T>
 bool approx_equal(const T& a, const T& b, double tol = ABS_TOL) {

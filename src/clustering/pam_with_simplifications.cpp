@@ -180,17 +180,43 @@ namespace {
 
 namespace clustering::pam_simp {
 
-    std::vector<size_t> compute(size_t n, size_t k, const CurveSimpMatrix& d) {
+    std::vector<size_t> compute(size_t n, size_t k, const CurveSimpMatrix& d, std::vector<size_t>& medoids) {
         distance_t td;
-        std::vector<size_t> medoids;
+        // std::vector<size_t> medoids;
 
-        build(n, k, d, td, medoids);
+        if (medoids.empty())
+            build(n, k, d, td, medoids);
+        else {
+
+            std::vector<distance_t> smallest_dist;
+
+            for (std::size_t i = 0; i < n; ++i) {
+                distance_t min_dist = INFINITY;
+
+                for (std::size_t j = 0; j < medoids.size(); ++j) {
+                    distance_t new_dist = d.at(i, medoids[j]);
+                    if (new_dist < min_dist) {
+                        min_dist = new_dist;
+                    }
+                }
+                smallest_dist.push_back(min_dist);
+            }
+
+            td = 0;
+            for (auto dist: smallest_dist) {
+                td += dist;
+            }
+
+            for (auto m : medoids) {
+                std::cout << m << ' ';
+            }
+            std::cout << std::endl;
+
+        }
         swap(n, k, d, td, medoids);
 
         std::sort(medoids.begin(), medoids.end());
 
-        // std::cout << "td: " << td << '\n';
-        // std::cout << "medoids: ";
         for (auto m : medoids) {
             std::cout << m << ' ';
         }

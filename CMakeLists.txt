@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 3.9)
 project(trajectory-clustering LANGUAGES CXX)
 
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}")
+
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
@@ -32,6 +34,8 @@ endif()
 
 add_subdirectory(src)
 add_subdirectory(Google_tests)
+
+cmake_policy(SET CMP0074 NEW)
 
 # Main executable
 add_executable(TrajectoryClustering_run main.cpp)

@@ -10,7 +10,6 @@
 #include "util/wedge.h"
 #include "util/linear_regression.h"
 
-
 using Lines = std::vector<Line>;
 
 namespace {
@@ -76,6 +75,7 @@ namespace {
 
 
     Point mean_of_points(Points points) {
+
 
         distance_t x_mean = 0;
         distance_t y_mean = 0;
@@ -313,7 +313,6 @@ namespace {
         }
         points.push_back(curve_2[0]);
 
-
         int last_index = 0;
 
         for (int i = 0; i < distances.size(); ++i) {
@@ -398,7 +397,7 @@ Curve dba_update(Curves const& curves, Cluster const& cluster) {
 
     new_center_curve.push_back(cluster.center_curve[0]);
 
-	for (int i = 1; i < cluster.center_curve.size() - 1; ++i) {
+	for (int i = 1; i < cluster.center_curve.size(); ++i) {
 		Points points_to_average = Points();
 
 		for (auto& matching: matchings) {
@@ -416,12 +415,76 @@ Curve dba_update(Curves const& curves, Cluster const& cluster) {
     }
 
     //Fix last point for pigeon data
-    new_center_curve.push_back(cluster.center_curve.back());
+    // new_center_curve.push_back(cluster.center_curve.back());
 
     return new_center_curve;
 }
 
 Curve cdba_update(Curves const& curves, Cluster const& cluster) {
+        
+    const auto& center_curve = cluster.center_curve;
+	Curve new_center_curve;
+	std::vector<std::vector<Points>> matchings = std::vector<std::vector<Points>>();
+
+	for (auto& curve_id: cluster.curve_ids) {
+		Curve curve = curves[curve_id];
+		Points param_space_path = IntegralFrechet(center_curve, curve, ParamMetric::L1, 250, nullptr)
+		.compute_matching()
+		.matching;
+
+		std::vector<Points> matching = std::vector<Points>();
+
+		for (int i = 0; i < center_curve.size(); ++i) {
+			matching.push_back({});
+			distance_t dist = center_curve.curve_length(i);
+			std::pair<distance_t, distance_t> y_range = get_y_range(param_space_path, dist);
+
+			if (approx_equal(y_range.first, y_range.second)) {
+				matching.back().push_back(curve.interpolate_at(curve.get_cpoint_after(y_range.first)));
+			}
+			else {
+				distance_t length = y_range.second - y_range.first;
+				distance_t ratio_to_curve_length = length / curve.curve_length();
+				int number_of_samples = 2 * curve.size() * ratio_to_curve_length;
+
+				if (number_of_samples == 0)
+					number_of_samples = 1;
+
+				for (int j = 0; j < number_of_samples; ++j) {
+					distance_t dist_along_curve = y_range.first + j * length / number_of_samples;
+					matching.back().push_back(curve.interpolate_at(curve.get_cpoint_after(dist_along_curve)));
+				}
+			}
+		}
+
+		matchings.push_back(matching);
+	}
+
+    new_center_curve.push_back(cluster.center_curve[0]);
+
+	for (int i = 1; i < cluster.center_curve.size() - 1; ++i) {
+		Points points_to_average = Points();
+
+		for (auto& matching: matchings) {
+			for (auto& point: matching[i]) {
+				points_to_average.push_back(point);
+			}
+		}
+
+		Point new_point = mean_of_points(points_to_average);
+
+		if (new_center_curve.size() == 0 || !approx_equal(new_point, new_center_curve.back())) {
+			new_center_curve.push_back(new_point);
+		}
+	}
+
+    // Fix last point for pigeon data
+    new_center_curve.push_back(cluster.center_curve.back());
+
+    return new_center_curve;
+}
+
+Curve cdba_update(Curves const& curves, Cluster const& cluster, int res) {
         
     const auto& center_curve = cluster.center_curve;
 	Curve new_center_curve;
@@ -440,17 +503,13 @@ Curve cdba_update(Curves const& curves, Cluster const& cluster) {
 			distance_t dist = center_curve.curve_length(i);
 			std::pair<distance_t, distance_t> y_range = get_y_range(param_space_path, dist);
 
-			// if (i == 0) {
-			// 	assert(approx_equal(curve.interpolate_at(curve.get_cpoint_after(y_range.first)), {0, 0}));
-			// }
-
 			if (approx_equal(y_range.first, y_range.second)) {
 				matching.back().push_back(curve.interpolate_at(curve.get_cpoint_after(y_range.first)));
 			}
 			else {
 				distance_t length = y_range.second - y_range.first;
 				distance_t ratio_to_curve_length = length / curve.curve_length();
-				int number_of_samples = 2 * curve.size() * ratio_to_curve_length;
+				int number_of_samples = res * curve.size() * ratio_to_curve_length;
 
 				if (number_of_samples == 0)
 					number_of_samples = 1;
@@ -460,9 +519,6 @@ Curve cdba_update(Curves const& curves, Cluster const& cluster) {
 					matching.back().push_back(curve.interpolate_at(curve.get_cpoint_after(dist_along_curve)));
 				}
 			}
-
-			// if (matching.back().size() == 0)
-			// 	std::cout << "woah...\n";
 		}
 
 		matchings.push_back(matching);
@@ -479,6 +535,7 @@ Curve cdba_update(Curves const& curves, Cluster const& cluster) {
 				points_to_average.push_back(point);
 			}
 		}
+
 
 		Point new_point = mean_of_points(points_to_average);
 
@@ -719,7 +776,7 @@ Curve wedge_update(Curves const& curves, Cluster const& cluster) {
             Points param_space_path;
 
             if (matching_paths.find(curve_id) == matching_paths.end()) {
-                param_space_path = IntegralFrechet(center_curve, curve, ParamMetric::L1, 5, nullptr)
+                param_space_path = IntegralFrechet(center_curve, curve, ParamMetric::L1, 250, nullptr)
                 .compute_matching()
                 .matching;
                 matching_paths.emplace(curve_id, param_space_path);
@@ -853,7 +910,6 @@ Curve redistribute_points_update(Curves const& curves, Cluster const& cluster) {
     std::vector<Points> matchings;
 	auto const& center_curve = cluster.center_curve;
 	Curve new_center_curve;
-
 
 	for (auto curve_id: cluster.curve_ids) {
 		auto const& curve = curves[curve_id]; 

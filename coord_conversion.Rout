@@ -1,0 +1,80 @@
+
+R version 4.0.1 (2020-06-06) -- "See Things Now"
+Copyright (C) 2020 The R Foundation for Statistical Computing
+Platform: x86_64-w64-mingw32/x64 (64-bit)
+
+R is free software and comes with ABSOLUTELY NO WARRANTY.
+You are welcome to redistribute it under certain conditions.
+Type 'license()' or 'licence()' for distribution details.
+
+R is a collaborative project with many contributors.
+Type 'contributors()' for more information and
+'citation()' on how to cite R or R packages in publications.
+
+Type 'demo()' for some demos, 'help()' for on-line help, or
+'help.start()' for an HTML browser interface to help.
+Type 'q()' to quit R.
+
+> library(sp)
+> library(rgdal)
+rgdal: version: 1.5-8, (SVN revision 990)
+Geospatial Data Abstraction Library extensions to R successfully loaded
+Loaded GDAL runtime: GDAL 3.0.4, released 2020/01/28
+Path to GDAL shared files: C:/Users/Mica/Documents/R/win-library/4.0/rgdal/gdal
+GDAL binary built with GEOS: TRUE 
+Loaded PROJ runtime: Rel. 6.3.1, February 10th, 2020, [PJ_VERSION: 631]
+Path to PROJ shared files: C:/Users/Mica/Documents/R/win-library/4.0/rgdal/proj
+Linking to sp version:1.4-2
+To mute warnings of possible GDAL/OSR exportToProj4() degradation,
+use options("rgdal_show_exportToProj4_warnings"="none") before loading rgdal.
+> 
+> 
+> LongLatToUTM<-function(x,y,zone){
++     xy <- data.frame(ID = 1:length(x), X = x, Y = y)
++     coordinates(xy) <- c("X", "Y")
++     proj4string(xy) <- CRS("+proj=longlat +datum=WGS84")
++     res <- spTransform(xy, CRS(paste("+proj=utm +zone=",zone," ellps=WGS84",sep='')))
++     return(as.data.frame(res))
++ }
+> 
+> pigeons = list("a55", "brc", "c17", "c35", "p29", "p39", "p94")
+> dir = "data/Data_for_Mann_et_al_RSBL 2/Bladon & Church route recapping/church hanborough/"
+> 
+> for (i in 1:length(pigeons)) {
++     pigeon = pigeons[i]
++     sub_dir = paste(dir, pigeon, sep="")
++     dataset_file = paste(sub_dir, "/dataset.txt", sep="")
++     conn <- file(dataset_file, open='r')
++ 
++     lines <- readLines(conn)
++ 
++     new_dataset <- file(
++         paste(sub_dir, "/utm/dataset.txt", sep="")
++     )
++ 
++     writeLines(lines, new_dataset)
++ 
++     for (j in 1:length(lines)) {
++         pigeon_file <- paste(c(sub_dir, "/", lines[j]), collapse="")
++         pigeon_table <- read.delim(pigeon_file, header=FALSE, sep="\t")[-1,]
++ 	print(lines[j])
++         X <- pigeon_table[,1]
++         X <- mapply(X, FUN=as.numeric)
++         Y <- pigeon_table[,2]
++         Y <- mapply(Y, FUN=as.numeric)
++     
++         utm <- LongLatToUTM(X, Y, "30U")
++         write.table(utm, paste(c(sub_dir, "/utm/", lines[j]), collapse=""), append = FALSE, sep = "\t", dec = ".",
++             row.names = FALSE, col.names = FALSE)
++ 	write.table(utm, paste(c(dir, "/utm/", lines[j]), collapse=""), append = FALSE, sep = "\t", dec = ".",
++             row.names = FALSE, col.names = FALSE)
++     }
++ 
++     close(new_dataset)
++     close(conn)
++ }
+Error in file(dataset_file, open = "r") : cannot open the connection
+In addition: Warning message:
+In file(dataset_file, open = "r") :
+  cannot open file 'data/Data_for_Mann_et_al_RSBL 2/Bladon & Church route recapping/church hanborough/a55/dataset.txt': No such file or directory
+Execution halted

@@ -12,6 +12,8 @@ class CurveSimpMatrix {
         std::vector<std::vector<distance_t>> matrix;
 
     public:
+        CurveSimpMatrix() {};
+
         CurveSimpMatrix(std::string file_name) {
             std::fstream file;
             file.open(file_name);
@@ -28,21 +30,26 @@ class CurveSimpMatrix {
 
 
             for (szt i = 0; i < curves.size(); ++i) {
-                std::cout << i << "\n";
                 matrix.push_back(std::vector<distance_t>());
                 for (szt j = 0; j < curves.size(); ++j) {
-                    if (i == j) {
-                        matrix.back().push_back(0);
-                    }
-                    else {
+                    if ((i * curves.size() + j) % 25 == 0)
+                        std::cout << i * curves.size() + j << " / " << curves.size() * curves.size() << std::endl;
+                    // if (i == j) {
+                    //     matrix.back().push_back(0);
+                    // }
+                    // else {
                         matrix.back().push_back(dist_func(curves[i], simplifications[j]));
-                    }
+                    // }
                 }
             }
         }
 
         distance_t at(std::size_t i, std::size_t j) const {
             return matrix[i][j];
+        }
+
+        void set(std::size_t i, std::size_t j, distance_t value) {
+            matrix[i][j] = value;
         }
 
         void write(std::string path) {
@@ -54,7 +61,6 @@ class CurveSimpMatrix {
                 }
                 file << "\n";
             }
-
             file.close();
         }
 

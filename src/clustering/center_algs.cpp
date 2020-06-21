@@ -863,7 +863,6 @@ C2CDist c2c_dist, Curve(*compute_new_curve)(Curves const& curves, Cluster const&
 		std::cout << "no new center... :( \n";
 	}
 	return found_new_center;
-
 }
 
 bool wedge_parameter_search(Curves const& curves, Clustering& clustering, distance_t(*dist_func)(Curve, Curve), 
