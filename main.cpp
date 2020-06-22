@@ -567,6 +567,8 @@ int main() {
     // auto index = static_cast<std::size_t>(std::distance(vec.begin(), it));
     // std::cout << index << "\n";
 
+
+    running_time_experiment();
     // compute_matrices();
     // full_clustering_experiment();
     // find_params();
@@ -576,7 +578,7 @@ int main() {
     // compute_curve_simp_matrix();
     // run_experiments();
     // preliminary_experiments();
-    center_update_experiment_characters();
+    // center_update_experiment_characters();
     // center_update_experiment_pigeons();
     // center_update_experiments();
     // ensemble_experiment();

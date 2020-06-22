@@ -535,18 +535,18 @@ void center_update_experiment_characters() {
 
 void center_update_experiment_pigeons() {
     std::vector<std::string> pigeons = {
-        "Bladon & Church route recapping/church hanborough/a94", "Bladon & Church route recapping/church hanborough/c22", "Bladon & Church route recapping/church hanborough/k77",
+        "/Bladon & Church route recapping/church hanborough/a94", "Bladon & Church route recapping/church hanborough/c22", "Bladon & Church route recapping/church hanborough/k77",
         "Bladon & Church route recapping/church hanborough/l29", "Bladon & Church route recapping/church hanborough/liv", "Bladon & Church route recapping/church hanborough/r47", "Bladon & Church route recapping/church hanborough/s93",
-        // "Horspath/H22", "Horspath/H27", "Horspath/H30", "Horspath/H35", "Horspath/H38", "Horspath/H41", "Horspath/H42", "Horspath/H71",
-        // "Weston/H23", "Weston/H31", "Weston/H32", "Weston/H34", "Weston/H36", "Weston/H50", "Weston/H58", "Weston/H62",
-        // "Bladon & Church route recapping/bladon heath/p39", "Bladon & Church route recapping/church hanborough/c70", "Bladon & Church route recapping/bladon heath/p29", "Bladon & Church route recapping/bladon heath/a55", "Bladon & Church route recapping/bladon heath/brc", "Bladon & Church route recapping/bladon heath/c17", "Bladon & Church route recapping/bladon heath/c35",
-        // "Bladon & Church route recapping/bladon heath/p94"
+        "Horspath/H22", "Horspath/H27", "Horspath/H30", "Horspath/H35", "Horspath/H38", "Horspath/H41", "Horspath/H42", "Horspath/H71",
+        "Weston/H23", "Weston/H31", "Weston/H32", "Weston/H34", "Weston/H36", "Weston/H50", "Weston/H58", "Weston/H62",
+        "Bladon & Church route recapping/bladon heath/p39", "Bladon & Church route recapping/church hanborough/c70", "Bladon & Church route recapping/bladon heath/p29", "Bladon & Church route recapping/bladon heath/a55", "Bladon & Church route recapping/bladon heath/brc", "Bladon & Church route recapping/bladon heath/c17", "Bladon & Church route recapping/bladon heath/c35",
+        "Bladon & Church route recapping/bladon heath/p94"
     };
 
     std::fstream clustering_names;
-    clustering_names.open("results/main_experiment/plots_1.txt", std::fstream::out | std::fstream::trunc);
+    clustering_names.open("results/main_experiment/plots_4.txt", std::fstream::out | std::fstream::trunc);
     std::fstream k_med_scores;
-    k_med_scores.open("results/main_experiment/k_med_scores_1.txt", std::fstream::out | std::fstream::trunc);
+    k_med_scores.open("results/main_experiment/k_med_scores_4.txt", std::fstream::out | std::fstream::trunc);
 
     k_med_scores << "pigeon\tfsa\tdba\tcdba\twedge\n";
 
@@ -561,7 +561,7 @@ void center_update_experiment_pigeons() {
 
         Clustering dba_clustering = initial_clustering;
         int count = 1;
-        int max_count = 20;
+        int max_count = 10;
         while (count <= max_count && computerCenters(curves, dba_clustering, 10, CenterAlg::dba, dtw)) {
             updateClustering(curves, dba_clustering, dtw, nullptr);
             ++count;
@@ -569,7 +569,6 @@ void center_update_experiment_pigeons() {
 
         Clustering fsa_clustering = initial_clustering;
         count = 1;
-        max_count = 20;
         while (count <= max_count && computerCenters(curves, fsa_clustering, 10, CenterAlg::fCenter, frechet)) {
             updateClustering(curves, fsa_clustering, frechet, nullptr);
             ++count;
@@ -577,7 +576,6 @@ void center_update_experiment_pigeons() {
 
         Clustering cdba_clustering = initial_clustering;
         count = 1;
-        max_count = 20;
         while (count <= max_count && computerCenters(curves, cdba_clustering, 10, CenterAlg::cdba, integral_frechet<250>)) {
             updateClustering(curves, cdba_clustering, integral_frechet<250>, nullptr);
             ++count;
@@ -585,20 +583,11 @@ void center_update_experiment_pigeons() {
 
         Clustering wedge_clustering = initial_clustering;
         count = 1;
-        max_count = 20;
         while (count <= max_count && computerCenters(curves, wedge_clustering, 10, CenterAlg::wedge, integral_frechet<250>)) {
             updateClustering(curves, wedge_clustering, integral_frechet<250>, nullptr);
             ++count;
         }
 
-        // std::cout << "dba...\n";
-        // Clustering dba_clustering = computeCenterClustering(curves, 3, 10, ClusterAlg::Pam, CenterAlg::dba, integral_frechet<250>, dtw, "", 1);
-        // std::cout << "fsa...\n";
-        // Clustering fsa_clustering = computeCenterClustering(curves, 3, 10, ClusterAlg::Pam, CenterAlg::fCenter, integral_frechet<250>, frechet, "", 1);
-        // std::cout << "cdba int...\n";
-        // Clustering cdba_integral_clustering = computeCenterClustering(curves, 3, 10, ClusterAlg::Pam, CenterAlg::cdba, integral_frechet<250>, integral_frechet<250>, "", 1);
-        // std::cout << "wedge int...\n";
-        // Clustering wedge_integral_clustering = computeCenterClustering(curves, 3, 10, ClusterAlg::Pam, CenterAlg::wedge, integral_frechet<250>, integral_frechet<250>, "", 1);
 
         plot_clustering(dba_clustering, curves, "results/main_experiment/" + pigeon + "_dba.txt");
         plot_clustering(fsa_clustering, curves, "results/main_experiment/" + pigeon + "_fsa.txt");
@@ -628,9 +617,43 @@ void center_update_experiment_pigeons() {
                 k_med_scores << "\n";
             }
         }
-
     }
 
     k_med_scores.close();
     clustering_names.close();
+}
+
+void running_time_experiment() {
+    std::vector<std::string> pigeon_datasets = {
+        "data/Data_for_Mann_et_al_RSBL 2/Bladon & Church route recapping/church hanborough/utm",
+        "data/Data_for_Mann_et_al_RSBL 2/Bladon & Church route recapping/bladon heath/utm",
+        "data/Data_for_Mann_et_al_RSBL 2/Horspath/utm",
+        "data/Data_for_Mann_et_al_RSBL 2/Weston/utm"
+    };
+
+    std::vector<std::string> names = {
+        "bladon_heath", "church_hanborough",
+        "horspath", "weston"
+    };
+
+
+    std::fstream output_file;
+    output_file.open("running_time.txt", std::fstream::out | std::fstream::trunc);
+
+    for (int i = 0; i < pigeon_datasets.size(); ++i) {
+        auto pigeon_data = pigeon_datasets[i];
+        Curves raw_curves = io::read_pigeon_curves(pigeon_data);
+        Curves curves = Curves();
+        for (auto curve: raw_curves) {
+            curves.push_back(curve.naive_l_simplification(100));
+        }
+
+        auto start_time = std::chrono::high_resolution_clock::now();
+        Clustering clustering = computeCenterClustering(curves, 5, 10, ClusterAlg::Gonzalez, CenterAlg::cdba, integral_frechet<250>, integral_frechet<250>, "", 1);
+        auto end_time = std::chrono::high_resolution_clock::now();
+        auto total_time = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time).count();
+        output_file << names[i] << "\t" << total_time << "\n";
+    }
+
+    output_file.close();
 }

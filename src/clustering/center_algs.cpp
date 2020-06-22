@@ -856,12 +856,12 @@ C2CDist c2c_dist, Curve(*compute_new_curve)(Curves const& curves, Cluster const&
 		}
 	}
 
-	if (found_new_center) {
-		std::cout << "found new center\n";
-	}
-	else {
-		std::cout << "no new center... :( \n";
-	}
+	// if (found_new_center) {
+	// 	std::cout << "found new center\n";
+	// }
+	// else {
+	// 	std::cout << "no new center... :( \n";
+	// }
 	return found_new_center;
 }
 

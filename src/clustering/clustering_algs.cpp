@@ -6,6 +6,7 @@
 #include "../IntegralFrechet/IntegralFrechet.h"
 #include "../curve_simplification.h"
 
+
 namespace
 {
 
@@ -266,7 +267,7 @@ distance_t calcDiameter(Curves const& curves, CurveIDs const& /* curve_ids */, d
 Clustering pam_with_simplifications(Curves const& curves, std::size_t k, int l, distance_t(*dist_func)(Curve, Curve), std::string matrix_file_name) {
 	Curves simplifications = Curves();
 	for (auto curve: curves) {
-		simplifications.push_back(curve.naive_l_simplification(l));
+		simplifications.push_back(simplify(curve, l, dist_func));
 	}
 
 	CurveSimpMatrix distance_matrix = matrix_file_name == "" ? 
@@ -296,19 +297,19 @@ Clustering pam_with_centering(Curves const& curves, std::size_t k, int l, distan
 		simplifications.push_back(curve.naive_l_simplification(l));
 	}
 
-	std::cout << "computed simplificactions... \n";
+	// std::cout << "computed simplificactions... \n";
 
 	CurveSimpMatrix distance_matrix = matrix_file_name == "" ? 
 	CurveSimpMatrix(curves, simplifications, dist_func) :
 	CurveSimpMatrix(matrix_file_name);
 
-	std::cout << "read distance matrix \n";
+	// std::cout << "read distance matrix \n";
 
 	std::vector<size_t> medoids;
 
 	std::vector<size_t> initial_centers = clustering::pam_simp::compute(curves.size(), k, distance_matrix, medoids);
 
-	std::cout << "initial centers: " << initial_centers.size() << "\n";
+	// std::cout << "initial centers: " << initial_centers.size() << "\n";
 	for (auto id: initial_centers) {
 		std::cout << id << "\n";
 	}
@@ -323,7 +324,7 @@ Clustering pam_with_centering(Curves const& curves, std::size_t k, int l, distan
 	updateClustering(curves, clustering, dist_func);
 
 	for (auto cluster: clustering) {
-		std::cout << "cluster size: " << cluster.curve_ids.size() << "\n";
+		// std::cout << "cluster size: " << cluster.curve_ids.size() << "\n";
 	}
 
 	distance_t cost_after_pam = 0;

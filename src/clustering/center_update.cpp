@@ -397,7 +397,7 @@ Curve dba_update(Curves const& curves, Cluster const& cluster) {
 
     new_center_curve.push_back(cluster.center_curve[0]);
 
-	for (int i = 1; i < cluster.center_curve.size(); ++i) {
+	for (int i = 1; i < cluster.center_curve.size() - 1; ++i) {
 		Points points_to_average = Points();
 
 		for (auto& matching: matchings) {
@@ -415,7 +415,7 @@ Curve dba_update(Curves const& curves, Cluster const& cluster) {
     }
 
     //Fix last point for pigeon data
-    // new_center_curve.push_back(cluster.center_curve.back());
+    new_center_curve.push_back(cluster.center_curve.back());
 
     return new_center_curve;
 }
@@ -462,7 +462,7 @@ Curve cdba_update(Curves const& curves, Cluster const& cluster) {
 
     new_center_curve.push_back(cluster.center_curve[0]);
 
-	for (int i = 1; i < cluster.center_curve.size() ; ++i) {
+	for (int i = 1; i < cluster.center_curve.size() - 1; ++i) {
 		Points points_to_average = Points();
 
 		for (auto& matching: matchings) {
@@ -479,7 +479,7 @@ Curve cdba_update(Curves const& curves, Cluster const& cluster) {
 	}
 
     // Fix last point for pigeon data
-    // new_center_curve.push_back(cluster.center_curve.back());
+    new_center_curve.push_back(cluster.center_curve.back());
 
     return new_center_curve;
 }
@@ -799,32 +799,32 @@ Curve wedge_update(Curves const& curves, Cluster const& cluster) {
             );
         }
 
-        Point new_point = grid_search(wedges.back().vertices, wedges.back().wedge_points/*, 5, 10*/);
+        Point new_point = grid_search(wedges.back().vertices, wedges.back().wedge_points, 5, 10);
 
         if (!approx_equal(new_point, new_center_curve.back())) {
             new_center_curve.push_back(new_point);
         }
     }
 
-    Points last_points = {center_curve.get_points()[center_curve.size() - 2], center_curve.get_points()[center_curve.size() - 1], {0, 0}};
-    Wedge last_wedge = Wedge(
-        last_points,
-        WedgePoints()
-    );
-    for (auto curve_id: cluster.curve_ids) {
-        Curve curve = curves[curve_id];
-        Points param_space_path = matching_paths.at(curve_id);
-        WedgePoints wps = get_points_matched_to_segment(param_space_path, center_curve, curve, center_curve.size() - 2, 0);
-        last_wedge.wedge_points.insert(last_wedge.wedge_points.end(), wps.begin(), wps.end());
-    }
+    // Points last_points = {center_curve.get_points()[center_curve.size() - 2], center_curve.get_points()[center_curve.size() - 1], {0, 0}};
+    // Wedge last_wedge = Wedge(
+    //     last_points,
+    //     WedgePoints()
+    // );
+    // for (auto curve_id: cluster.curve_ids) {
+    //     Curve curve = curves[curve_id];
+    //     Points param_space_path = matching_paths.at(curve_id);
+    //     WedgePoints wps = get_points_matched_to_segment(param_space_path, center_curve, curve, center_curve.size() - 2, 0);
+    //     last_wedge.wedge_points.insert(last_wedge.wedge_points.end(), wps.begin(), wps.end());
+    // }
 
-    Point new_point = grid_search(last_wedge.vertices, last_wedge.wedge_points);
+    // Point new_point = grid_search(last_wedge.vertices, last_wedge.wedge_points);
 
-    if (new_center_curve.empty() || !approx_equal(new_point, new_center_curve.back())) {
-        new_center_curve.push_back(new_point);
-    }
+    // if (new_center_curve.empty() || !approx_equal(new_point, new_center_curve.back())) {
+    //     new_center_curve.push_back(new_point);
+    // }
 
-    // new_center_curve.push_back(center_curve.back());
+    new_center_curve.push_back(center_curve.back());
 
     return new_center_curve;
 }

@@ -185,7 +185,7 @@ Point Line::closest(const Point& point) const {
 
 int Line::side(const Point& point) const {
     const auto val = perp(point - origin, direction);
-    return approx_zero(val) ? 0 : (val > 0 ? 1 : -1);
+    return approx_zero(val, 0.0001) ? 0 : (val > 0 ? 1 : -1);
 }
 
 bool Line::includesPoint(const Point& point) const {
