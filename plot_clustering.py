@@ -31,7 +31,7 @@ def plot_clustering(file, figure_name, radius):
         cluster = clustering[i]
         for curve in cluster["curves"]:
             for j in range(0, len(curve)-2, 2):
-                plt.plot((curve[j], curve[j+2]), (curve[j+1], curve[j+3]), 'black', linewidth=0.5)
+                plt.plot((curve[j], curve[j+2]), (curve[j+1], curve[j+3]), colors[i], linewidth=0.5)
   
     for i in range(len(clustering)):
         cluster = clustering[i]

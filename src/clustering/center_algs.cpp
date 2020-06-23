@@ -398,6 +398,19 @@ bool computerCenters(Curves const& curves, Clustering& clustering, int l, Center
 		return updateCenters(curves, clustering, dist_func, C2CDist::Median, regression_update);
 	case CenterAlg::regression_3d:
 		return updateCenters(curves, clustering, dist_func, C2CDist::Median, regression_update_3d);
+	case CenterAlg::cdbaChar:
+		return updateCenters(curves, clustering, dist_func, C2CDist::Median, cdba_characters);
+	case CenterAlg::cdbaPigeon:
+		return updateCenters(curves, clustering, dist_func, C2CDist::Median, cdba_pigeons);
+	case CenterAlg::dbaChar:
+		return updateCenters(curves, clustering, dist_func, C2CDist::Mean, dba_characters);
+	case CenterAlg::dbaPigeon:
+		return updateCenters(curves, clustering, dist_func, C2CDist::Mean, dba_pigeons);
+	case CenterAlg::wedgeChar:
+		return updateCenters(curves, clustering, dist_func, C2CDist::Median, wedge_characters);
+	case CenterAlg::wedgePigeon:
+		return updateCenters(curves, clustering, dist_func, C2CDist::Median, wedge_pigeons);
+	
 	}
 
 	ERROR("No matching center_alg enum passed.");

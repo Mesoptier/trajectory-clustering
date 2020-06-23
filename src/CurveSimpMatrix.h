@@ -33,7 +33,7 @@ class CurveSimpMatrix {
                 matrix.push_back(std::vector<distance_t>());
                 for (szt j = 0; j < curves.size(); ++j) {
                     if ((i * curves.size() + j) % 25 == 0)
-                        // std::cout << i * curves.size() + j << " / " << curves.size() * curves.size() << std::endl;
+                        std::cout << i * curves.size() + j << " / " << curves.size() * curves.size() << std::endl;
                     // if (i == j) {
                     //     matrix.back().push_back(0);
                     // }
