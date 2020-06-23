@@ -490,11 +490,13 @@ void curve_complexity_experiment_characters() {
     
     system("mkdir results");
 
-    int n = 25;
-    int k = 1;
+    int n = 50;
+    int k = 2;
 
     for (int l = 6; l <= 12; ++l) {
-        center_update_experiment_characters("char_exp_" + std::to_string(l), n, k, l);
+		std::string dir_name =
+			"char_exp_" + std::to_string(l) + "_" + std::to_string(k) + "_" + std::to_string(n);
+        center_update_experiment_characters(dir_name, n, k, l);
     }
 }
 
