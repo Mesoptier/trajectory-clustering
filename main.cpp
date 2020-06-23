@@ -569,7 +569,7 @@ int main() {
 
 
 
-    curve_complexity_experiment_characters();
+    curve_complexity_experiment_pigeons();
     // running_time_experiment();
     // compute_matrices();
     // full_clustering_experiment();
