@@ -504,11 +504,11 @@ void curve_complexity_experiment_characters() {
 void center_update_experiment_pigeons(std::string directory, int k, int l) {
     std::vector<std::string> pigeons = {
         "Bladon & Church route recapping/church hanborough/a94", "Bladon & Church route recapping/church hanborough/c22", "Bladon & Church route recapping/church hanborough/k77",
-        "Bladon & Church route recapping/church hanborough/l29", "Bladon & Church route recapping/church hanborough/liv", "Bladon & Church route recapping/church hanborough/r47", "Bladon & Church route recapping/church hanborough/s93",
-        "Horspath/H22", "Horspath/H27", "Horspath/H30", "Horspath/H35", "Horspath/H38", "Horspath/H41", "Horspath/H42", "Horspath/H71",
-        "Weston/H23", "Weston/H31", "Weston/H32", "Weston/H34", "Weston/H36", "Weston/H50", "Weston/H58", "Weston/H62",
-        "Bladon & Church route recapping/bladon heath/p39", "Bladon & Church route recapping/church hanborough/c70", "Bladon & Church route recapping/bladon heath/p29", "Bladon & Church route recapping/bladon heath/a55", "Bladon & Church route recapping/bladon heath/brc", "Bladon & Church route recapping/bladon heath/c17", "Bladon & Church route recapping/bladon heath/c35",
-        "Bladon & Church route recapping/bladon heath/p94"
+        "Bladon & Church route recapping/church hanborough/l29", /*"Bladon & Church route recapping/church hanborough/liv",*/ "Bladon & Church route recapping/church hanborough/r47", "Bladon & Church route recapping/church hanborough/s93",
+        //"Horspath/H22", "Horspath/H27", "Horspath/H30", "Horspath/H35", "Horspath/H38", "Horspath/H41", "Horspath/H42", "Horspath/H71",
+        // "Weston/H23", "Weston/H31", "Weston/H32", "Weston/H34", "Weston/H36", "Weston/H50", "Weston/H58", "Weston/H62",
+        //  "Bladon & Church route recapping/bladon heath/p39", "Bladon & Church route recapping/church hanborough/c70", "Bladon & Church route recapping/bladon heath/p29", "Bladon & Church route recapping/bladon heath/a55", "Bladon & Church route recapping/bladon heath/brc", "Bladon & Church route recapping/bladon heath/c17", "Bladon & Church route recapping/bladon heath/c35",
+        //  "Bladon & Church route recapping/bladon heath/p94"
     };
 
     system(("mkdir results/" + directory).c_str());
@@ -605,7 +605,7 @@ void curve_complexity_experiment_pigeons() {
 
     int k = 3;
     
-    for (int l = 6; l <= 12; ++l) {
+    for (int l = 6; l <= 12; l+=6) {
         center_update_experiment_pigeons("pigeon_exp_" + std::to_string(l) + "_" + std::to_string(k), k, l);
     }
 

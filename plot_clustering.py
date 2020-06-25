@@ -27,12 +27,13 @@ def plot_clustering(file, figure_name, radius):
         clustering[-1]["center"] = list(map(float, file.readline().rstrip().split(" ")))
 
 
+
     for i in range(len(clustering)):
         cluster = clustering[i]
         for curve in cluster["curves"]:
             for j in range(0, len(curve)-2, 2):
-                plt.plot((curve[j], curve[j+2]), (curve[j+1], curve[j+3]), 'black', linewidth=0.5)
-  
+                plt.plot((curve[j], curve[j+2]), (curve[j+1], curve[j+3]), colors[i], linewidth=0.25)
+
     for i in range(len(clustering)):
         cluster = clustering[i]
         center = cluster["center"]
@@ -40,10 +41,12 @@ def plot_clustering(file, figure_name, radius):
             plt.plot((center[j], center[j+2]), (center[j+1], center[j+3]), colors[i], linewidth=3)
             ax.add_artist(plt.Circle((center[j], center[j+1]), radius, color=colors[i]))
         ax.add_artist(plt.Circle((center[-2], center[-1]), radius, color=colors[i]))
+  
 
     ax.axes.xaxis.set_visible(False)
     ax.axes.yaxis.set_visible(False)
     ax.set_aspect('equal', adjustable='box')
+    ax.axis('off')
     plt.savefig('figures/' + str(figure_name) + '.png')
 
 

@@ -1,7 +1,7 @@
 library(sp)
 library(rgdal)
 
-
+# code taken from: https://stackoverflow.com/a/30225804
 LongLatToUTM<-function(x,y,zone){
     xy <- data.frame(ID = 1:length(x), X = x, Y = y)
     coordinates(xy) <- c("X", "Y")
