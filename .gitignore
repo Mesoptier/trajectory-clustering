@@ -24,7 +24,6 @@ characters_matrix.txt
 pigeon_matrix.txt
 pigeon_matrix_dtw.txt
 
-coord_conversion.R
 coor_conversion.Rout
 
 # Let's avoid CMake files
