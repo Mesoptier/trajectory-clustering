@@ -1,7 +1,6 @@
 #pragma once
 
-#include "../basic_types.h"
-#include "../defs.h"
+#include "basic_types.h"
 
 using Curves = std::vector<Curve>;
 

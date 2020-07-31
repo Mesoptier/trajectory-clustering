@@ -3,6 +3,7 @@
 
 #include <array>
 #include <cassert>
+#include <cstdlib>
 #include <iomanip>
 #include <sstream>
 #include <vector>
@@ -228,19 +229,19 @@ private:
     distance_t fraction;
 
     void normalize() {
-        assert(fraction >= 0. && fraction <= 1.);
-        if (fraction == 1.) {
-            fraction = 0.;
+        assert(fraction >= 0.0 && fraction <= 1.0);
+        if (approx_equal(fraction, 1.0)) {
+            fraction = 0.0;
             ++point;
         }
     }
 
 public:
-    CPoint(PointID p, distance_t fr) : point(p), fraction(fr) {
+    CPoint(PointID p, distance_t fr) : point(p), fraction(std::abs(fr)) {
         normalize();
     }
 
-    CPoint() : point(PointID::invalid_value), fraction(0.) {}
+    CPoint() : point(PointID::invalid_value), fraction(0.0) {}
 
     PointID getPoint() const {
         return point;
@@ -296,11 +297,11 @@ public:
     }
 
     bool operator>(PointID other) const {
-        return point > other || (point == other && fraction > 0.);
+        return point > other || (point == other && fraction > 0.0);
     }
 
     bool operator<=(PointID other) const {
-        return point < other || (point == other && fraction == 0.);
+        return point < other || (point == other && fraction == 0.0);
     }
 
     bool operator>=(PointID other) const {

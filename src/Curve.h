@@ -18,9 +18,9 @@ public:
 
     explicit Curve(std::string name);
 
-    explicit Curve(std::string name, const Points& points);
+    explicit Curve(std::string name, Points points);
 
-    explicit Curve(const Points& points);
+    explicit Curve(Points points);
 
     std::string name() const {
         return m_name;
@@ -61,7 +61,7 @@ public:
 
     distance_t curve_length(const CPoint& point) const;
 
-    distance_t curve_length(const CPoint& i, const CPoint j) const {
+    distance_t curve_length(const CPoint& i, const CPoint& j) const {
         return curve_length(j) - curve_length(i);
     }
 
@@ -100,7 +100,7 @@ public:
      */
     CPoint get_cpoint_after(distance_t dist, PointID after_id = 0) const;
 
-    void push_back(const Point& point);
+    void push_back(Point point);
 
     Point interpolate_at(const CPoint& point) const;
 
@@ -116,7 +116,7 @@ public:
 
     distance_t getUpperBoundDistance(Curve const& other) const;
     
-    std::vector<distance_t> get_prefix_length_vector() {
+    const std::vector<distance_t>& get_prefix_length_vector() const {
         return prefix_length;
     }
 
@@ -127,6 +127,8 @@ private:
         std::numeric_limits<distance_t>::lowest(),
         std::numeric_limits<distance_t>::lowest()
     };
+
+    void set_extreme_points();
 };
 
 struct SimplifiedCurve {

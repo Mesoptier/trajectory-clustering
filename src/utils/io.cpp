@@ -36,6 +36,8 @@ std::vector<Curve> io::read_curves(const std::string& directory,
         std::size_t header_size) {
     const auto index_filename = directory + "/dataset.txt";
     std::ifstream index(index_filename);
+    if (!index.is_open())
+        throw std::runtime_error("Failed to open file " + index_filename);
 
     std::vector<Curve> curves;
 

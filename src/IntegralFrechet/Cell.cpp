@@ -25,7 +25,7 @@ distance_t integrate_linear_cost(const Cell& cell,
     const auto[dx1, dy1] = s1 - s2;
     const auto[dx2, dy2] = t1 - t2;
 
-    const distance_t a = pow(dx1 - dx2, 2) + pow(dy1 - dy2, 2);
+    const distance_t a = (dx1 - dx2) * (dx1 - dx2) + (dy1 - dy2) * (dy1 - dy2);
     const distance_t b = 2 * (dx1 * dx2 - dx1 * dx1 + dy1 * dy2 - dy1 * dy1);
     const distance_t c = dx1 * dx1 + dy1 * dy1;
 

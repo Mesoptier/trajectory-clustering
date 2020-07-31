@@ -17,8 +17,7 @@ if(NOT CMAKE_BUILD_TYPE)
 endif()
 # Debug, Release, RelWithDebugInfo, MinSizeRel
 
-add_compile_options("$<$<CONFIG:DEBUG>:${DEBUG_OPTIONS}>")
-add_compile_options("$<$<CONFIG:RELEASE>:${RELEASE_OPTIONS}>")
+add_compile_options("$<IF:$<CONFIG:DEBUG>,${DEBUG_OPTIONS},${RELEASE_OPTIONS}>")
 
 if(CMAKE_BUILD_TYPE STREQUAL "Release")
     add_definitions(-DNDEBUG)

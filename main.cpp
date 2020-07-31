@@ -16,18 +16,18 @@
 // #include "src/curve_simplification.h"
 // #include "src/clustering/clustering.h"
 #include "src/utils/CurveSimpMatrix.h"
-#include "src/clustering/clustering_algs.h"
-#include "src/clustering/center_algs.h"
-#include "src/clustering/center_clustering_algs.h"
+// #include "src/clustering/clustering_algs.h"
+// #include "src/clustering/center_algs.h"
+// #include "src/clustering/center_clustering_algs.h"
 // #include "src/greedy_l_simplification.h"
 #include "src/simplification/agarwal.h"
 #include "src/simplification/imaiiri.h"
 #include "src/DTW/dtw.h"
 #include "src/distance_functions.h"
-#include "src/experiments.h"
+// #include "src/experiments.h"
 #include "src/simplification_experiment.h"
 #include "src/synthetic_curves.h"
-#include "src/classification_experiment.h"
+// #include "src/classification_experiment.h"
 
 namespace {
 //
@@ -414,70 +414,70 @@ void write_simplifications() {
 }
 
 
-void test_clustering_algs() {
-    using Curves = std::vector<Curve>;
-    using namespace clustering;
-    using namespace df;
-    // Curves curves = sample_curves(io::read_pigeon_curves("data/Data_for_Mann_et_al_RSBL 2/Bladon & Church route recapping/bladon heath"), 30);
-    Curves curves = sample_curves(read_curves("data/characters/data"), 25);
-    std::cout << "read curves...\n";
-    std::cout << curves.size() << "\n";
+// void test_clustering_algs() {
+//     using Curves = std::vector<Curve>;
+//     using namespace clustering;
+//     using namespace df;
+//     // Curves curves = sample_curves(io::read_pigeon_curves("data/Data_for_Mann_et_al_RSBL 2/Bladon & Church route recapping/bladon heath"), 30);
+//     Curves curves = sample_curves(read_curves("data/characters/data"), 25);
+//     std::cout << "read curves...\n";
+//     std::cout << curves.size() << "\n";
 
-    Clustering gonzalez_clustering = gonzalez(curves, 26, 5, integral_frechet, true);
-    std::cout << "finshed gonzalez...\n";
+//     Clustering gonzalez_clustering = gonzalez(curves, 26, 5, integral_frechet, true);
+//     std::cout << "finshed gonzalez...\n";
 
-    Clustering single_linkage_clustering = singleLinkage(curves, 26, 5, integral_frechet, true);
-    std::cout << "finished single linkage...\n";
+//     Clustering single_linkage_clustering = singleLinkage(curves, 26, 5, integral_frechet, true);
+//     std::cout << "finished single linkage...\n";
 
-    Clustering complete_linkage_clustering = completeLinkage(curves, 26, 5, integral_frechet, true);
-    std::cout << "finished complete linkage...\n";
+//     Clustering complete_linkage_clustering = completeLinkage(curves, 26, 5, integral_frechet, true);
+//     std::cout << "finished complete linkage...\n";
 
-    distance_t gonzalez_sum = 0;
-    for (auto cluster: gonzalez_clustering) {
-        CurveIDs ids = cluster.curve_ids;
-        for (auto id: ids) {
-            gonzalez_sum += IntegralFrechet(curves[id], cluster.center_curve, ParamMetric::LInfinity_NoShortcuts, 1, nullptr)
-            .compute_matching()
-            .cost;
-        }
-    }
+//     distance_t gonzalez_sum = 0;
+//     for (auto cluster: gonzalez_clustering) {
+//         CurveIDs ids = cluster.curve_ids;
+//         for (auto id: ids) {
+//             gonzalez_sum += IntegralFrechet(curves[id], cluster.center_curve, ParamMetric::LInfinity_NoShortcuts, 1, nullptr)
+//             .compute_matching()
+//             .cost;
+//         }
+//     }
 
-    std::cout << "gonzalez: " << gonzalez_sum << "\n";
+//     std::cout << "gonzalez: " << gonzalez_sum << "\n";
     
 
-    distance_t single_linkage_sum = 0;
-    for (auto cluster: single_linkage_clustering) {
-        for (auto id: cluster.curve_ids)
-            single_linkage_sum += IntegralFrechet(curves[id], cluster.center_curve, ParamMetric::LInfinity_NoShortcuts, 1, nullptr)
-            .compute_matching()
-            .cost;
-    }
+//     distance_t single_linkage_sum = 0;
+//     for (auto cluster: single_linkage_clustering) {
+//         for (auto id: cluster.curve_ids)
+//             single_linkage_sum += IntegralFrechet(curves[id], cluster.center_curve, ParamMetric::LInfinity_NoShortcuts, 1, nullptr)
+//             .compute_matching()
+//             .cost;
+//     }
 
-    std::cout << "single linkage: " << single_linkage_sum << "\n";
+//     std::cout << "single linkage: " << single_linkage_sum << "\n";
 
-    distance_t complete_linkage_sum = 0;
-    for (auto cluster: complete_linkage_clustering) {
-        for (auto id: cluster.curve_ids)
-            complete_linkage_sum += IntegralFrechet(curves[id], cluster.center_curve, ParamMetric::LInfinity_NoShortcuts, 1, nullptr)
-            .compute_matching()
-            .cost;
-    }
+//     distance_t complete_linkage_sum = 0;
+//     for (auto cluster: complete_linkage_clustering) {
+//         for (auto id: cluster.curve_ids)
+//             complete_linkage_sum += IntegralFrechet(curves[id], cluster.center_curve, ParamMetric::LInfinity_NoShortcuts, 1, nullptr)
+//             .compute_matching()
+//             .cost;
+//     }
 
-    std::cout << "complete linkage: " << complete_linkage_sum << "\n";
-}
+//     std::cout << "complete linkage: " << complete_linkage_sum << "\n";
+// }
 
-distance_t evaluate_clustering(Clustering clustering, Curves curves, distance_t(*dist_func)(Curve, Curve)) {
+// distance_t evaluate_clustering(Clustering clustering, Curves curves, distance_t(*dist_func)(Curve, Curve)) {
 
-    distance_t cost = 0;
+//     distance_t cost = 0;
 
-    for (auto cluster: clustering) {
-        for (auto curve_id: cluster.curve_ids) {
-            cost += dist_func(curves[curve_id], cluster.center_curve);
-        }
-    }
+//     for (auto cluster: clustering) {
+//         for (auto curve_id: cluster.curve_ids) {
+//             cost += dist_func(curves[curve_id], cluster.center_curve);
+//         }
+//     }
 
-    return cost;
-}
+//     return cost;
+// }
 
 // void test_center_algs() {
 //     Curves curves = read_curves("data/characters/data");
@@ -543,10 +543,10 @@ distance_t evaluate_clustering(Clustering clustering, Curves curves, distance_t(
 //     script.close();
 // }
 
-void test_pam_with_centering() {
-    Curves curves = sample_curves(read_curves("data/characters/data"), 30);
-    Clustering clustering = clustering::pam_with_centering(curves, 10, 10, df::integral_frechet, "");
-}
+// void test_pam_with_centering() {
+//     Curves curves = sample_curves(read_curves("data/characters/data"), 30);
+//     Clustering clustering = clustering::pam_with_centering(curves, 10, 10, df::integral_frechet, "");
+// }
 
 void test_frechet() {
     Curves curves = read_curves("data/characters/data");
@@ -573,29 +573,46 @@ void test_frechet() {
     // std::cout << evaluate_clustering(gonzalez_clustering, curves, average_frechet) << "\n";
 }
 
-void compute_curve_simp_matrix() {
-    Curves curves = experiments::read_data();
-    Curves simplifications;
+// void compute_curve_simp_matrix() {
+//     Curves curves = experiments::read_data();
+//     Curves simplifications;
 
-    for (auto curve: curves) {
-        simplifications.push_back(
-            curve.naive_l_simplification(10)
-        );
+//     for (auto curve: curves) {
+//         simplifications.push_back(
+//             curve.naive_l_simplification(10)
+//         );
 
-        std::cout << simplifications.back().get_points().size() << "\n";
-    }
+//         std::cout << simplifications.back().get_points().size() << "\n";
+//     }
 
-    std::cout << "computed simplifications...\n";
+//     std::cout << "computed simplifications...\n";
 
-    CurveSimpMatrix matrix = CurveSimpMatrix(curves, simplifications, df::average_frechet);
-    matrix.write("pigeon_matrix.txt");
-}
+//     CurveSimpMatrix matrix = CurveSimpMatrix(curves, simplifications, df::average_frechet);
+//     matrix.write("pigeon_matrix.txt");
+// }
 
-void simplification_comparison() {
-    Curves curves = io::read_curves("data/characters/data");
-    Curves cut(curves.begin(), curves.begin() + 150);
-    Curves samples = experiments::sample(cut, 15);
-    experiments::evaluate(samples, 12);
+void simplification_comparison_and_plot() {
+    std::cout << std::string(80, '-') << "\nSIMPLIFICATION EXPERIMENT\n"
+        << std::string(80, '-') << "\n";
+    std::cout << "Load dataset, sample curves, subsample to complexity 50.\n"
+        << "Run different simplification approaches.\n"
+        << "For each curve, evaluate with CDTW and compute statistics over the "
+        << "dataset.\n"
+        << "Time is total time in ms. The rest are CDTW values.\n" << std::endl
+        << "Save the simplifications and subsampled curves in ./simpl/.\n"
+        << "Report the costs for the specific curves.\n"
+        << "The curves chosen are the worst ones for specific approaches.\n"
+        << std::endl;
+    std::cout << "Character dataset\n";
+    auto const curves_char = io::read_curves("data/characters/data");
+    auto const samples_char = experiments::sample(curves_char, 10, 50);
+    experiments::evaluate(samples_char, 12, "char");
+
+    std::cout << "Pigeon dataset\n";
+    auto const curves_pigeon = io::read_curves("data/Data_for_Mann_et_al_RSBL 2"
+        "/Bladon & Church route recapping/bladon heath/utm", 1);
+    auto const samples_pigeon = experiments::sample(curves_pigeon, 1, 40);
+    experiments::evaluate(samples_pigeon, 6, "pigeon", 2);
 }
 
 }
@@ -632,7 +649,9 @@ int main() {
     // compute_curve_simp_matrix();
     // run_experiments();
     // preliminary_experiments();
-    simplification_comparison();
+
+    simplification_comparison_and_plot();
+
     // experiments::center_update_experiments();
     // characterClassification();
     // synth::generate_curves(Curve({{0, 0}, {10, 10}, {20, 20}, {30, 30}, {40, 40}, {50, 50}, {60, 60}, {70, 70}, {80, 80}, {90, 90}, {100, 100}, {110, 110}, {120, 120}, {130, 130}}), 5);

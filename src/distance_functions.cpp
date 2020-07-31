@@ -54,24 +54,30 @@ distance_t df::dtw(const Curve& curve_1, const Curve& curve_2) {
 }
 
 distance_t df::integral_frechet(const Curve& curve_1, const Curve& curve_2) {
-    return IntegralFrechet(curve_1, curve_2, ParamMetric::L1, 1, nullptr)
+    const auto res = std::max(static_cast<std::size_t>(
+        (curve_1.curve_length() + curve_2.curve_length())
+        / (curve_1.size() + curve_2.size()) / 5), 1UL);
+    return IntegralFrechet(curve_1, curve_2, ParamMetric::L1, res, nullptr)
         .compute_matching().cost;
 }
 
 distance_t df::integral_frechet_fast(const Curve& curve_1,
         const Curve& curve_2) {
+    const auto res = std::max(static_cast<std::size_t>(
+        (curve_1.curve_length() + curve_2.curve_length())
+        / (curve_1.size() + curve_2.size()) / 5), 1UL);
     const auto curve1_simpl = curve_1.simplify();
     const auto curve2_simpl = curve_2.simplify();
     if (curve1_simpl.curve == curve2_simpl.curve)
         return integral_frechet(curve_1, curve_2);
     auto matching_simpl = IntegralFrechet(curve1_simpl.curve,
-        curve2_simpl.curve, ParamMetric::L1, 10, nullptr)
+        curve2_simpl.curve, ParamMetric::L1, 10 * res, nullptr)
         .compute_matching().matching;
     reparametrize_matching(matching_simpl, curve_1, curve1_simpl,
         curve_2, curve2_simpl);
 
-    const MatchingBand band(curve_1, curve_2, matching_simpl, 1);
-    return IntegralFrechet(curve_1, curve_2, ParamMetric::L1, 1, &band)
+    const MatchingBand band(curve_1, curve_2, matching_simpl, 5 * res);
+    return IntegralFrechet(curve_1, curve_2, ParamMetric::L1, res, &band)
         .compute_matching().cost;
 }
 
