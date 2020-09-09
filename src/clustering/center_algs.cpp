@@ -400,16 +400,24 @@ bool computerCenters(Curves const& curves, Clustering& clustering, int l, Center
 		return updateCenters(curves, clustering, dist_func, C2CDist::Median, regression_update_3d);
 	case CenterAlg::cdbaChar:
 		return updateCenters(curves, clustering, dist_func, C2CDist::Median, cdba_characters);
+	case CenterAlg::cdbaGeo:
+		return updateCenters(curves, clustering, dist_func, C2CDist::Median, cdba_geo);
 	case CenterAlg::cdbaPigeon:
 		return updateCenters(curves, clustering, dist_func, C2CDist::Median, cdba_pigeons);
+	case CenterAlg::cdbaStork:
+		return updateCenters(curves, clustering, dist_func, C2CDist::Median, cdba_storks);
 	case CenterAlg::dbaChar:
 		return updateCenters(curves, clustering, dist_func, C2CDist::Mean, dba_characters);
 	case CenterAlg::dbaPigeon:
 		return updateCenters(curves, clustering, dist_func, C2CDist::Mean, dba_pigeons);
+	case CenterAlg::dbaStork:
+		return updateCenters(curves, clustering, dist_func, C2CDist::Mean, dba_storks);
 	case CenterAlg::wedgeChar:
 		return updateCenters(curves, clustering, dist_func, C2CDist::Median, wedge_characters);
 	case CenterAlg::wedgePigeon:
 		return updateCenters(curves, clustering, dist_func, C2CDist::Median, wedge_pigeons);
+	case CenterAlg::wedgeStork:
+		return updateCenters(curves, clustering, dist_func, C2CDist::Median, wedge_storks);
 	
 	}
 
@@ -869,12 +877,12 @@ C2CDist c2c_dist, Curve(*compute_new_curve)(Curves const& curves, Cluster const&
 		}
 	}
 
-	// if (found_new_center) {
-	// 	std::cout << "found new center\n";
-	// }
-	// else {
-	// 	std::cout << "no new center... :( \n";
-	// }
+	if (found_new_center) {
+		std::cout << "found new center\n";
+	}
+	else {
+		std::cout << "no new center... :( \n";
+	}
 	return found_new_center;
 }
 

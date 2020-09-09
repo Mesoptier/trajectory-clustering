@@ -568,11 +568,14 @@ int main() {
     // std::cout << index << "\n";
 
 
-
-    curve_complexity_experiment_pigeons();
+    all_paper_experiments();
+    // movebank_experiment();
+    // geolife_experiment();
+    // curve_complexity_experiment_characters();
+    // curve_complexity_experiment_pigeons();
     // running_time_experiment();
     // compute_matrices();
-    // full_clustering_experiment();
+    // inital_clustering_experiment();
     // find_params();
     // pigeon_experiment();
     // wedge_method_experiment();

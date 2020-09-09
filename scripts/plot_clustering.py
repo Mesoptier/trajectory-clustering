@@ -2,7 +2,17 @@ import sys
 import numpy as np
 import matplotlib.pyplot as plt
 
-def plot_clustering(file, figure_name, radius):
+def plot_clusterings(directory, radius):
+    plots_file = open(directory + '/plots.txt', 'r')
+    plot = plots_file.readline().rstrip()
+    while plot:
+        print(plot)
+        plot_clustering(directory + '/' + plot + ".txt", directory + '/figures/' + plot + '.png', radius)
+        plot = plots_file.readline().rstrip()
+
+def plot_clustering(filename, figure_name, radius):
+
+    file = open(filename, "r")
     
     colors = ['m', 'g', 'c', 'r', 'y', 'b']
     center_colors = ['pink', 'green', 'c', 'r', 'y', 'b']
@@ -33,13 +43,13 @@ def plot_clustering(file, figure_name, radius):
         cluster = clustering[i]
         for curve in cluster["curves"]:
             for j in range(0, len(curve)-2, 2):
-                plt.plot((curve[j], curve[j+2]), (curve[j+1], curve[j+3]), colors[i], linewidth=0.25)
+                plt.plot((curve[j], curve[j+2]), (curve[j+1], curve[j+3]), colors[i], linewidth=0.05)
 
     for i in range(len(clustering)):
         cluster = clustering[i]
         center = cluster["center"]
         for j in range(0, len(center)-2, 2):
-            plt.plot((center[j], center[j+2]), (center[j+1], center[j+3]), center_colors[i], linewidth=2)
+            plt.plot((center[j], center[j+2]), (center[j+1], center[j+3]), center_colors[i], linewidth=1)
             #plt.plot((center[j], center[j+2]), (center[j+1], center[j+3]), 'k', linewidth=1)
             ax.add_artist(plt.Circle((center[j], center[j+1]), radius, color=center_colors[i]))
         ax.add_artist(plt.Circle((center[-2], center[-1]), radius, color=colors[i]))
@@ -49,7 +59,8 @@ def plot_clustering(file, figure_name, radius):
     ax.axes.yaxis.set_visible(False)
     ax.set_aspect('equal', adjustable='box')
     ax.axis('off')
-    plt.savefig('figures/' + str(figure_name) + '.png', dpi=300)
+    plt.savefig(str(figure_name), dpi=1200)
+    plt.clf()
 
 
     
@@ -57,12 +68,12 @@ def plot_clustering(file, figure_name, radius):
 
 
 
-if __name__ == "__main__":
+#if __name__ == "__main__":
     
-    filename = sys.argv[1]
-    figure_name = sys.argv[2]
-    radius = float(sys.argv[3])
-    file = open(filename, "r")
-    plot_clustering(file, figure_name, radius)
+#    filename = sys.argv[1]
+#    figure_name = sys.argv[2]
+#    radius = float(sys.argv[3])
+#    file = open(filename, "r")
+#    plot_clustering(file, figure_name, radius)
     
     

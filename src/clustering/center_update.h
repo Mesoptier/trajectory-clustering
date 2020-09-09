@@ -9,13 +9,23 @@ Curve cdba_characters(Curves const& curves, Cluster const& cluster);
 
 Curve cdba_pigeons(Curves const& curves, Cluster const& cluster);
 
+Curve cdba_storks(Curves const& curves, Cluster const& cluster);
+
+Curve cdba_geo(Curves const& curves, Cluster const& cluster);
+
 Curve dba_characters(Curves const& curves, Cluster const& cluster);
+
+Curve dba_geo(Curves const& curves, Cluster const& cluster);
+
+Curve dba_storks(Curves const& curves, Cluster const& cluster);
 
 Curve dba_pigeons(Curves const& curves, Cluster const& cluster);
 
 Curve wedge_characters(Curves const& curves, Cluster const& cluster);
 
 Curve wedge_pigeons(Curves const& curves, Cluster const& cluster);
+
+Curve wedge_storks(Curves const& curves, Cluster const& cluster);
 
 Curve cdba_update(Curves const& curves, Cluster const& cluster);
 

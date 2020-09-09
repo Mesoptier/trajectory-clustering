@@ -5,6 +5,7 @@
 #define FILE_ERROR(filename) throw std::runtime_error("Failed to open file " + filename)
 
 void io::read_curve(const std::string& filename, Curve& curve, int /*header_size */) {
+
     std::ifstream file(filename);
     if (!file.is_open()) {
         FILE_ERROR(filename);
@@ -30,6 +31,7 @@ Curve io::read_curve(const std::string& filename, int header_size) {
 
 std::vector<Curve> io::read_curves(const std::string& directory) {
     const auto index_filename = directory + "/dataset.txt";
+
     std::ifstream index(index_filename);
 
     std::vector<Curve> curves;

@@ -1001,6 +1001,66 @@ Curve cdba_characters(Curves const& curves, Cluster const& cluster) {
     return new_center_curve;
 }
 
+Curve cdba_geo(Curves const& curves, Cluster const& cluster) {
+    const auto& center_curve = cluster.center_curve;
+	Curve new_center_curve;
+	std::vector<std::vector<Points>> matchings = std::vector<std::vector<Points>>();
+
+	for (auto& curve_id: cluster.curve_ids) {
+		Curve curve = curves[curve_id];
+		Points param_space_path = IntegralFrechet(center_curve, curve, ParamMetric::L1, 1, nullptr)
+		.compute_matching()
+		.matching;
+
+		std::vector<Points> matching = std::vector<Points>();
+
+		for (int i = 0; i < center_curve.size(); ++i) {
+			matching.push_back({});
+			distance_t dist = center_curve.curve_length(i);
+			std::pair<distance_t, distance_t> y_range = get_y_range(param_space_path, dist);
+
+			if (approx_equal(y_range.first, y_range.second)) {
+				matching.back().push_back(curve.interpolate_at(curve.get_cpoint_after(y_range.first)));
+			}
+			else {
+				distance_t length = y_range.second - y_range.first;
+				distance_t ratio_to_curve_length = length / curve.curve_length();
+				int number_of_samples = 2 * curve.size() * ratio_to_curve_length;
+
+				if (number_of_samples == 0)
+					number_of_samples = 1;
+
+				for (int j = 0; j < number_of_samples; ++j) {
+					distance_t dist_along_curve = y_range.first + j * length / number_of_samples;
+					matching.back().push_back(curve.interpolate_at(curve.get_cpoint_after(dist_along_curve)));
+				}
+			}
+		}
+
+		matchings.push_back(matching);
+	}
+
+    new_center_curve.push_back(cluster.center_curve[0]);
+
+	for (int i = 1; i < cluster.center_curve.size(); ++i) {
+		Points points_to_average = Points();
+
+		for (auto& matching: matchings) {
+			for (auto& point: matching[i]) {
+				points_to_average.push_back(point);
+			}
+		}
+
+		Point new_point = mean_of_points(points_to_average);
+
+		if (new_center_curve.size() == 0 || !approx_equal(new_point, new_center_curve.back())) {
+			new_center_curve.push_back(new_point);
+		}
+	}
+
+    return new_center_curve;
+}
+
 Curve cdba_pigeons(Curves const& curves, Cluster const& cluster) {
     const auto& center_curve = cluster.center_curve;
 	Curve new_center_curve;
@@ -1060,6 +1120,66 @@ Curve cdba_pigeons(Curves const& curves, Cluster const& cluster) {
 
     // Fix last point for pigeon data
     new_center_curve.push_back(cluster.center_curve.back());
+
+    return new_center_curve;
+}
+
+Curve cdba_storks(Curves const& curves, Cluster const& cluster) {
+    const auto& center_curve = cluster.center_curve;
+	Curve new_center_curve;
+	std::vector<std::vector<Points>> matchings = std::vector<std::vector<Points>>();
+
+	for (auto& curve_id: cluster.curve_ids) {
+		Curve curve = curves[curve_id];
+		Points param_space_path = IntegralFrechet(center_curve, curve, ParamMetric::L1, 500, nullptr)
+		.compute_matching()
+		.matching;
+
+		std::vector<Points> matching = std::vector<Points>();
+
+		for (int i = 0; i < center_curve.size(); ++i) {
+			matching.push_back({});
+			distance_t dist = center_curve.curve_length(i);
+			std::pair<distance_t, distance_t> y_range = get_y_range(param_space_path, dist);
+
+			if (approx_equal(y_range.first, y_range.second)) {
+				matching.back().push_back(curve.interpolate_at(curve.get_cpoint_after(y_range.first)));
+			}
+			else {
+				distance_t length = y_range.second - y_range.first;
+				distance_t ratio_to_curve_length = length / curve.curve_length();
+				int number_of_samples = 2 * curve.size() * ratio_to_curve_length;
+
+				if (number_of_samples == 0)
+					number_of_samples = 1;
+
+				for (int j = 0; j < number_of_samples; ++j) {
+					distance_t dist_along_curve = y_range.first + j * length / number_of_samples;
+					matching.back().push_back(curve.interpolate_at(curve.get_cpoint_after(dist_along_curve)));
+				}
+			}
+		}
+
+		matchings.push_back(matching);
+	}
+
+    new_center_curve.push_back(cluster.center_curve[0]);
+
+	for (int i = 0; i < cluster.center_curve.size(); ++i) {
+		Points points_to_average = Points();
+
+		for (auto& matching: matchings) {
+			for (auto& point: matching[i]) {
+				points_to_average.push_back(point);
+			}
+		}
+
+		Point new_point = mean_of_points(points_to_average);
+
+		if (new_center_curve.size() == 0 || !approx_equal(new_point, new_center_curve.back())) {
+			new_center_curve.push_back(new_point);
+		}
+	}
 
     return new_center_curve;
 }
@@ -1154,6 +1274,52 @@ Curve dba_pigeons(Curves const& curves, Cluster const& cluster) {
 
     return new_center_curve;
 }
+
+Curve dba_storks(Curves const& curves, Cluster const& cluster) {
+    const auto& center_curve = cluster.center_curve;
+	Curve new_center_curve;
+	std::vector<std::vector<Points>> matchings = std::vector<std::vector<Points>>();
+
+	for (auto& curve_id: cluster.curve_ids) {
+		Curve curve = curves[curve_id];
+		auto dtw_matching = DTW(cluster.center_curve, curve).matching();
+		std::vector<Points> matching = std::vector<Points>();
+
+		int matching_index = 0;
+		for (int i = 0; i < cluster.center_curve.size(); ++i) {
+			matching.push_back({});
+			while (matching_index < dtw_matching.size() && dtw_matching[matching_index].first == i) {
+				matching.back().push_back(curve[dtw_matching[matching_index].second]);
+				++matching_index;
+			}
+		}
+
+		matchings.push_back(matching);
+	}
+
+    new_center_curve.push_back(cluster.center_curve[0]);
+
+	for (int i = 1; i < cluster.center_curve.size(); ++i) {
+		Points points_to_average = Points();
+
+		for (auto& matching: matchings) {
+			// points_to_average.push_back(matching[i][0]);
+			for (auto& point: matching[i]) {
+				points_to_average.push_back(point);
+			}
+		}
+
+		Point new_point = mean_of_points(points_to_average);
+
+		if (new_center_curve.size() == 0 || !approx_equal(new_point, new_center_curve.back())) {
+			new_center_curve.push_back(new_point);
+		}
+    }
+
+
+    return new_center_curve;
+}
+
 
 Curve wedge_characters(Curves const& curves, Cluster const& cluster) {
 
@@ -1285,6 +1451,80 @@ Curve wedge_pigeons(Curves const& curves, Cluster const& cluster) {
     }
 
     new_center_curve.push_back(center_curve.back());
+
+    return new_center_curve;
+}
+
+Curve wedge_storks(Curves const& curves, Cluster const& cluster) {
+    const auto& center_curve = cluster.center_curve;
+    Curve new_center_curve;
+    Wedges wedges = Wedges();
+    new_center_curve.push_back(center_curve[0]);
+
+    std::map<CurveID, Points> matching_paths = std::map<CurveID, Points>();
+    
+    for (size_t i = 1; i < center_curve.size() - 2; ++i) {
+        Points vertices = new_center_curve.size() == 0 
+        ? Points({center_curve[i], center_curve[i+1], center_curve[i+2]})
+        : Points({new_center_curve.back(), center_curve[i+1], center_curve[i+2]});
+
+        wedges.push_back(Wedge(
+            vertices, WedgePoints()
+        ));
+
+        for (auto curve_id: cluster.curve_ids) {
+            Curve curve = curves[curve_id];
+
+            Points param_space_path;
+
+            if (matching_paths.find(curve_id) == matching_paths.end()) {
+                param_space_path = IntegralFrechet(center_curve, curve, ParamMetric::L1, 500, nullptr)
+                .compute_matching()
+                .matching;
+                matching_paths.emplace(curve_id, param_space_path);
+            } else {
+                param_space_path = matching_paths.at(curve_id);
+            }
+
+            WedgePoints seg_1_points = get_points_matched_to_segment(param_space_path, center_curve, curve, i, 0);
+            WedgePoints seg_2_points = get_points_matched_to_segment(param_space_path, center_curve, curve, i + 1, 1);
+
+            if (wedges.back().wedge_points.empty()) {
+                wedges.back().wedge_points = seg_1_points;
+            } else {
+                wedges.back().wedge_points.insert(
+                    wedges.back().wedge_points.end(), seg_1_points.begin(), seg_1_points.end()
+                );
+            }
+            wedges.back().wedge_points.insert(
+                wedges.back().wedge_points.end(), seg_2_points.begin(), seg_2_points.end()
+            );
+        }
+
+        Point new_point = grid_search(wedges.back().vertices, wedges.back().wedge_points, 5, 20);
+
+        if (!approx_equal(new_point, new_center_curve.back())) {
+            new_center_curve.push_back(new_point);
+        }
+    }
+
+    Points last_points = {center_curve.get_points()[center_curve.size() - 2], center_curve.get_points()[center_curve.size() - 1], {0, 0}};
+    Wedge last_wedge = Wedge(
+        last_points,
+        WedgePoints()
+    );
+    for (auto curve_id: cluster.curve_ids) {
+        Curve curve = curves[curve_id];
+        Points param_space_path = matching_paths.at(curve_id);
+        WedgePoints wps = get_points_matched_to_segment(param_space_path, center_curve, curve, center_curve.size() - 2, 0);
+        last_wedge.wedge_points.insert(last_wedge.wedge_points.end(), wps.begin(), wps.end());
+    }
+
+    Point new_point = grid_search(last_wedge.vertices, last_wedge.wedge_points, 5, 20);
+
+    if (new_center_curve.empty() || !approx_equal(new_point, new_center_curve.back())) {
+        new_center_curve.push_back(new_point);
+    }
 
     return new_center_curve;
 }

@@ -2,8 +2,14 @@
 
 #include <chrono>
 
+// Random::Random()
+// 	: Random(std::chrono::system_clock::now().time_since_epoch().count())
+// {
+
+// }
+
 Random::Random()
-	: Random(std::chrono::system_clock::now().time_since_epoch().count())
+	: Random(2020)
 {
 
 }

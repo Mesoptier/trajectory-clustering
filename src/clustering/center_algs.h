@@ -28,10 +28,15 @@ enum class CenterAlg {
 	regression_3d,
 	cdbaChar,
 	cdbaPigeon,
+	cdbaStork,
+	cdbaGeo,
 	dbaChar,
 	dbaPigeon,
+	dbaGeo,
+	dbaStork,
 	wedgeChar,
-	wedgePigeon
+	wedgePigeon,
+	wedgeStork
 };
 
 enum class CenterCurveUpdateMethod {

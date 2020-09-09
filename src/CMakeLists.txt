@@ -24,6 +24,7 @@ set(SOURCE_FILES
     DTW/dtw.cpp
     clustering/center_update.cpp
     random.cpp
+    remove_stops.cpp
 )
 
 add_library(TrajectoryClustering_lib STATIC ${SOURCE_FILES} ${HEADER_FILES})

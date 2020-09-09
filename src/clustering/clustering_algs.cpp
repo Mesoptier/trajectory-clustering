@@ -180,7 +180,7 @@ distance_t(*dist_func)(Curve, Curve), bool naive_simplification, std::string dis
 			closest_center[curve_id] = result.size()-1;
 		}*/
 	}
-
+	
 	while (result.size() < k) {
 		auto center_it = std::max_element(distances_to_center.begin(), distances_to_center.end());
 		auto cid = static_cast<std::size_t>(std::distance(distances_to_center.begin(), center_it));
@@ -192,11 +192,13 @@ distance_t(*dist_func)(Curve, Curve), bool naive_simplification, std::string dis
 
 		result.push_back({{}, cent_curve, std::numeric_limits<distance_t>::max(), cid});
 		distances_to_center[cid] = 0;
+		closest_center[cid] = result.size() - 1;
+		
 		for (CurveID curve_id = 0; curve_id < curves.size(); ++curve_id) {
 
 			auto& current_dist = distances_to_center[curve_id];
 
-			auto new_dist = dist_matrix_path == "" ? dist_func(center_curve, curves[curve_id]) 
+			auto new_dist = dist_matrix_path == "" ? dist_func(cent_curve, curves[curve_id]) 
 			: dist_matrix.at(curve_id, cid);
 			if (new_dist < current_dist) {
 				current_dist = new_dist;
