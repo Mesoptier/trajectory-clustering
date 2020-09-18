@@ -9,8 +9,8 @@ namespace {
      * \param c The curve.
      * \return The area of the axis-aligned bounding box fitted to c.
      */
-    distance_t bb_area(const Curve& c) {
-        const auto& extreme = c.getExtremePoints();
+    distance_t bb_area(Curve const& c) {
+        auto const& extreme = c.getExtremePoints();
         auto a = extreme.max_x - extreme.min_x;
         auto b = extreme.max_y - extreme.min_y;
         return a * b;
@@ -25,14 +25,14 @@ namespace {
      * two curves, returns true if d(c1, c2) < dist.
      * \return The simplified curve.
      */
-    Curve simplify_naive(const Curve& in, distance_t delta, const
-            std::function<bool(const Curve&, const Curve&, distance_t)>&
+    Curve simplify_naive(Curve const& in, distance_t delta,
+            std::function<bool(Curve const&, Curve const&, distance_t)> const&
             less_than) {
         Curve simplified_curve({in.front()});
         Curve prefix_curve({in.front()});
 
         for (PointID id = 1; id < in.size() - 1; ++id) {
-            const auto& point = in[id];
+            auto const& point = in[id];
             prefix_curve.push_back(point);
             auto segment = Curve({prefix_curve.front(), prefix_curve.back()});
             bool fits = prefix_curve.size() > 2 ?
@@ -57,8 +57,8 @@ namespace {
      * two curves, returns true if d(c1, c2) < dist.
      * \return The simplified curve.
      */
-    Curve simplify_exponential(const Curve& in, distance_t delta, const
-            std::function<bool(const Curve&, const Curve&, distance_t)>&
+    Curve simplify_exponential(Curve const& in, distance_t delta,
+            std::function<bool(Curve const&, Curve const&, distance_t)> const&
             less_than) {
         Curve simplified_curve({in.front()});
         Curve prefix_curve({in.front()});
@@ -104,8 +104,8 @@ namespace {
     }
 }
 
-Curve simplification::greedy::simplify(const Curve& in, const PointID& ell,
-        const std::function<bool(const Curve&, const Curve&, distance_t)>&
+Curve simplification::greedy::simplify(Curve const& in, PointID const& ell,
+        std::function<bool(Curve const&, Curve const&, distance_t)> const&
         less_than) {
     static constexpr distance_t epsilon = 1e-8;
     assert(in.size() > 1);
@@ -129,8 +129,9 @@ Curve simplification::greedy::simplify(const Curve& in, const PointID& ell,
     return simplify(in, max, less_than);
 }
 
-Curve simplification::greedy::simplify(const Curve& in, distance_t delta, const
-        std::function<bool(const Curve&, const Curve&, distance_t)>& less_than) {
+Curve simplification::greedy::simplify(Curve const& in, distance_t delta,
+        std::function<bool(Curve const&, Curve const&, distance_t)> const&
+        less_than) {
     if (in.size() < 100)
         return simplify_naive(in, delta, less_than);
     return simplify_exponential(in, delta, less_than);

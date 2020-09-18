@@ -21,9 +21,9 @@ namespace {
         typename F, typename ... Args>
     std::pair<std::invoke_result_t<F, Args...>, Duration>
             time_and_save(F&& f, Args&&... args) {
-        const auto start = std::chrono::high_resolution_clock::now();
+        auto const start = std::chrono::high_resolution_clock::now();
         auto res = std::forward<F>(f)(std::forward<Args>(args)...);
-        const auto end = std::chrono::high_resolution_clock::now();
+        auto const end = std::chrono::high_resolution_clock::now();
         return {res, std::chrono::duration_cast<Duration>(end - start)};
     }
 }
@@ -55,8 +55,8 @@ void experiments::evaluate(std::vector<Curve> const& curves,std::size_t ell,
     auto simpl2 = static_cast<Curve(*)(Curve const&, PointID const&,
         std::function<bool(Curve const&, Curve const&, distance_t)> const&)>
         (simplification::imai_iri::simplify);
-    auto simpl_alt = [](const Curve& in, const PointID& l,
-            const std::function<distance_t(const Curve&, const Curve&)>& d) {
+    auto simpl_alt = [](Curve const& in, PointID const& l,
+            std::function<distance_t(Curve const&, Curve const&)> const& d) {
         return simplification::imai_iri::simplify(in, l, d, false).second;
     };
     std::array algs {simpl1, simpl2};

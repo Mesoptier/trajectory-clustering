@@ -14,8 +14,9 @@ namespace simplification::greedy {
      * two curves, returns true if d(c1, c2) < dist.
      * \return The simplified curve.
      */
-    Curve simplify(const Curve& in, const PointID& ell, const
-        std::function<bool(const Curve&, const Curve&, distance_t)>& less_than);
+    Curve simplify(Curve const& in, PointID const& ell,
+        std::function<bool(Curve const&, Curve const&, distance_t)> const&
+        less_than);
 
     /**
      * \brief Run local simplification approximation by Agarwal et al. with the
@@ -26,7 +27,8 @@ namespace simplification::greedy {
      * two curves, returns true if d(c1, c2) < dist.
      * \return The simplified curve.
      */
-    Curve simplify(const Curve& in, distance_t delta, const
-        std::function<bool(const Curve&, const Curve&, distance_t)>& less_than);
+    Curve simplify(Curve const& in, distance_t delta,
+        std::function<bool(Curve const&, Curve const&, distance_t)> const&
+        less_than);
 }
 #endif

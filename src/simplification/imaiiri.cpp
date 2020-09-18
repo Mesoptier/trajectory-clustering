@@ -36,17 +36,17 @@ namespace {
      * \param c The curve.
      * \return The area of the axis-aligned bounding box fitted to c.
      */
-    distance_t bb_area(const Curve& c) {
-        const auto& extreme = c.getExtremePoints();
+    distance_t bb_area(Curve const& c) {
+        auto const& extreme = c.getExtremePoints();
         auto a = extreme.max_x - extreme.min_x;
         auto b = extreme.max_y - extreme.min_y;
         return a * b;
     }
 }
 
-std::pair<distance_t, Curve> simplification::imai_iri::simplify(const Curve& in,
-        const PointID& ell,
-        const std::function<distance_t(const Curve&, const Curve&)>& dist,
+std::pair<distance_t, Curve> simplification::imai_iri::simplify(Curve const& in,
+        PointID const& ell,
+        std::function<distance_t(Curve const&, Curve const&)> const& dist,
         bool max) {
     assert(in.size() > 1);
     assert(ell > 0);
@@ -109,8 +109,8 @@ std::pair<distance_t, Curve> simplification::imai_iri::simplify(const Curve& in,
     return {cost, Curve("", simpl_points)};
 }
 
-Curve simplification::imai_iri::simplify(const Curve &in, const PointID &ell,
-        const std::function<bool(const Curve &, const Curve &, distance_t)>&
+Curve simplification::imai_iri::simplify(Curve const& in, PointID const& ell,
+        std::function<bool(Curve const&, Curve const&, distance_t)> const&
         less_than) {
     // Note: if you know that the value of distance is the distance between
     // some two points / point and a segment, you can get the exact set of
@@ -139,8 +139,8 @@ Curve simplification::imai_iri::simplify(const Curve &in, const PointID &ell,
     return simplify(in, max, less_than);
 }
 
-Curve simplification::imai_iri::simplify(const Curve &in, distance_t delta,
-        const std::function<bool(const Curve &, const Curve &, distance_t)>&
+Curve simplification::imai_iri::simplify(Curve const& in, distance_t delta,
+        std::function<bool(Curve const&, Curve const&, distance_t)> const&
         less_than) {
     // Note: for Hausdorff or Fréchet distance we could cleverly check whether
     // disks are stabbed [Chin, Chan 1992] (in the right order for Fréchet
@@ -169,7 +169,7 @@ Curve simplification::imai_iri::simplify(const Curve &in, distance_t delta,
         bfs_q.pop();
         if (v == in.size() - 1)
             break;
-        for (const auto& w: adj[v]) {
+        for (auto const& w: adj[v]) {
             if (!visited[w]) {
                 visited[w] = true;
                 parent[w] = v;

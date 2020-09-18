@@ -26,8 +26,8 @@ namespace simplification::imai_iri {
      * over all the simplified segments w.r.t. the matching subcurve, and the
      * simplified curve itself.
      */
-    std::pair<distance_t, Curve> simplify(const Curve& in, const PointID& ell,
-        const std::function<distance_t(const Curve&, const Curve&)>& dist,
+    std::pair<distance_t, Curve> simplify(Curve const& in, PointID const& ell,
+        std::function<distance_t(Curve const&, Curve const&)> const& dist,
         bool max);
 
     /**
@@ -47,8 +47,9 @@ namespace simplification::imai_iri {
      * \param less_than The decision problem solver for a distance function.
      * \return The simplified curve.
      */
-    Curve simplify(const Curve& in, const PointID& ell, const
-        std::function<bool(const Curve&, const Curve&, distance_t)>& less_than);
+    Curve simplify(Curve const& in, PointID const& ell,
+        std::function<bool(Curve const&, Curve const&, distance_t)> const&
+        less_than);
 
     /**
      * \brief Run Imai--Iri-inspired simplification with a decision solver for a
@@ -61,7 +62,8 @@ namespace simplification::imai_iri {
      * \param less_than The decision problem solver for a distance function.
      * \return The simplified curve.
      */
-    Curve simplify(const Curve& in, distance_t delta, const
-        std::function<bool(const Curve&, const Curve&, distance_t)>& less_than);
+    Curve simplify(Curve const& in, distance_t delta,
+        std::function<bool(Curve const&, Curve const&, distance_t)> const&
+        less_than);
 }
 #endif
