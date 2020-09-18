@@ -1,89 +1,43 @@
 #pragma once
 
-#include <iostream>
-#include <map>
-
 #include "Curve.h"
 #include "distance_functions.h"
 #include "clustering/clustering_algs.h"
 #include "clustering/center_algs.h"
 #include "clustering/center_clustering_algs.h"
+#include "io.h"
+#include "synthetic_curves.h"
+#include "simplification/imaiiri.h"
+#include <map>
 #include "clustering/plot_clustering.h"
-#include "utils/io.h"
+#include "remove_stops.h"
+// #include "ortools/linear_solver/linear_solver.h"
 
-namespace experiments {
+
 Curves read_data() {
-    // Curves curves = io::read_pigeon_curves("data/Data_for_Mann_et_al_RSBL 2/Bladon & Church route recapping/bladon heath");
+    // Curves curves = io::read_pigeon_curves("data/Data_for_Mann_et_al_RSBL 2/Bladon & Church route recapping/bladon heath/c35");
     // Curves simplified_curves = Curves();
-    // for (auto curve: curves) {
-    //     simplified_curves.push_back(curve.naive_l_simplification(50));
-    // }
-    // return simplified_curves;
+    // // for (auto curve: curves) {
+    // //     // std::cout << curve.size() << "\n";
+    // //     simplified_curves.push_back(curve.naive_l_simplification(50));
+    // // }
+    // // return simplified_curves;
+    // return curves;
 
     Curves curves = io::read_curves("data/characters/data");
-    Curves ret(curves.begin(), curves.begin() + 70);
+    Curves as = Curves(curves.begin(), curves.begin() + 5);
+    return as;
     // Curves bs = Curves(curves.begin() + 200, curves.begin() + 210);
 
     // Curves final_curves = Curves();
     // for (auto& curve: as) {
     //     final_curves.push_back(curve);
     // }
-    // for (auto& curve: bs) {
-        // final_curves.push_back(curve);
-    // }
-    return ret;
+    // // for (auto& curve: bs) {
+    //     // final_curves.push_back(curve);
+    // // }
+    // return final_curves;
 }
-
-// void plot(Clustering& clustering, Curves& curves, std::string script_name) {
-
-//     std::fstream script;
-//     script.open(script_name, std::fstream::out | std::fstream::trunc);
-//     script << "plot ";
-
-//     // for (int i = 0; i < curves.size(); ++i) {
-//     //     Curve curve = curves[i];
-//     //     std::fstream curve_file;
-//     //     curve_file.open("curves/curve" + std::to_string(i) + ".txt", std::fstream::out | std::fstream::trunc);
-
-//     //     for (auto& point: curve.get_points()) {
-//     //         curve_file << point.x << " " << point.y << " \n";
-//     //     }
-//     //     curve_file.close();
-
-//     //     script << "\"" << "curves/curve" + std::to_string(i) + ".txt" + "\" with linespoints ls 1 lw 0.5 lt rgb \"" +  + "\" ps 0.01, ";
-//     // }
-
-//     std::vector<std::string> colors = {"red", "yellow", "blue", "yellow", "purple"};
-
-//     for (int i = 0; i < clustering.size(); ++i) {
-//         Cluster cluster = clustering[i];
-//         std::fstream cluster_center_file;
-//         cluster_center_file.open("curves/center_curve" + std::to_string(i) + ".txt", std::fstream::out | std::fstream::trunc);
-//         for (auto& point: cluster.center_curve.get_points()) {
-//             cluster_center_file << point.x << " " << point.y << " \n";
-//         }
-
-//         for (CurveID curve_id: cluster.curve_ids) {
-//             Curve curve = curves[curve_id];
-//             std::fstream curve_file;
-//             curve_file.open("curves/curve" + std::to_string(curve_id) + ".txt", std::fstream::out | std::fstream::trunc);
-
-//             for (auto& point: curve.get_points()) {
-//                 curve_file << point.x << " " << point.y << " \n";
-//             }
-//             curve_file.close();
-
-//             // script << "\"" << "curves/curve" + std::to_string(curve_id) + ".txt" + "\" with linespoints ls 1 lw 1 lt rgb black ps 0.01, ";
-//             script << "\"" << "curves/curve" + std::to_string(curve_id) + ".txt" + "\" with linespoints ls 1 lw 1 lt rgb \"" + "black" + "\" ps 0.01, ";
-//         }
-
-//         cluster_center_file.close();
-//         script << "\"" << "curves/center_curve" + std::to_string(i) + ".txt" + "\" with linespoints ls 1 lw 4 lt rgb \"" + colors[i] +"\", ";
-
-//     }
-
-//     script.close();
-// }
 
 
 void ensemble_experiment() {
@@ -127,19 +81,6 @@ void ensemble_experiment() {
     output_file.close();
 }
 
-void center_update_experiments() {
-    Curves curves = read_data();
-    // std::cout << "loaded curves...\n";
-
-    Clustering gonzalez_clustering = computeCenterClustering(curves, 1, 10, ClusterAlg::Gonzalez, CenterAlg::regression, frechet, integral_frechet, "", 1);
-    std::cout << kMedianCost(curves, gonzalez_clustering, average_frechet);
-    plot_clustering(gonzalez_clustering, curves, "plot.txt");
-
-    // Clustering gonzalez_clustering = computeCenterClustering(curves, 1, 10, ClusterAlg::Gonzalez, CenterAlg::cdba, frechet, average_frechet, "", 1);
-    // std::cout << kMedianCost(curves, gonzalez_clustering, average_frechet);
-    // plot_clustering(gonzalez_clustering, curves, "plot.txt");
-}
-
 void synthetic_curve_experiment() {
     Curves curves = io::read_curves("synthetic_curves");
     Clustering gonzalez_clustering = computeCenterClustering(curves, 1, 15, ClusterAlg::Gonzalez, CenterAlg::fMean, average_frechet, average_frechet, "", 1);
@@ -148,11 +89,12 @@ void synthetic_curve_experiment() {
 
 
 void preliminary_experiments() {
-    using namespace clustering;
+
     Curves curves = read_data();
     std::cout << curves.size() << "\n";
-    // std::vector<> dist_funcs {df::dtw, df::average_frechet, df::frechet};
-    std::vector<ClusterAlg> cluster_algs = {ClusterAlg::CompleteLinkage, ClusterAlg::Gonzalez, ClusterAlg::PAM};
+    std::vector<distance_t (*)(Curve, Curve)> dist_funcs = {dtw, average_frechet, frechet};
+    std::vector<ClusterAlg> cluster_algs = {ClusterAlg::CompleteLinkage, ClusterAlg::Gonzalez, ClusterAlg::Pam};
+
 
     Clustering gonzalez_f_mean = computeCenterClustering(curves, 1, 10, ClusterAlg::Gonzalez, CenterAlg::fMean, average_frechet, average_frechet, "", 1);
     std::cout << "computed average frechet clustering\n";
@@ -178,6 +120,7 @@ void preliminary_experiments() {
     //     frechet_center_cost += calcC2CDist(curves, cluster.center_curve, cluster.curve_ids, C2CDist::Max, frechet);
     //     frechet_dtw_median_cost += calcC2CDist(curves, cluster.center_curve, cluster.curve_ids, C2CDist::Median, dtw);
     // }
+
 
     // distance_t dtw_av_frechet_median_cost = 0;
     // distance_t dtw_frechet_center_cost = 0;
@@ -249,8 +192,8 @@ void wedge_method_experiment() {
 
     for (it = curves_by_letter.begin(); it != curves_by_letter.end(); ++it) {
         std::cout << "comparing the " << it->first << " curves...\n";
-        Clustering cdba_clustering = computeCenterClustering(it->second, 1, 10, ClusterAlg::Gonzalez, CenterAlg::cdba, frechet, integral_frechet, "", 3);
-        Clustering wedge_clustering = computeCenterClustering(it->second, 1, 10, ClusterAlg::Gonzalez, CenterAlg::wedge, frechet, integral_frechet, "", 3);
+        Clustering cdba_clustering = computeCenterClustering(it->second, 1, 10, ClusterAlg::Gonzalez, CenterAlg::cdba, frechet, integral_frechet<5>, "", 3);
+        Clustering wedge_clustering = computeCenterClustering(it->second, 1, 10, ClusterAlg::Gonzalez, CenterAlg::wedge, frechet, integral_frechet<5>, "", 3);
         std::cout << "cdba_cost" << cdba_clustering[0].cost << "\n";
         std::cout << "wedge clustering" << wedge_clustering[0].cost << "\n";
         plot_clustering(cdba_clustering, it->second, "results/cdba_wedge_character_experiment/cdba_" + std::string(1, it->first) + ".txt");
@@ -269,42 +212,46 @@ void pigeon_experiment() {
         "p29", "p39", "p94"
     };
 
+    system("mkdir results/pigeon_visual_experiment_v_2/figures");
+
     std::fstream clustering_names;
-    clustering_names.open("results/pigeon_visual_experiment/plots.txt", std::fstream::out | std::fstream::trunc);
+    clustering_names.open("results/pigeon_visual_experiment_v_2/plots.txt", std::fstream::out | std::fstream::trunc);
 
     for (std::string pigeon: pigeons) {
         Curves raw_curves = io::read_pigeon_curves_utm("data/Data_for_Mann_et_al_RSBL 2/Bladon & Church route recapping/bladon heath/" + pigeon);
         Curves curves = Curves();
         for (auto curve: raw_curves) {
-            curves.push_back(curve.naive_l_simplification(100));
+            curves.push_back(curve.naive_l_simplification(200));
         }
+
+        // std::cout << "dba...\n";
+        // Clustering dba_clustering = computeCenterClustering(curves, 3, 10, ClusterAlg::Gonzalez, CenterAlg::dbaPigeon, frechet, dtw, "", 1);
+        // std::cout << "fsa...\n";
+        // Clustering fsa_clustering = computeCenterClustering(curves, 3, 10, ClusterAlg::Gonzalez, CenterAlg::fCenter, frechet, frechet, "", 1);
+        // std::cout << "cdba int...\n";
+        // Clustering cdba_integral_clustering = computeCenterClustering(curves, 3, 10, ClusterAlg::Gonzalez, CenterAlg::cdbaPigeon, frechet, integral_frechet<250>, "", 1);
+        // std::cout << "wedge int...\n";
+        // Clustering wedge_integral_clustering = computeCenterClustering(curves, 3, 10, ClusterAlg::Gonzalez, CenterAlg::wedgePigeon, frechet, integral_frechet<250>, "", 1);
+
 
 
         std::cout << "dba...\n";
-        Clustering dba_clustering = computeCenterClustering(curves, 3, 10, ClusterAlg::Gonzalez, CenterAlg::dba, frechet, dtw, "", 2);
+        Clustering dba_clustering = computeCenterClustering(curves, 3, 10, ClusterAlg::Pam, CenterAlg::dbaPigeon, integral_frechet<250>, dtw, "", 1);
         std::cout << "fsa...\n";
-        Clustering fsa_clustering = computeCenterClustering(curves, 3, 10, ClusterAlg::Gonzalez, CenterAlg::fCenter, frechet, frechet, "", 2);
-        // std::cout << "cdba av...\n";
-        // Clustering cdba_average_clustering = computeCenterClustering(curves, 1, 10, ClusterAlg::Gonzalez, CenterAlg::cdba, frechet, average_frechet, "", 5);
+        Clustering fsa_clustering = computeCenterClustering(curves, 3, 10, ClusterAlg::Pam, CenterAlg::fCenter, integral_frechet<250>, frechet, "", 1);
         std::cout << "cdba int...\n";
-        Clustering cdba_integral_clustering = computeCenterClustering(curves, 3, 10, ClusterAlg::Gonzalez, CenterAlg::cdba, frechet, integral_frechet, "", 2);
-        // std::cout << "wedge av...\n";
-        // Clustering wedge_average_clustering = computeCenterClustering(curves, 1, 10, ClusterAlg::Gonzalez, CenterAlg::wedge, frechet, average_frechet, "", 5);
+        Clustering cdba_integral_clustering = computeCenterClustering(curves, 3, 10, ClusterAlg::Pam, CenterAlg::cdbaPigeon, integral_frechet<250>, integral_frechet<250>, "", 1);
         std::cout << "wedge int...\n";
-        Clustering wedge_integral_clustering = computeCenterClustering(curves, 3, 10, ClusterAlg::Gonzalez, CenterAlg::wedge, frechet, integral_frechet, "", 2);
+        Clustering wedge_integral_clustering = computeCenterClustering(curves, 3, 10, ClusterAlg::Pam, CenterAlg::wedgePigeon, integral_frechet<250>, integral_frechet<250>, "", 1);
 
-        plot_clustering(dba_clustering, curves, "results/pigeon_visual_experiment/" + pigeon + "_dba.txt");
-        plot_clustering(fsa_clustering, curves, "results/pigeon_visual_experiment/" + pigeon + "_fsa.txt");
-        // plot_clustering(cdba_average_clustering, curves, "results/pigeon_visual_experiment/" + pigeon + "_cdba_average_1.txt");
-        plot_clustering(cdba_integral_clustering, curves, "results/pigeon_visual_experiment/" + pigeon + "_cdba_integral.txt");
-        // plot_clustering(wedge_average_clustering, curves, "results/pigeon_visual_experiment/" + pigeon + "_wedge_average.txt");
-        plot_clustering(wedge_integral_clustering, curves, "results/pigeon_visual_experiment/" + pigeon + "_wedge_integral.txt");
+        plot_clustering(dba_clustering, curves, "results/pigeon_visual_experiment_v_2/" + pigeon + "_dba.txt");
+        plot_clustering(fsa_clustering, curves, "results/pigeon_visual_experiment_v_2/" + pigeon + "_fsa.txt");
+        plot_clustering(cdba_integral_clustering, curves, "results/pigeon_visual_experiment_v_2/" + pigeon + "_cdba_integral.txt");
+        plot_clustering(wedge_integral_clustering, curves, "results/pigeon_visual_experiment_v_2/" + pigeon + "_wedge_integral.txt");
 
         clustering_names << pigeon + "_dba\n";
         clustering_names << pigeon + "_fsa\n";
-        // clustering_names << pigeon + "_cdba_average_1\n";
         clustering_names << pigeon + "_cdba_integral\n";
-        // clustering_names << pigeon + "_wedge_average\n";
         clustering_names << pigeon + "_wedge_integral\n";
     }
 
@@ -328,7 +275,507 @@ void find_params() {
     for (distance_t eps: epsilons) {
         for (int radius: radii) {
             std::cout << "attempting with eps=" + std::to_string(eps) + " and radius=" + std::to_string(radius) << "\n";
-            wedge_parameter_search(curves, initial_clustering, integral_frechet, C2CDist::Median, eps, radius);
+            wedge_parameter_search(curves, initial_clustering, integral_frechet<5>, C2CDist::Median, eps, radius);
         }
     }
+}
+
+void initial_clustering_experiment() {
+    std::vector<std::string> pigeon_sites = {
+        "Bladon & Church route recapping/bladon heath",
+        "Bladon & Church route recapping/church hanborough",
+        "Horspath",
+        "Weston"
+    };
+
+    std::vector<std::string> dist_matrix_paths = {
+        "bladon_heath_10.txt",
+        "church_10.txt",
+        "horspath_10.txt",
+        "weston_10.txt"
+    };
+
+    system("mkdir results/initial_clustering_experiment/figures");
+
+    std::fstream results;
+    results.open("results/initial_clustering_experiment/results.txt", std::fstream::out | std::fstream::trunc);
+
+    for (int i = 0 ; i < pigeon_sites.size(); ++i) {
+        std::string site = pigeon_sites[i];
+        std::string dist_matrix_path = dist_matrix_paths[i];
+        CurveSimpMatrix dist_matrix = CurveSimpMatrix(dist_matrix_path);
+
+        Curves raw_pigeon_curves = io::read_pigeon_curves_utm("data/Data_for_Mann_et_al_RSBL 2/" + site);
+        Curves curves = Curves();
+        Curves simplifications = Curves();
+
+        int count = 0;
+        for (auto curve: raw_pigeon_curves) {
+            Curve naive_simp = curve.naive_l_simplification(200);
+            curves.push_back(naive_simp);
+            // simplifications.push_back(simplify(naive_simp, 10, frechet));
+            // ++count;
+            // std::cout << count << std::endl;
+        }
+
+        for (int k = 1; k <= 10; ++k) {
+            std::cout << site << "\n";
+            Clustering gonzalez_pam_clustering = computeClustering(
+                curves, k, 10, ClusterAlg::GonzalezPam, integral_frechet<250>,
+                dist_matrix_path, false
+            );
+            for (int i = 0; i < 5; ++i) {
+                Clustering alt = computeClustering(
+                    curves, k, 10, ClusterAlg::GonzalezPam, integral_frechet<250>,
+                    dist_matrix_path, false
+                );
+
+                if (kMedianCostMat(curves, alt, dist_matrix) < kMedianCostMat(curves, gonzalez_pam_clustering, dist_matrix)) {
+                    gonzalez_pam_clustering = std::move(alt);
+                }
+            }
+
+            Clustering pam_clustering = computeClustering(
+                curves, k, 10, ClusterAlg::Pam, integral_frechet<250>,
+                dist_matrix_path, false
+            );
+
+            Clustering gonzalez_clustering = computeClustering(
+                curves, k, 10, ClusterAlg::Gonzalez, integral_frechet<250>,
+                dist_matrix_path, false
+            );
+            for (int i = 0; i < 5; ++i) {
+                Clustering alt = computeClustering(
+                    curves, k, 10, ClusterAlg::Gonzalez, integral_frechet<250>,
+                    dist_matrix_path, false
+                );
+
+                if (kMedianCostMat(curves, alt, dist_matrix) < kMedianCostMat(curves, gonzalez_clustering, dist_matrix)) {
+                    gonzalez_clustering = std::move(alt);
+                }
+            }
+
+
+            results << site << "\t" << k << "\t" <<
+            kMedianCostMat(curves, gonzalez_pam_clustering, dist_matrix) <<
+            "\t" << kMedianCostMat(curves, pam_clustering, dist_matrix) <<
+            "\t" << kMedianCostMat(curves, gonzalez_clustering, dist_matrix) << std::endl;
+        }
+    }
+
+    results.close();
+}
+
+void compute_matrices() {
+
+    Curves raw_pigeon_curves = io::read_pigeon_curves_utm("data/Data_for_Mann_et_al_RSBL 2/Weston");
+    // Curves raw_characters = io::read_curves("data/characters/data");
+
+    Curves curves = Curves();
+    Curves simplifications = Curves();
+
+    int count = 0;
+    for (auto curve: raw_pigeon_curves) {
+        std::cout << curve.name() << std::endl;
+        Curve naive_simp = curve.naive_l_simplification(100);
+        curves.push_back(naive_simp);
+        simplifications.push_back(simplify(naive_simp, 10, frechet));
+        ++count;
+        std::cout << count << std::endl;
+    }
+
+    CurveSimpMatrix pigeon_matrix = CurveSimpMatrix(curves, simplifications, integral_frechet<250>);
+    pigeon_matrix.write("weston_10.txt");
+}
+
+distance_t kMedianCost(Curves const& curves, Clustering const& clustering, distance_t(*dist_func)(Curve, Curve)) {
+    distance_t cost = 0;
+
+    for (auto& cluster: clustering) {
+        cost += calcC2CDist(curves, cluster.center_curve, cluster.curve_ids, C2CDist::Median, dist_func);
+    }
+
+    return cost;
+}
+
+void movebank_experiment() {
+    Curves raw_curves = io::read_curves("data/movebank/projection");
+    Curves curves = Curves();
+
+    for (auto curve: raw_curves) {
+        Curve simplified_curve = curve.naive_l_simplification(400);
+        Curve new_curve = Curve();
+        for (auto& p: simplified_curve.get_points()) {
+            new_curve.push_back({p.x/1000, p.y/1000});
+        }
+        // std::cout << new_curve.size() << std::endl;
+        curves.push_back(new_curve);
+    }
+
+    // Reverse curves
+    for (int i = 0; i < curves.size(); ++i) {
+        Curve curve = curves[i];
+        Points points = curve.get_points();
+        std::reverse(points.begin(), points.end());
+        curves[i] = Curve(points);
+        // curves[i] = remove_stops(Curve(points));
+    }       
+
+    system("mkdir results/movebank/figures");
+
+    std::fstream clustering_names;
+    clustering_names.open("results/movebank/plots.txt", std::fstream::out | std::fstream::trunc);
+    clustering_names << "cdba\nwedge\ndba\nfsa";
+    clustering_names.close();
+
+    int k = 3;
+    int l = 14;
+
+    Clustering initial_clustering = computeClustering(curves, k, l, ClusterAlg::Pam, integral_frechet<500>, "", false);
+
+    std::cout << "completed initial clustering\n";
+
+    Clustering cdba_clustering = initial_clustering;
+    int count = 1;
+    int max_count = 20;
+    while (count <= max_count && computerCenters(curves, cdba_clustering, l, CenterAlg::cdbaStork, integral_frechet<500>)) {
+        updateClustering(curves, cdba_clustering, integral_frechet<500>, nullptr);
+        ++count;
+    }
+
+    Clustering wedge_clustering = initial_clustering;
+    count = 1;
+    max_count = 20;
+    while (count <= max_count && computerCenters(curves, wedge_clustering, l, CenterAlg::wedgeStork, integral_frechet<500>)) {
+        updateClustering(curves, wedge_clustering, integral_frechet<500>, nullptr);
+        ++count;
+    }
+
+    Clustering dba_clustering = initial_clustering;
+    count = 1;
+    max_count = 20;
+    while (count <= max_count && computerCenters(curves, dba_clustering, l, CenterAlg::dbaStork, dtw)) {
+        updateClustering(curves, dba_clustering, dtw, nullptr);
+        ++count;
+    }
+
+    Clustering fsa_clustering = initial_clustering;
+    count = 1;
+    max_count = 20;
+    while (count <= max_count && computerCenters(curves, fsa_clustering, l, CenterAlg::fCenter, frechet)) {
+        updateClustering(curves, fsa_clustering, frechet, nullptr);
+        ++count;
+    }
+
+    // for (auto& cluster: cdba_clustering) {
+    //     Curve new_curve = Curve();
+    //     for (int i = 0; i < cluster.center_curve.size()-1; ++i)
+    //         new_curve.push_back(cluster.center_curve[i]);
+    //     cluster.center_curve = new_curve;
+    // }
+
+    plot_clustering(cdba_clustering, curves, "results/movebank/cdba.txt");
+    plot_clustering(wedge_clustering, curves, "results/movebank/wedge.txt");
+    plot_clustering(dba_clustering, curves, "results/movebank/dba.txt");
+    plot_clustering(fsa_clustering, curves, "results/movebank/fsa.txt");
+}
+
+void geolife_experiment() {
+    Curves raw_curves = io::read_curves("data/geolife/020/Trajectory");
+    Curves curves = Curves();
+
+    for (auto curve: raw_curves)
+        curves.push_back(curve.naive_l_simplification(100));
+
+    Clustering initial_clustering = computeClustering(curves, 2, 10, ClusterAlg::Gonzalez, integral_frechet<1>, "", false);
+    plot_clustering(initial_clustering, curves, "results/geolife/020/initial_clustering.txt");
+
+    Clustering cdba_clustering = initial_clustering;
+    int count = 1;
+    int max_count = 20;
+    while (count <= max_count && computerCenters(curves, cdba_clustering, 10, CenterAlg::cdbaGeo, integral_frechet<1>)) {
+        updateClustering(curves, cdba_clustering, integral_frechet<1>, nullptr);
+        ++count;
+    }
+
+    Clustering dba_clustering = initial_clustering;
+    count = 1;
+    max_count = 20;
+    while (count <= max_count && computerCenters(curves, cdba_clustering, 10, CenterAlg::dbaChar, integral_frechet<1>)) {
+        updateClustering(curves, cdba_clustering, integral_frechet<1>, nullptr);
+        ++count;
+    }
+
+    Clustering fsa_clustering = initial_clustering;
+    count = 1;
+    max_count = 20;
+    while (count <= max_count && computerCenters(curves, fsa_clustering, 10, CenterAlg::fCenter, integral_frechet<1>)) {
+        updateClustering(curves, fsa_clustering, integral_frechet<1>, nullptr);
+        ++count;
+    }
+
+
+    plot_clustering(cdba_clustering, curves, "results/geolife/020/cdba.txt");
+    plot_clustering(dba_clustering, curves, "results/geolife/020/dba.txt");
+    plot_clustering(fsa_clustering, curves, "results/geolife/020/fsa.txt");
+}
+
+void center_update_experiment_characters(std::string directory, int n, int k, int l) {
+    Curves curves = io::read_curves("data/characters/data");
+    std::cout << "loaded curves...";
+
+    std::map<char, Curves> curves_by_letter = std::map<char, std::vector<Curve>>();
+
+    for (auto& curve: curves) {
+        char letter = curve.name()[21];
+        auto it = curves_by_letter.find(letter);
+
+        if (it == curves_by_letter.end()) {
+            Curves new_vector = {curve};
+            curves_by_letter.emplace(letter, new_vector);
+        }
+        else if (curves_by_letter.at(letter).size() < n) {
+            curves_by_letter.at(letter).push_back(curve);
+        }
+    }
+
+    std::map<char, std::vector<Curve>>::iterator it;
+
+    system(("mkdir results/" + directory + "_v_2/figures").c_str());
+
+    std::fstream plots;
+    plots.open("results/" + directory + "_v_2" + "/plots.txt", std::fstream::out | std::fstream::trunc);
+
+    std::fstream k_med_scores;
+    k_med_scores.open("results/" + directory + "_v_2" + "/k_med_scores.csv", std::fstream::out | std::fstream::trunc);
+
+    // k_med_scores << "characters,DBA,FSA,CDBA,WEDGE\n";
+    k_med_scores << "characters,DBA,FSA,CDBA,WEDGE\n";
+
+    for (it = curves_by_letter.begin(); it != curves_by_letter.end(); ++it) {
+        std::cout << it->first << "...\n";
+
+        Curves curves = it->second;
+
+        Clustering initial_clustering = computeClustering(curves, k, l, ClusterAlg::Pam, integral_frechet<5>, "", false);
+
+        Clustering dba_clustering = initial_clustering;
+        int count = 1;
+        int max_count = 20;
+        while (count <= max_count && computerCenters(curves, dba_clustering, l, CenterAlg::dbaChar, dtw)) {
+            updateClustering(curves, dba_clustering, dtw, nullptr);
+            ++count;
+        }
+
+        Clustering fsa_clustering = initial_clustering;
+        count = 1;
+        while (count <= max_count && computerCenters(curves, fsa_clustering, l, CenterAlg::fCenter, frechet)) {
+            updateClustering(curves, fsa_clustering, frechet, nullptr);
+            ++count;
+        }
+
+        Clustering cdba_clustering = initial_clustering;
+        count = 1;
+        while (count <= max_count && computerCenters(curves, cdba_clustering, l, CenterAlg::cdbaChar, integral_frechet<5>)) {
+            updateClustering(curves, cdba_clustering, integral_frechet<5>, nullptr);
+            ++count;
+        }
+
+        Clustering wedge_clustering = initial_clustering;
+        count = 1;
+        while (count <= max_count && computerCenters(curves, wedge_clustering, l, CenterAlg::wedgeChar, integral_frechet<5>)) {
+            updateClustering(curves, wedge_clustering, integral_frechet<5>, nullptr);
+            ++count;
+        }
+
+        plot_clustering(dba_clustering, it->second, "results/" + directory + "_v_2" + "/dba_" + std::string(1, it->first) + ".txt");
+        plot_clustering(fsa_clustering, it->second, "results/" + directory + "_v_2" + "/fsa_" + std::string(1, it->first) + ".txt");
+        plot_clustering(cdba_clustering, it->second, "results/" + directory + "_v_2" + "/cdba_" + std::string(1, it->first) + ".txt");
+        plot_clustering(wedge_clustering, it->second, "results/" + directory + "_v_2" + "/wedge_" + std::string(1, it->first) + ".txt");
+        
+        distance_t dba_cost = kMedianCost(curves, dba_clustering, integral_frechet<5>);
+        distance_t fsa_cost = kMedianCost(curves, fsa_clustering, integral_frechet<5>);
+        distance_t cdba_cost = kMedianCost(curves, cdba_clustering, integral_frechet<5>);
+        distance_t wedge_cost = kMedianCost(curves, wedge_clustering, integral_frechet<5>);
+
+        k_med_scores << it->first 
+        << "," << std::to_string(dba_cost) 
+        << "," << std::to_string(fsa_cost) 
+        << "," << std::to_string(cdba_cost) 
+        << "," << std::to_string(wedge_cost) 
+        << "\n";
+
+        plots << "dba_" + std::string(1, it->first) << std::endl;
+        plots << "fsa_" + std::string(1, it->first) << std::endl;
+        plots << "cdba_" + std::string(1, it->first) << std::endl;
+        plots << "wedge_" + std::string(1, it->first) << std::endl;
+    }
+    k_med_scores.close();
+    plots.close();
+}
+
+void curve_complexity_experiment_characters() {
+    
+    system("mkdir results");
+
+    int n = 50;
+    int k = 2;
+
+    for (int l = 6; l <= 12; ++l) {
+        std::string dir_name =
+            "char_exp_" + std::to_string(l) + "_" + std::to_string(k) + "_" + std::to_string(n);
+        center_update_experiment_characters(dir_name, n, k, l);
+    }
+}
+
+void center_update_experiment_pigeons(std::string directory, int k, int l) {
+    std::vector<std::string> pigeons = {
+        "Bladon & Church route recapping/church hanborough/a94", "Bladon & Church route recapping/church hanborough/c22", "Bladon & Church route recapping/church hanborough/k77",
+        "Bladon & Church route recapping/church hanborough/l29", /*"Bladon & Church route recapping/church hanborough/liv",*/ "Bladon & Church route recapping/church hanborough/r47", "Bladon & Church route recapping/church hanborough/s93",
+        //"Horspath/H22", "Horspath/H27", "Horspath/H30", "Horspath/H35", "Horspath/H38", "Horspath/H41", "Horspath/H42", "Horspath/H71",
+        // "Weston/H23", "Weston/H31", "Weston/H32", "Weston/H34", "Weston/H36", "Weston/H50", "Weston/H58", "Weston/H62",
+        //  "Bladon & Church route recapping/bladon heath/p39", "Bladon & Church route recapping/church hanborough/c70", "Bladon & Church route recapping/bladon heath/p29", "Bladon & Church route recapping/bladon heath/a55", "Bladon & Church route recapping/bladon heath/brc", "Bladon & Church route recapping/bladon heath/c17", "Bladon & Church route recapping/bladon heath/c35",
+        //  "Bladon & Church route recapping/bladon heath/p94"
+    };
+
+    system(("mkdir results/" + directory).c_str());
+    system(("mkdir 'results/" + directory + "/Bladon & Church route recapping'").c_str());
+    system(("mkdir 'results/" + directory + "/Bladon & Church route recapping/church hanborough'").c_str());
+    system(("mkdir 'results/" + directory + "/Bladon & Church route recapping/bladon heath'").c_str());
+    system(("mkdir results/" + directory + "/Weston").c_str());
+    system(("mkdir results/" + directory + "/Horspath").c_str());
+
+    std::fstream clustering_names;
+    clustering_names.open("results/" + directory + "/plots.txt", std::fstream::out | std::fstream::trunc);
+    std::fstream k_med_scores;
+    k_med_scores.open("results/" + directory + "/k_med_scores.txt", std::fstream::out | std::fstream::trunc);
+
+    k_med_scores << "pigeons\tdba\tfsa\tcdba\twedge\n";
+
+    for (std::string pigeon: pigeons) {
+        Curves raw_curves = io::read_pigeon_curves_utm("data/Data_for_Mann_et_al_RSBL 2/" + pigeon);
+        Curves curves = Curves();
+        for (auto curve: raw_curves) {
+            curves.push_back(curve.naive_l_simplification(10));
+        }
+
+        Clustering initial_clustering = computeClustering(curves, k, l, ClusterAlg::Pam, integral_frechet<250>, "", false);
+
+        Clustering dba_clustering = initial_clustering;
+        int count = 1;
+        int max_count = 10;
+        while (count <= max_count && computerCenters(curves, dba_clustering, l, CenterAlg::dba, dtw)) {
+            updateClustering(curves, dba_clustering, dtw, nullptr);
+            ++count;
+        }
+
+        Clustering fsa_clustering = initial_clustering;
+        count = 1;
+        while (count <= max_count && computerCenters(curves, fsa_clustering, l, CenterAlg::fCenter, frechet)) {
+            updateClustering(curves, fsa_clustering, frechet, nullptr);
+            ++count;
+        }
+
+        Clustering cdba_clustering = initial_clustering;
+        count = 1;
+        while (count <= max_count && computerCenters(curves, cdba_clustering, l, CenterAlg::cdbaPigeon, integral_frechet<250>)) {
+            updateClustering(curves, cdba_clustering, integral_frechet<250>, nullptr);
+            ++count;
+        }
+
+        Clustering wedge_clustering = initial_clustering;
+        count = 1;
+        while (count <= max_count && computerCenters(curves, wedge_clustering, l, CenterAlg::wedgePigeon, integral_frechet<250>)) {
+            updateClustering(curves, wedge_clustering, integral_frechet<250>, nullptr);
+            ++count;
+        }
+
+
+        std::cout << "results/" + directory + "/" +  pigeon + "_dba.txt" << "\n";
+        plot_clustering(dba_clustering, curves, "results/" + directory + "/" +  pigeon + "_dba.txt");
+        plot_clustering(fsa_clustering, curves, "results/" + directory + "/" +  pigeon + "_fsa.txt");
+        plot_clustering(cdba_clustering, curves, "results/" + directory + "/" +  pigeon + "_cdba_integral.txt");
+        plot_clustering(wedge_clustering, curves, "results/" + directory + "/" +  pigeon + "_wedge_integral.txt");
+
+        clustering_names << pigeon + "_dba\n";
+        clustering_names << pigeon + "_fsa\n";
+        clustering_names << pigeon + "_cdba_integral\n";
+        clustering_names << pigeon + "_wedge_integral\n";
+
+        std::vector<Clustering> clusterings = {dba_clustering, fsa_clustering, cdba_clustering, wedge_clustering};
+
+        k_med_scores << pigeon << "\t";
+        for (int i = 0; i < clusterings.size(); ++i) {
+            Clustering clustering = clusterings[i];
+            distance_t k_med_score = 0;
+            for (auto& cluster: clustering) {
+                k_med_score += calcC2CDist(curves, cluster.center_curve, cluster.curve_ids, C2CDist::Median, integral_frechet<250>);
+            }
+
+            k_med_scores << std::to_string(k_med_score);
+            
+            if (i < clusterings.size() - 1) {
+                k_med_scores << "\t";
+            } else {
+                k_med_scores << "\n";
+            }
+        }
+    }
+
+    k_med_scores.close();
+    clustering_names.close();
+}
+
+void curve_complexity_experiment_pigeons() {
+    
+    system("mkdir results");
+
+    int k = 3;
+    
+    for (int l = 6; l <= 12; l+=6) {
+        center_update_experiment_pigeons("pigeon_exp_" + std::to_string(l) + "_" + std::to_string(k), k, l);
+    }
+
+}
+
+void running_time_experiment() {
+    std::vector<std::string> pigeon_datasets = {
+        "data/Data_for_Mann_et_al_RSBL 2/Bladon & Church route recapping/church hanborough/utm",
+        "data/Data_for_Mann_et_al_RSBL 2/Bladon & Church route recapping/bladon heath/utm",
+        "data/Data_for_Mann_et_al_RSBL 2/Horspath/utm",
+        "data/Data_for_Mann_et_al_RSBL 2/Weston/utm"
+    };
+
+    std::vector<std::string> names = {
+        "bladon_heath", "church_hanborough",
+        "horspath", "weston"
+    };
+
+
+    std::fstream output_file;
+    output_file.open("running_time.txt", std::fstream::out | std::fstream::trunc);
+
+    for (int i = 0; i < pigeon_datasets.size(); ++i) {
+        auto pigeon_data = pigeon_datasets[i];
+        Curves raw_curves = io::read_pigeon_curves(pigeon_data);
+        Curves curves = Curves();
+        for (auto curve: raw_curves) {
+            curves.push_back(curve.naive_l_simplification(100));
+        }
+
+        auto start_time = std::chrono::high_resolution_clock::now();
+        Clustering clustering = computeCenterClustering(curves, 5, 10, ClusterAlg::Gonzalez, CenterAlg::cdba, integral_frechet<250>, integral_frechet<250>, "", 1);
+        auto end_time = std::chrono::high_resolution_clock::now();
+        auto total_time = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time).count();
+        output_file << names[i] << "\t" << total_time << "\n";
+    }
+
+    output_file.close();
+}
+
+void all_paper_experiments() {
+    movebank_experiment();
+    // initial_clustering_experiment();
+    // pigeon_experiment();
+    // curve_complexity_experiment_characters();
 }
