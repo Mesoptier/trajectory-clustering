@@ -1,78 +1,71 @@
-#pragma once
+#ifndef WEDGE_H
+#define WEDGE_H
 
-#include "../../Curve.h"
+#include <cstddef>
+#include <utility>
+#include <vector>
+#include "Curve.h"
+#include "geom.h"
 
-struct WedgePoint {
+namespace clustering {
+    /**
+     * \brief The point matched to a segment of a wedge, with the wedge segment
+     * index and the weight of the point.
+     */
+    struct WedgePoint {
+        Point point;
+        std::size_t matching_segment_index;
+        distance_t weight;
 
-    Point point;
-    size_t matching_segment_index;
-    distance_t weight;
-	distance_t height;
+        WedgePoint(Point p, std::size_t i, distance_t w) : point(std::move(p)),
+            matching_segment_index(std::move(i)), weight(std::move(w)) {}
+    };
+    using WedgePoints = std::vector<WedgePoint>;
 
-    WedgePoint (Point p, size_t i, distance_t w) 
-    : point(p), matching_segment_index(i), weight(w) {}    
+    /**
+     * \brief The wedge on three consecutive vertices of the center curve with
+     * the points of the clustered curves matched to it.
+     */
+    struct Wedge {
+        Points vertices;
+        WedgePoints wedge_points;
 
-};
+        Wedge(Points vs, WedgePoints wps) : vertices(std::move(vs)),
+            wedge_points(std::move(wps)) {}
+    };
+    using Wedges = std::vector<Wedge>;
 
-using WedgePoints = std::vector<WedgePoint>;
+    /**
+     * \brief Given a matching, compute the points of curve_2 matched to a
+     * segment of curve_1.
+     * \param param_space_path The matching.
+     * \param curve_1 The center curve, on which the wedge is computed.
+     * \param curve_2 One o f the curves in the cluster.
+     * \param src_index Index of the point in curve_1 marking the start of the
+     * segment that we are matching to.
+     * \param seg_index 0 or 1, depending on whether the segment starting at
+     * src_index is the first or the second segment of the wedge.
+     * \return The wedge points matched to the requested segment.
+     */
+    WedgePoints get_points_matched_to_segment(Points const& param_space_path,
+        Curve const& curve_1, Curve const& curve_2,
+        std::size_t src_index, std::size_t seg_index);
 
+    /**
+     * \brief Compute the cost of the wedge (see paper).
+     * \param wedge The wedge to evaluate.
+     * \return The cost (sum over all the points matched to the wedge).
+     */
+    distance_t wedge_cost(Wedge const& wedge);
 
-struct Wedge {
-    Points vertices;
-    WedgePoints wedge_points;
-    Wedge(Points vs, WedgePoints wps) 
-    : vertices(vs), wedge_points(wps) {}
-};
-
-using Wedges = std::vector<Wedge>;
-
-WedgePoints get_points_matched_to_segment(Points& param_space_path, const Curve& curve_1, const Curve& curve_2, 
-size_t src_index, size_t seg_index) {
-	
-	assert(src_index < curve_1.size() - 1);
-    // assert(seg_index == 0 || seg_index == 1);
-
-	WedgePoints wedge_points = WedgePoints();
-
-	distance_t src_dist = curve_1.curve_length(src_index);
-	distance_t tgt_dist = curve_1.curve_length(src_index + 1);
-
-	std::vector<distance_t> x_coords = std::vector<distance_t>();
-	for (auto& point: param_space_path) {
-		x_coords.push_back(point.x);
-	}
-
-	int src_ind = 0;
-	int tgt_ind = 0;
-
-	auto it = std::lower_bound(x_coords.begin(), x_coords.end(), src_dist);
-	src_ind = static_cast<std::size_t>(std::distance(x_coords.begin(), it));
-	it = std::lower_bound(it, x_coords.end(), tgt_dist);
-	tgt_ind = static_cast<std::size_t>(std::distance(x_coords.begin(), it));
-
-	if (tgt_ind == param_space_path.size())
-		--tgt_ind;
-
-	distance_t src_y = param_space_path[src_ind].y;
-	distance_t tgt_y = param_space_path[tgt_ind].y;
-
-	size_t start_ind = curve_2.get_cpoint_after(src_y).ceil().getPoint();
-	size_t end_ind =  curve_2.get_cpoint_after(tgt_y).ceil().getPoint();
-
-	for (size_t i = start_ind; i <= end_ind; ++i) {
-        distance_t weight = 0;
-        if (i > 0) 
-            weight += curve_2[i].dist(curve_2[i-1]);
-        if (i < curve_2.size() - 1)
-            weight += curve_2[i].dist(curve_2[i+1]);
-        wedge_points.push_back(WedgePoint(
-            curve_2[i], seg_index, weight
-        ));
-
-		// set the 'height' for the 3D linear regression
-		distance_t height = curve_2.curve_length(start_ind, i) * (i - start_ind) * (i - start_ind) * (i - start_ind);
-		wedge_points.back().height = height;
-    }
-
-	return wedge_points;
+    /**
+     * \brief Find the best position for the middle point of the wedge with
+     * grid search.
+     * \param wedge The wedge, where the middle point should be moved.
+     * \param eps The step of the grid.
+     * \param radius The number of steps in each direction on the grid.
+     * \return The best point position on the grid in terms of wedge cost.
+     */
+    Point grid_search(Wedge wedge, distance_t eps = 0.125, int radius = 20);
 }
+#endif

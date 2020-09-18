@@ -9,12 +9,12 @@
 
 namespace {
     template<class T>
-    bool contains(const std::vector<T>& v, const T& x) {
+    bool contains(std::vector<T> const& v, T const& x) {
         return v.end() != std::find(v.begin(), v.end(), x);
     }
 
     void build(std::size_t n, std::size_t k,
-            const DistanceMatrix<distance_t>& d, distance_t& td,
+            DistanceMatrix<distance_t> const& d, distance_t& td,
             std::vector<std::size_t>& medoids) {
         // 1.
         td = std::numeric_limits<distance_t>::infinity();
@@ -81,7 +81,7 @@ namespace {
         }
     }
 
-    void swap(std::size_t n, const DistanceMatrix<distance_t>& d,
+    void swap(std::size_t n, DistanceMatrix<distance_t> const& d,
             distance_t& td, std::vector<std::size_t>& medoids) {
         std::vector<std::size_t> nearest(n);
         std::vector<distance_t> d_nearest(n,
@@ -145,7 +145,7 @@ namespace {
             std::replace(medoids.begin(), medoids.end(), m_best, x_best);
 
             // Update caches
-            // TODO: Be more clever about this, instead of just brute-forcing it
+            // Could be more clever about this, instead of just brute-forcing it
             for (std::size_t x = 0; x < n; ++x) {
                 d_nearest[x] = std::numeric_limits<distance_t>::infinity();
                 d_second_nearest[x] = std::numeric_limits<distance_t>::infinity();
@@ -171,7 +171,7 @@ namespace {
 }
 
 std::vector<std::size_t> clustering::pam::compute(std::size_t n, std::size_t k,
-        const DistanceMatrix<distance_t>& d) {
+        DistanceMatrix<distance_t> const& d) {
     distance_t td;
     std::vector<std::size_t> medoids;
 
@@ -183,7 +183,7 @@ std::vector<std::size_t> clustering::pam::compute(std::size_t n, std::size_t k,
     #ifndef NDEBUG
     std::cerr << "td: " << td << '\n';
     std::cerr << "medoids:";
-    for (const auto& m: medoids)
+    for (auto const& m: medoids)
         std::cerr << ' ' << m;
     std::cerr << std::endl;
     #endif

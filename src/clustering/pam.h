@@ -17,6 +17,6 @@ namespace clustering::pam {
      * symmetric: works with both SymmetricMatrix and CurveSimpMatrix.
      */
     std::vector<std::size_t> compute(std::size_t n, std::size_t k,
-        const DistanceMatrix<distance_t>& d);
+        DistanceMatrix<distance_t> const& d);
 }
 #endif

@@ -8,10 +8,10 @@
 #include "geom.h"
 #include "utils/id.h"
 
-struct Cluster
-{
+struct Cluster {
     CurveIDs curve_ids;
     Curve center_curve;
+    CurveID center_id;
     distance_t cost = std::numeric_limits<distance_t>::max();
 };
 
