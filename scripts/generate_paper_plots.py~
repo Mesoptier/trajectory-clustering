@@ -10,5 +10,5 @@ init_exp_dir = "results/initial_clustering_experiment"
 movebank_exp_dir = "results/movebank"
 
 #export_initial_clustering_plots(init_exp_dir)
-#plot_clusterings(pigeon_exp_dir, 25, 600)
-plot_clusterings(movebank_exp_dir, 25, 600)
+plot_clusterings(pigeon_exp_dir, 25, 600)
+#plot_clusterings(movebank_exp_dir, 25, 600)

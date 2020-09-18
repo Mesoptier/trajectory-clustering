@@ -221,18 +221,28 @@ void pigeon_experiment() {
         Curves raw_curves = io::read_pigeon_curves_utm("data/Data_for_Mann_et_al_RSBL 2/Bladon & Church route recapping/bladon heath/" + pigeon);
         Curves curves = Curves();
         for (auto curve: raw_curves) {
-            curves.push_back(curve.naive_l_simplification(100));
+            curves.push_back(curve.naive_l_simplification(200));
         }
+
+        // std::cout << "dba...\n";
+        // Clustering dba_clustering = computeCenterClustering(curves, 3, 10, ClusterAlg::Gonzalez, CenterAlg::dbaPigeon, frechet, dtw, "", 1);
+        // std::cout << "fsa...\n";
+        // Clustering fsa_clustering = computeCenterClustering(curves, 3, 10, ClusterAlg::Gonzalez, CenterAlg::fCenter, frechet, frechet, "", 1);
+        // std::cout << "cdba int...\n";
+        // Clustering cdba_integral_clustering = computeCenterClustering(curves, 3, 10, ClusterAlg::Gonzalez, CenterAlg::cdbaPigeon, frechet, integral_frechet<250>, "", 1);
+        // std::cout << "wedge int...\n";
+        // Clustering wedge_integral_clustering = computeCenterClustering(curves, 3, 10, ClusterAlg::Gonzalez, CenterAlg::wedgePigeon, frechet, integral_frechet<250>, "", 1);
+
 
 
         std::cout << "dba...\n";
-        Clustering dba_clustering = computeCenterClustering(curves, 3, 10, ClusterAlg::Gonzalez, CenterAlg::dbaPigeon, frechet, dtw, "", 1);
+        Clustering dba_clustering = computeCenterClustering(curves, 3, 10, ClusterAlg::Pam, CenterAlg::dbaPigeon, integral_frechet<250>, dtw, "", 1);
         std::cout << "fsa...\n";
-        Clustering fsa_clustering = computeCenterClustering(curves, 3, 10, ClusterAlg::Gonzalez, CenterAlg::fCenter, frechet, frechet, "", 1);
+        Clustering fsa_clustering = computeCenterClustering(curves, 3, 10, ClusterAlg::Pam, CenterAlg::fCenter, integral_frechet<250>, frechet, "", 1);
         std::cout << "cdba int...\n";
-        Clustering cdba_integral_clustering = computeCenterClustering(curves, 3, 10, ClusterAlg::Gonzalez, CenterAlg::cdbaPigeon, frechet, integral_frechet<250>, "", 1);
+        Clustering cdba_integral_clustering = computeCenterClustering(curves, 3, 10, ClusterAlg::Pam, CenterAlg::cdbaPigeon, integral_frechet<250>, integral_frechet<250>, "", 1);
         std::cout << "wedge int...\n";
-        Clustering wedge_integral_clustering = computeCenterClustering(curves, 3, 10, ClusterAlg::Gonzalez, CenterAlg::wedgePigeon, frechet, integral_frechet<250>, "", 1);
+        Clustering wedge_integral_clustering = computeCenterClustering(curves, 3, 10, ClusterAlg::Pam, CenterAlg::wedgePigeon, integral_frechet<250>, integral_frechet<250>, "", 1);
 
         plot_clustering(dba_clustering, curves, "results/pigeon_visual_experiment_v_2/" + pigeon + "_dba.txt");
         plot_clustering(fsa_clustering, curves, "results/pigeon_visual_experiment_v_2/" + pigeon + "_fsa.txt");
@@ -301,7 +311,7 @@ void initial_clustering_experiment() {
 
         int count = 0;
         for (auto curve: raw_pigeon_curves) {
-            Curve naive_simp = curve.naive_l_simplification(100);
+            Curve naive_simp = curve.naive_l_simplification(200);
             curves.push_back(naive_simp);
             // simplifications.push_back(simplify(naive_simp, 10, frechet));
             // ++count;
@@ -393,7 +403,6 @@ void movebank_experiment() {
     Curves curves = Curves();
 
     for (auto curve: raw_curves) {
-        // curves.push_back(curve.naive_l_simplification(10));
         Curve simplified_curve = curve.naive_l_simplification(400);
         Curve new_curve = Curve();
         for (auto& p: simplified_curve.get_points()) {
@@ -408,8 +417,8 @@ void movebank_experiment() {
         Curve curve = curves[i];
         Points points = curve.get_points();
         std::reverse(points.begin(), points.end());
+        curves[i] = Curve(points);
         // curves[i] = remove_stops(Curve(points));
-        // std::cout << curves[i].size() << std::endl;
     }       
 
     system("mkdir results/movebank/figures");
@@ -420,9 +429,9 @@ void movebank_experiment() {
     clustering_names.close();
 
     int k = 3;
-    int l = 6;
+    int l = 14;
 
-    Clustering initial_clustering = computeClustering(curves, k, l, ClusterAlg::Gonzalez, frechet, "", false);
+    Clustering initial_clustering = computeClustering(curves, k, l, ClusterAlg::Pam, integral_frechet<500>, "", false);
 
     std::cout << "completed initial clustering\n";
 
@@ -430,7 +439,7 @@ void movebank_experiment() {
     int count = 1;
     int max_count = 20;
     while (count <= max_count && computerCenters(curves, cdba_clustering, l, CenterAlg::cdbaStork, integral_frechet<500>)) {
-        updateClustering(curves, cdba_clustering, integral_frechet<1000>, nullptr);
+        updateClustering(curves, cdba_clustering, integral_frechet<500>, nullptr);
         ++count;
     }
 
@@ -438,13 +447,9 @@ void movebank_experiment() {
     count = 1;
     max_count = 20;
     while (count <= max_count && computerCenters(curves, wedge_clustering, l, CenterAlg::wedgeStork, integral_frechet<500>)) {
-        updateClustering(curves, wedge_clustering, integral_frechet<1000>, nullptr);
+        updateClustering(curves, wedge_clustering, integral_frechet<500>, nullptr);
         ++count;
     }
-
-    std::cout << kMedianCost(curves, initial_clustering, integral_frechet<500>) << "\n";
-    std::cout << kMedianCost(curves, cdba_clustering, integral_frechet<500>) << "\n";
-    std::cout  << kMedianCost(curves, wedge_clustering, integral_frechet<500>) << "\n";
 
     Clustering dba_clustering = initial_clustering;
     count = 1;
@@ -462,6 +467,12 @@ void movebank_experiment() {
         ++count;
     }
 
+    // for (auto& cluster: cdba_clustering) {
+    //     Curve new_curve = Curve();
+    //     for (int i = 0; i < cluster.center_curve.size()-1; ++i)
+    //         new_curve.push_back(cluster.center_curve[i]);
+    //     cluster.center_curve = new_curve;
+    // }
 
     plot_clustering(cdba_clustering, curves, "results/movebank/cdba.txt");
     plot_clustering(wedge_clustering, curves, "results/movebank/wedge.txt");
@@ -539,7 +550,7 @@ void center_update_experiment_characters(std::string directory, int n, int k, in
     k_med_scores.open("results/" + directory + "_v_2" + "/k_med_scores.csv", std::fstream::out | std::fstream::trunc);
 
     // k_med_scores << "characters,DBA,FSA,CDBA,WEDGE\n";
-    k_med_scores << "characters,DBA,CDBA,WEDGE\n";
+    k_med_scores << "characters,DBA,FSA,CDBA,WEDGE\n";
 
     for (it = curves_by_letter.begin(); it != curves_by_letter.end(); ++it) {
         std::cout << it->first << "...\n";
@@ -595,7 +606,7 @@ void center_update_experiment_characters(std::string directory, int n, int k, in
         << "\n";
 
         plots << "dba_" + std::string(1, it->first) << std::endl;
-        // plots << "fsa_" + std::string(1, it->first) << std::endl;
+        plots << "fsa_" + std::string(1, it->first) << std::endl;
         plots << "cdba_" + std::string(1, it->first) << std::endl;
         plots << "wedge_" + std::string(1, it->first) << std::endl;
     }

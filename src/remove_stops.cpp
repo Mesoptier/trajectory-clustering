@@ -19,7 +19,7 @@ Points interpolate_between_endpoints(Points& points) {
 
 Curve remove_stops(Curve curve) {
 
-    int partition_size = 10;
+    int partition_size = 20;
 
     std::vector<Points> partition = std::vector<Points>();
     int next_point_index = 0;
@@ -56,6 +56,7 @@ Curve remove_stops(Curve curve) {
                 stop_free_curve.push_back(point);
             }
         } else {
+            // std::cout << "removing stops\n";
             Points new_points = interpolate_between_endpoints(partition[i]);
             for (auto point: new_points) {
                 stop_free_curve.push_back(point);
