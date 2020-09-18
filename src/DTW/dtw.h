@@ -23,7 +23,7 @@ class DTW {
     // The dynamic program
     std::vector<std::vector<entry>> costs;
     // L2 / L1 / Linf for point distance
-    const Norm n;
+    Norm const n;
     // The optimal matching of indices
     std::vector<std::pair<PointID, PointID>> m_matching;
 
@@ -33,7 +33,7 @@ class DTW {
      * \param b The second point.
      * \return The distance between the two points.
      */
-    distance_t dist(const Point& a, const Point& b);
+    distance_t dist(Point const& a, Point const& b);
 
     /**
      * \brief Return the pair of indices that is the best previous step to
@@ -52,7 +52,7 @@ public:
      * \param c2 Second curve.
      * \param metric Distance metric.
      */
-    DTW(const Curve& c1, const Curve& c2, const Norm metric = Norm::L2);
+    DTW(Curve const& c1, Curve const& c2, Norm const metric = Norm::L2);
 
     /**
      * \brief Return the cost of the optimal matching.
@@ -64,6 +64,6 @@ public:
      * \brief Return the optimal matching.
      * \return The optimal matching as a sequence of indices of matched points.
      */
-    const std::vector<std::pair<PointID, PointID>>& matching() const;
+    std::vector<std::pair<PointID, PointID>> const& matching() const;
 };
 #endif

@@ -106,17 +106,17 @@ inline void FrechetLight::merge(CIntervals& intervals,
         intervals.emplace_back(new_interval);
 }
 
-inline QSimpleInterval FrechetLight::getFreshQSimpleInterval(
+inline frechet::QSimpleInterval FrechetLight::getFreshQSimpleInterval(
         Point const& fixed_point, PointID min, PointID max,
-        const Curve& curve) const {
-    QSimpleInterval qsimple;
+        Curve const& curve) const {
+    frechet::QSimpleInterval qsimple;
     updateQSimpleInterval(qsimple, fixed_point, min, max, curve);
     return qsimple;
 }
 
-inline bool FrechetLight::updateQSimpleInterval(QSimpleInterval& qsimple,
-        Point const& fixed_point, PointID min, PointID max,
-        const Curve& curve) const {
+inline bool FrechetLight::updateQSimpleInterval(
+        frechet::QSimpleInterval& qsimple, Point const& fixed_point,
+        PointID min, PointID max, Curve const& curve) const {
     assert((qsimple.getFreeInterval().is_empty()
             && qsimple.getOuterInterval().is_empty())
         || (!qsimple.getFreeInterval().is_empty()
@@ -131,7 +131,8 @@ inline bool FrechetLight::updateQSimpleInterval(QSimpleInterval& qsimple,
 
     if (qsimple.hasPartialInformation()) {
         if (qsimple.getLastValidPoint() < min) {
-            qsimple = QSimpleInterval(); //we know nothing about this part
+            qsimple = frechet::QSimpleInterval();
+            //we know nothing about this part
         } else  {
             qsimple.clamp(CPoint{min, 0.}, CPoint{max, 0.}); 
             if (!qsimple.getFreeInterval().is_empty()) {
@@ -175,9 +176,9 @@ inline bool FrechetLight::updateQSimpleInterval(QSimpleInterval& qsimple,
     return true;
 }
 
-inline void FrechetLight::continueQSimpleSearch(QSimpleInterval& qsimple,
-        Point const& fixed_point, PointID min, PointID max,
-        const Curve& curve) const {
+inline void FrechetLight::continueQSimpleSearch(
+        frechet::QSimpleInterval& qsimple, Point const& fixed_point,
+        PointID min, PointID max, Curve const& curve) const {
     assert(!qsimple.hasPartialInformation()
         || (qsimple.getLastValidPoint() >= min
             && qsimple.getLastValidPoint() <= max));
@@ -313,7 +314,7 @@ inline void FrechetLight::continueQSimpleSearch(QSimpleInterval& qsimple,
 
 namespace {
     CIntervals::iterator getIntervalContainingNumber(
-            const CIntervals::iterator& begin, const CIntervals::iterator& end,
+            CIntervals::iterator const& begin, CIntervals::iterator const& end,
             CPoint const& x) {
         auto it = std::upper_bound(begin, end, CInterval{x,
             CPoint{std::numeric_limits<PointID::IDType>::max(), 0.}});
@@ -326,7 +327,7 @@ namespace {
     }
 
     CIntervals::iterator getIntervalContainingNumber(
-            const CIntervals::iterator& begin, const CIntervals::iterator& end,
+            CIntervals::iterator const& begin, CIntervals::iterator const& end,
             PointID x) {
         auto it = std::upper_bound(begin, end, CInterval{x, 0.,
             std::numeric_limits<PointID::IDType>::max(), 0.});
@@ -339,7 +340,7 @@ namespace {
     }
 }
 
-void FrechetLight::getReachableIntervals(BoxData& data) {
+void FrechetLight::getReachableIntervals(frechet::BoxData& data) {
     ++num_boxes;
 
     auto const& box = data.box;
@@ -379,7 +380,7 @@ void FrechetLight::getReachableIntervals(BoxData& data) {
     }
 }
 
-inline bool FrechetLight::emptyInputsRule(BoxData& data) {
+inline bool FrechetLight::emptyInputsRule(frechet::BoxData& data) {
     auto const& box = data.box;
 
     // empty input intervals -> empty output intervals
@@ -402,7 +403,7 @@ inline bool FrechetLight::emptyInputsRule(BoxData& data) {
     return false;
 }
 
-inline void FrechetLight::boxShrinkingRule(BoxData& data) {
+inline void FrechetLight::boxShrinkingRule(frechet::BoxData& data) {
     auto& box = data.box;
 
     // "movement of input boundary" if one of the inputs is empty
@@ -451,7 +452,7 @@ inline void FrechetLight::boxShrinkingRule(BoxData& data) {
     }
 }
 
-inline void FrechetLight::handleCellCase(BoxData& data) {
+inline void FrechetLight::handleCellCase(frechet::BoxData& data) {
     auto const& curve1 = *curve_pair[0];
     auto const& curve2 = *curve_pair[1];
     auto const& box = data.box;
@@ -493,7 +494,7 @@ inline void FrechetLight::handleCellCase(BoxData& data) {
     }
 }
 
-inline void FrechetLight::getQSimpleIntervals(BoxData& data) {
+inline void FrechetLight::getQSimpleIntervals(frechet::BoxData& data) {
     auto const& curve1 = *curve_pair[0];
     auto const& curve2 = *curve_pair[1];
     auto const& box = data.box;
@@ -507,7 +508,7 @@ inline void FrechetLight::getQSimpleIntervals(BoxData& data) {
         if (data.qsimple_outputs.id1.valid())
             qsimple1 = qsimple_intervals[data.qsimple_outputs.id1];
         else
-            qsimple1 = QSimpleInterval();
+            qsimple1 = frechet::QSimpleInterval();
 
         bool changed = updateQSimpleInterval(qsimple1, curve2[box.max2],
             box.min1, box.max1, curve1);
@@ -520,7 +521,7 @@ inline void FrechetLight::getQSimpleIntervals(BoxData& data) {
         if (data.qsimple_outputs.id2.valid())
             qsimple2 = qsimple_intervals[data.qsimple_outputs.id2];
         else
-            qsimple2 = QSimpleInterval();
+            qsimple2 = frechet::QSimpleInterval();
 
         bool changed = updateQSimpleInterval(qsimple2, curve1[box.max1],
             box.min2, box.max2, curve2);
@@ -531,7 +532,7 @@ inline void FrechetLight::getQSimpleIntervals(BoxData& data) {
     }
 }
 
-inline void FrechetLight::calculateQSimple1(BoxData& data) {
+inline void FrechetLight::calculateQSimple1(frechet::BoxData& data) {
     auto const& curve1 = *curve_pair[0];
     auto const& curve2 = *curve_pair[1];
     auto const& box = data.box;
@@ -604,7 +605,7 @@ inline void FrechetLight::calculateQSimple1(BoxData& data) {
     out1_valid = !data.outputs.id1.valid();
 }
 
-inline void FrechetLight::calculateQSimple2(BoxData& data) {
+inline void FrechetLight::calculateQSimple2(frechet::BoxData& data) {
     auto const& curve1 = *curve_pair[0];
     auto const& curve2 = *curve_pair[1];
     auto const& box = data.box;
@@ -675,7 +676,7 @@ inline void FrechetLight::calculateQSimple2(BoxData& data) {
     out2_valid = !data.outputs.id2.valid();
 }
 
-inline bool FrechetLight::boundaryPruningRule(BoxData& data) {
+inline bool FrechetLight::boundaryPruningRule(frechet::BoxData& data) {
     auto const& curve1 = *curve_pair[0];
     auto const& curve2 = *curve_pair[1];
     auto const& box = data.box;
@@ -695,7 +696,7 @@ inline bool FrechetLight::boundaryPruningRule(BoxData& data) {
     return false;
 }
 
-inline void FrechetLight::splitAndRecurse(BoxData& data) {
+inline void FrechetLight::splitAndRecurse(frechet::BoxData& data) {
     auto const& box = data.box;
 
     if (box.max2 - box.min2 > box.max1 - box.min1) { // horizontal split
@@ -709,11 +710,11 @@ inline void FrechetLight::splitAndRecurse(BoxData& data) {
             std::numeric_limits<PointID::IDType>::max(), 0.};
         auto it = std::upper_bound(data.inputs.begin2, data.inputs.end2, bound);
 
-        BoxData data_bottom{
+        frechet::BoxData data_bottom{
             {box.min1, box.max1, box.min2, split_position},
             {data.inputs.begin1, data.inputs.end1, data.inputs.begin2, it},
             {inputs1_middleID, data.outputs.id2},
-            {QSimpleID(), data.qsimple_outputs.id2}
+            {frechet::QSimpleID(), data.qsimple_outputs.id2}
         };
         getReachableIntervals(data_bottom);
 
@@ -721,7 +722,7 @@ inline void FrechetLight::splitAndRecurse(BoxData& data) {
             --it;
         CIntervals& inputs1_middle = reachable_intervals_vec[inputs1_middleID];
 
-        BoxData data_top{
+        frechet::BoxData data_top{
             {box.min1, box.max1, split_position, box.max2},
             {inputs1_middle.begin(), inputs1_middle.end(), it, data.inputs.end2},
             {data.outputs.id1, data.outputs.id2},
@@ -739,11 +740,11 @@ inline void FrechetLight::splitAndRecurse(BoxData& data) {
             std::numeric_limits<PointID::IDType>::max(), 0.};
         auto it = std::upper_bound(data.inputs.begin1, data.inputs.end1, bound);
 
-        BoxData data_left{
+        frechet::BoxData data_left{
             {box.min1, split_position, box.min2, box.max2},
             {data.inputs.begin1, it, data.inputs.begin2, data.inputs.end2},
             {data.outputs.id1, inputs2_middleID},
-            {data.qsimple_outputs.id1, QSimpleID()}
+            {data.qsimple_outputs.id1, frechet::QSimpleID()}
         };
         getReachableIntervals(data_left);
 
@@ -751,7 +752,7 @@ inline void FrechetLight::splitAndRecurse(BoxData& data) {
             --it;
         CIntervals& inputs2_middle = reachable_intervals_vec[inputs2_middleID];
 
-        BoxData data_right{
+        frechet::BoxData data_right{
             {split_position, box.max1, box.min2, box.max2},
             {it, data.inputs.end1, inputs2_middle.begin(), inputs2_middle.end()},
             {data.outputs.id1, data.outputs.id2},
@@ -803,9 +804,9 @@ void FrechetLight::buildFreespaceDiagram(distance_t dist, Curve const& curve1,
 
     clear();
 
-    Box initial_box(0, curve1.size() - 1, 0, curve2.size() - 1);
-    Inputs initial_inputs = computeInitialInputs();
-    Outputs final_outputs = createFinalOutputs();
+    frechet::Box initial_box(0, curve1.size() - 1, 0, curve2.size() - 1);
+    frechet::Inputs initial_inputs = computeInitialInputs();
+    frechet::Outputs final_outputs = createFinalOutputs();
 
     initCertificate(initial_inputs);
 
@@ -838,9 +839,9 @@ bool FrechetLight::lessThan(distance_t dist, Curve const& curve1,
 
     clear();
 
-    Box initial_box(0, curve1.size() - 1, 0, curve2.size() - 1);
-    Inputs initial_inputs = computeInitialInputs();
-    Outputs final_outputs = createFinalOutputs();
+    frechet::Box initial_box(0, curve1.size() - 1, 0, curve2.size() - 1);
+    frechet::Inputs initial_inputs = computeInitialInputs();
+    frechet::Outputs final_outputs = createFinalOutputs();
 
     initCertificate(initial_inputs);
 
@@ -885,27 +886,30 @@ bool FrechetLight::lessThanWithFilters(distance_t dist, Curve const& curve1,
     return lessThan(distance, curve1, curve2);
 }
 
-inline void FrechetLight::computeOutputs(Box const& initial_box,
-        Inputs const& initial_inputs, Outputs& final_outputs) {
+inline void FrechetLight::computeOutputs(frechet::Box const& initial_box,
+        frechet::Inputs const& initial_inputs,
+        frechet::Outputs& final_outputs) {
     num_boxes = 0;
 
-    BoxData box_data{initial_box, initial_inputs, final_outputs,
-        QSimpleOutputs()};
+    frechet::BoxData box_data{initial_box, initial_inputs, final_outputs,
+        frechet::QSimpleOutputs()};
     getReachableIntervals(box_data);
 }
 
-inline void FrechetLight::visAddCell([[maybe_unused]] Box const& box) {
+inline void FrechetLight::visAddCell([[maybe_unused]] frechet::Box const& box) {
 #ifdef VIS
     cells.emplace_back(box.min1, box.min2);
 #endif
 }
 
-inline bool FrechetLight::isClose(Point const& point, Curve const& curve) const {
+inline bool FrechetLight::isClose(Point const& point,
+        Curve const& curve) const {
     return getLastReachablePoint(point, curve)
         == CPoint{PointID(curve.size() - 1), 0.};
 }
 
-inline bool FrechetLight::isTopRightReachable(Outputs const& outputs) const {
+inline bool FrechetLight::isTopRightReachable(
+        frechet::Outputs const& outputs) const {
     auto const& curve1 = *curve_pair[0];
     auto const& curve2 = *curve_pair[1];
     auto const& outputs1 = reachable_intervals_vec[outputs.id1];
@@ -917,7 +921,8 @@ inline bool FrechetLight::isTopRightReachable(Outputs const& outputs) const {
             && (outputs2.back().end.getPoint() == curve2.size() - 1));
 }
 
-inline void FrechetLight::initCertificate(Inputs const& initial_inputs) {
+inline void FrechetLight::initCertificate(
+        frechet::Inputs const& initial_inputs) {
     auto const& curve1 = *curve_pair[0];
     auto const& curve2 = *curve_pair[1];
 
@@ -934,8 +939,8 @@ inline void FrechetLight::initCertificate(Inputs const& initial_inputs) {
     visAddReachable(*initial_inputs.begin2);
 }
 
-inline auto FrechetLight::createFinalOutputs() -> Outputs {
-    Outputs outputs;
+inline auto FrechetLight::createFinalOutputs() -> frechet::Outputs {
+    frechet::Outputs outputs;
 
     reachable_intervals_vec.emplace_back();
     outputs.id1 = reachable_intervals_vec.size()-1;
@@ -946,8 +951,8 @@ inline auto FrechetLight::createFinalOutputs() -> Outputs {
 }
 
 // this function assumes that the start points of the two curves are close
-inline auto FrechetLight::computeInitialInputs() -> Inputs {
-    Inputs inputs;
+inline auto FrechetLight::computeInitialInputs() -> frechet::Inputs {
+    frechet::Inputs inputs;
 
     auto const& curve1 = *curve_pair[0];
     auto const& curve2 = *curve_pair[1];
@@ -969,7 +974,8 @@ inline auto FrechetLight::computeInitialInputs() -> Inputs {
     return inputs;
 }
 
-distance_t FrechetLight::calcDistance(Curve const& curve1, Curve const& curve2) {
+distance_t FrechetLight::calcDistance(Curve const& curve1,
+        Curve const& curve2) {
     static constexpr distance_t epsilon = 1e-10;
 
     distance_t min = 0.;
@@ -1001,10 +1007,10 @@ void FrechetLight::clear() {
 #endif
 }
 
-bool FrechetLight::isOnLowerRight(const CPosition& pt) const {
+bool FrechetLight::isOnLowerRight(CPosition const& pt) const {
     return pt[0] == curve_pair[0]->size() - 1 || pt[1] == 0;
 }
-bool FrechetLight::isOnUpperLeft(const CPosition& pt) const {
+bool FrechetLight::isOnUpperLeft(CPosition const& pt) const {
     return pt[0] == 0 || pt[1] == curve_pair[1]->size() - 1;
 }
 

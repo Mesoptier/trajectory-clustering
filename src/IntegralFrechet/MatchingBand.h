@@ -10,8 +10,8 @@ class MatchingBand
     std::vector<CPoint> upper_x_at_y;
 
 public:
-    MatchingBand(const Curve& curve_x, const Curve& curve_y,
-        const Points& matching, distance_t radius);
+    MatchingBand(Curve const& curve_x, Curve const& curve_y,
+        Points const& matching, distance_t radius);
 
     CPoint get_lower_y_at_x(PointID x) const {
         return lower_y_at_x.at(x);
@@ -29,7 +29,7 @@ public:
         return upper_x_at_y.at(y);
     }
 
-    bool contains_point(const CPoint& x, const CPoint& y) const {
+    bool contains_point(CPoint const& x, CPoint const& y) const {
         if (x.getFraction() == 0)
             return y >= get_lower_y_at_x(x.getPoint())
                 && y <= get_upper_y_at_x(x.getPoint());

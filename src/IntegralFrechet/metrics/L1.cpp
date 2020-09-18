@@ -1,7 +1,7 @@
 #include "IntegralFrechet/metrics/include.h"
 
 namespace {
-    void steepest_descent(const Cell& cell, Point s, const Point& t,
+    void steepest_descent(Cell const& cell, Point s, Point const& t,
             Points& path) {
         path.push_back(s);
 
@@ -54,8 +54,8 @@ namespace {
 }
 
 template<>
-Points compute_matching<ParamMetric::L1>(const Cell& cell,
-        const Point& s, const Point& t) {
+Points compute_matching<ParamMetric::L1>(Cell const& cell,
+        Point const& s, Point const& t) {
     // Early return for degenerate cases (where subcell bounded by s and t has
     // zero width and/or height)
     if (approx_equal(s.x, t.x) || approx_equal(s.y, t.y)) {
@@ -87,7 +87,7 @@ Points compute_matching<ParamMetric::L1>(const Cell& cell,
 }
 
 template<>
-distance_t integrate_linear_dist<ParamMetric::L1>(const Cell& /*cell*/,
-        const Point& s, const Point& t) {
+distance_t integrate_linear_dist<ParamMetric::L1>(Cell const& /*cell*/,
+        Point const& s, Point const& t) {
     return std::abs(t.x - s.x) + std::abs(t.y - s.y);
 }

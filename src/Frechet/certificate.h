@@ -1,4 +1,6 @@
-#pragma once
+#ifndef CERTIFICATE_H
+#define CERTIFICATE_H
+
 #include "geom.h"
 #include "Curve.h"
 
@@ -14,11 +16,11 @@ public:
     }
 
     bool check() const;
-    const CPositions& getTraversal() const {
+    CPositions const& getTraversal() const {
         return traversal;
     }
 
-    void addPoint(const CPosition& pos) {
+    void addPoint(CPosition const& pos) {
         traversal.push_back(pos);
     }
 
@@ -26,7 +28,7 @@ public:
         lessThan = answer;
     }
 
-    void setCurves(const Curve* curve1, const Curve* curve2) {
+    void setCurves(Curve const* curve1, Curve const* curve2) {
         curve_pair[0] = curve1;
         curve_pair[1] = curve2;
     }
@@ -59,14 +61,15 @@ private:
     // certificate-outline.pdf
 
     CPositions traversal;
-    std::array<const Curve*, 2> curve_pair;
+    std::array<Curve const*, 2> curve_pair;
     distance_t dist, dist_sqr;
 
     bool lessThan;
     bool valid = false;
 
-    bool feasible(const CPosition & pt) const;
-    bool feasible(const CPoint &pt1, const CPoint &pt2) const;
-    bool nonEmpty(CurveID fixed_curve, const CPoint& fixed_point,
-        const CPoint& start_pt, const CPoint& end_point) const;
+    bool feasible(CPosition const& pt) const;
+    bool feasible(CPoint const& pt1, CPoint const& pt2) const;
+    bool nonEmpty(CurveID fixed_curve, CPoint const& fixed_point,
+        CPoint const& start_pt, CPoint const& end_point) const;
 };
+#endif

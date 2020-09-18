@@ -1,19 +1,18 @@
-#pragma once
+#ifndef FRECHET_LIGHT_H
+#define FRECHET_LIGHT_H
 
-#include "utils/defs.h"
+#include <array>
+#include <vector>
+#include "Curve.h"
+#include "Frechet/certificate.h"
 #include "Frechet/filter.h"
 #include "Frechet/frechet_abstract.h"
 #include "Frechet/frechet_light_types.h"
 #include "geom.h"
+#include "utils/defs.h"
 #include "utils/id.h"
-#include "Curve.h"
-#include "Frechet/certificate.h"
 
-#include <array>
-#include <vector>
-
-class FrechetLight final : public FrechetAbstract
-{
+class FrechetLight final : public FrechetAbstract {
     using CurvePair = std::array<Curve const*, 2>;
 
 public:
@@ -30,7 +29,7 @@ public:
 
     CurvePair getCurvePair() const;
     Certificate& computeCertificate() override;
-    const Certificate& getCertificate() const {
+    Certificate const& getCertificate() const {
         return cert;
     }
 
@@ -48,7 +47,7 @@ private:
     distance_t dist_sqr;
 
     std::vector<CIntervals> reachable_intervals_vec;
-    QSimpleIntervals qsimple_intervals;
+    frechet::QSimpleIntervals qsimple_intervals;
     std::size_t num_boxes;
 
     // 0 = no pruning ... 6 = full pruning
@@ -85,52 +84,52 @@ private:
         PointID i, CInterval* ) const;
     void merge(CIntervals& v, CInterval const& i) const;
 
-    Outputs createFinalOutputs();
-    Inputs computeInitialInputs();
+    frechet::Outputs createFinalOutputs();
+    frechet::Inputs computeInitialInputs();
     // XXX: consistency of arguments in following functions!
-    distance_t getDistToPointSqr(const Curve& curve, Point const& point) const;
+    distance_t getDistToPointSqr(Curve const& curve, Point const& point) const;
     bool isClose(Point const& point, Curve const& curve) const;
     CPoint getLastReachablePoint(Point const& point, Curve const& curve) const;
-    bool isTopRightReachable(Outputs const& outputs) const;
-    void computeOutputs(Box const& initial_box, Inputs const& initial_inputs,
-        Outputs& final_outputs);
+    bool isTopRightReachable(frechet::Outputs const& outputs) const;
+    void computeOutputs(frechet::Box const& initial_box,
+        frechet::Inputs const& initial_inputs, frechet::Outputs& final_outputs);
 
-    void getReachableIntervals(BoxData& data);
+    void getReachableIntervals(frechet::BoxData& data);
 
     // subfunctions of getReachableIntervals
-    bool emptyInputsRule(BoxData& data);
-    void boxShrinkingRule(BoxData& data);
-    void handleCellCase(BoxData& data);
-    void getQSimpleIntervals(BoxData& data);
-    void calculateQSimple1(BoxData& data);
-    void calculateQSimple2(BoxData& data);
-    bool boundaryPruningRule(BoxData& data);
-    void splitAndRecurse(BoxData& data);
+    bool emptyInputsRule(frechet::BoxData& data);
+    void boxShrinkingRule(frechet::BoxData& data);
+    void handleCellCase(frechet::BoxData& data);
+    void getQSimpleIntervals(frechet::BoxData& data);
+    void calculateQSimple1(frechet::BoxData& data);
+    void calculateQSimple2(frechet::BoxData& data);
+    bool boundaryPruningRule(frechet::BoxData& data);
+    void splitAndRecurse(frechet::BoxData& data);
 
     // intervals used in getReachableIntervals and subfunctions
     CInterval const empty;
     CInterval const* firstinterval1;
     CInterval const* firstinterval2;
     distance_t min1_frac, min2_frac;
-    QSimpleInterval qsimple1, qsimple2;
+    frechet::QSimpleInterval qsimple1, qsimple2;
     CInterval out1, out2;
     // TODO: can those be made members of out1, out2?
     bool out1_valid = false, out2_valid = false;
 
     // qsimple interval calculation functions
-    QSimpleInterval getFreshQSimpleInterval(const Point& fixed_point,
-        PointID min1, PointID max1, const Curve& curve) const;
-    bool updateQSimpleInterval(QSimpleInterval& qsimple,
-        const Point& fixed_point, PointID min1, PointID max1,
-        const Curve& curve) const;
-    void continueQSimpleSearch(QSimpleInterval& qsimple,
-        const Point& fixed_point, PointID min1, PointID max1,
-        const Curve& curve) const;
+    frechet::QSimpleInterval getFreshQSimpleInterval(Point const& fixed_point,
+        PointID min1, PointID max1, Curve const& curve) const;
+    bool updateQSimpleInterval(frechet::QSimpleInterval& qsimple,
+        Point const& fixed_point, PointID min1, PointID max1,
+        Curve const& curve) const;
+    void continueQSimpleSearch(frechet::QSimpleInterval& qsimple,
+        Point const& fixed_point, PointID min1, PointID max1,
+        Curve const& curve) const;
 
-    bool isOnLowerRight(const CPosition& pt) const;
-    bool isOnUpperLeft(const CPosition& pt) const;
+    bool isOnLowerRight(CPosition const& pt) const;
+    bool isOnUpperLeft(CPosition const& pt) const;
 
-    void initCertificate(Inputs const& initial_inputs);
+    void initCertificate(frechet::Inputs const& initial_inputs);
     void certSetValues(CInterval& interval, CInterval const& parent,
         PointID point_id, CurveID curve_id);
     void certAddEmpty(CPoint begin, CPoint end, CPoint fixed_point,
@@ -144,9 +143,10 @@ private:
         CurveID fixed_curve);
     void visAddFreeNonReachable(CPoint begin, CPoint end, CPoint fixed_point,
         CurveID fixed_curve);
-    void visAddCell(Box const& box);
+    void visAddCell(frechet::Box const& box);
 
     // Could also be done via getter member functions, but vis is a special
     // case in needing access to the internal structures.
     friend class FreespaceLightVis;
 };
+#endif

@@ -1,6 +1,6 @@
 #include "Frechet/filter.h"
 
-bool Filter::isPointTooFarFromCurve(Point fixed, const Curve& curve,
+bool Filter::isPointTooFarFromCurve(Point fixed, Curve const& curve,
         distance_t distance) {
     auto dist_sqr = distance * distance;
     if (fixed.dist_sqr(curve.front()) <= dist_sqr

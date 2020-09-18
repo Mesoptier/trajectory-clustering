@@ -1,9 +1,9 @@
 #include "Frechet/frechet_matching.h"
 
-#include "utils/defs.h"
 #include "Frechet/frechet_light.h"
+#include "utils/defs.h"
 
-Points calcMatching(Curve const& curve1, Curve const& curve2) {
+Points frechet::calcMatching(Curve const& curve1, Curve const& curve2) {
     FrechetLight frechet_light;
 
     auto dist = frechet_light.calcDistance(curve1, curve2);
@@ -13,7 +13,7 @@ Points calcMatching(Curve const& curve1, Curve const& curve2) {
     frechet_light.computeCertificate();
     auto cert = frechet_light.getCertificate();
     if (!cert.isYes()) {
-        ERROR("The certificate should be postive!");
+        ERROR("The certificate should be positive!");
     }
 
     matching.push_back(curve2.front());

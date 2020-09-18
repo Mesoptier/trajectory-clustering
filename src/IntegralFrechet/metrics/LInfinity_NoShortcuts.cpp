@@ -1,27 +1,27 @@
 #include "IntegralFrechet/metrics/include.h"
 
 namespace {
-    void join_paths(Points& path_forward, const Points& path_backward) {
+    void join_paths(Points& path_forward, Points const& path_backward) {
         if (!approx_equal(path_forward.back(), path_backward.back()))
             path_forward.push_back(path_backward.back());
         path_forward.insert(path_forward.end(), path_backward.rbegin() + 1,
             path_backward.rend());
     }
 
-    void join_forward_paths(Points& path_left, const Points& path_right) {
+    void join_forward_paths(Points& path_left, Points const& path_right) {
         assert(approx_equal(path_left.back(), path_right.front()));
         path_left.insert(path_left.end(), path_right.begin() + 1,
             path_right.end());
     }
 
-    Point linf_sd_diag(Points& path, const Cell& cell,
-            const Point& s, const Point& t, BFDirection dir) {
-        const auto line_left = (dir == BFDirection::Forward ? -1 : 1);
+    Point linf_sd_diag(Points& path, Cell const& cell,
+            Point const& s, Point const& t, BFDirection dir) {
+        auto const line_left = (dir == BFDirection::Forward ? -1 : 1);
         if (cell.ell_v.side(s) != -line_left || cell.ell_h.side(s) != line_left)
             return s;
 
         MonotoneComparator compare(dir);
-        const Line diag(s, {1, 1});
+        Line const diag(s, {1, 1});
         auto new_s = std::min({
             intersect(diag, Line::vertical(t)),
             intersect(diag, Line::horizontal(t)),
@@ -36,9 +36,9 @@ namespace {
         return s;
     }
 
-    Point linf_sd_hv(Points& path, const Cell& cell,
-            const Point& s, const Point& t, BFDirection dir) {
-        const auto line_left = (dir == BFDirection::Forward ? -1 : 1);
+    Point linf_sd_hv(Points& path, Cell const& cell,
+            Point const& s, Point const& t, BFDirection dir) {
+        auto const line_left = (dir == BFDirection::Forward ? -1 : 1);
         MonotoneComparator compare(dir);
 
         Point new_s = t;
@@ -78,8 +78,8 @@ namespace {
         return s;
     }
 
-    Point linf_sd_ell(Points& path, const Cell& cell,
-            const Point& s, const Point& t, BFDirection dir) {
+    Point linf_sd_ell(Points& path, Cell const& cell,
+            Point const& s, Point const& t, BFDirection dir) {
         MonotoneComparator compare(dir);
 
         if (!compare(s, cell.mid))
@@ -119,16 +119,16 @@ namespace {
 }
 
 template<>
-Points compute_matching<ParamMetric::LInfinity_NoShortcuts>(const Cell& cell,
-        const Point& cell_s, const Point& cell_t) {
-    const auto& ell_h = cell.ell_h;
-    const auto& ell_v = cell.ell_v;
+Points compute_matching<ParamMetric::LInfinity_NoShortcuts>(Cell const& cell,
+        Point const& cell_s, Point const& cell_t) {
+    auto const& ell_h = cell.ell_h;
+    auto const& ell_v = cell.ell_v;
 
-    const bool is_opposite_direction = !approx_zero(cell.ell_v.direction.y)
+    bool const is_opposite_direction = !approx_zero(cell.ell_v.direction.y)
         && cell.ell_v.direction.y < 0;
 
-    const auto cell_len1 = std::abs(cell_s.x - cell_t.x);
-    const auto cell_len2 = std::abs(cell_s.y - cell_t.y);
+    auto const cell_len1 = std::abs(cell_s.x - cell_t.x);
+    auto const cell_len2 = std::abs(cell_s.y - cell_t.y);
 
     auto s = cell_s;
     auto t = cell_t;
@@ -154,7 +154,7 @@ Points compute_matching<ParamMetric::LInfinity_NoShortcuts>(const Cell& cell,
                     && ell_h.side(cell_s) != ell_h.side(cell_t)) {
                 // Vertical plateau case
 
-                const Line diag(
+                Line const diag(
                     cell_s + Point(0, (cell_len2 - cell_len1) / 2),
                     {1, 1}
                 );
@@ -189,7 +189,7 @@ Points compute_matching<ParamMetric::LInfinity_NoShortcuts>(const Cell& cell,
                     && ell_v.side(cell_s) != ell_v.side(cell_t)) {
                 // Horizontal plateau case
 
-                const Line diag(
+                Line const diag(
                     cell_s + Point((cell_len1 - cell_len2) / 2, 0),
                     {1, 1}
                 );
@@ -256,6 +256,6 @@ Points compute_matching<ParamMetric::LInfinity_NoShortcuts>(const Cell& cell,
 
 template<>
 distance_t integrate_linear_dist<ParamMetric::LInfinity_NoShortcuts>(
-        const Cell& /*cell*/, const Point& s, const Point& t) {
+        Cell const& /*cell*/, Point const& s, Point const& t) {
     return std::max(std::abs(t.x - s.x), std::abs(t.y - s.y));
 }

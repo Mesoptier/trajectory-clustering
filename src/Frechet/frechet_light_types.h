@@ -1,171 +1,175 @@
-#pragma once
-
-#include "geom.h"
-#include "utils/id.h"
-#include "Curve.h"
+#ifndef FRECHET_LIGHT_TYPES
+#define FRECHET_LIGHT_TYPES
 
 #include <vector>
+#include "Curve.h"
+#include "geom.h"
+#include "utils/id.h"
 
-//
-// Box
-//
-struct Box {
-    PointID min1;
-    PointID max1;
-    PointID min2;
-    PointID max2;
+namespace frechet {
+    //
+    // Box
+    //
+    struct Box {
+        PointID min1;
+        PointID max1;
+        PointID min2;
+        PointID max2;
 
-    Box(PointID min_1, PointID max_1, PointID min_2, PointID max_2)
-        : min1(min_1), max1(max_1), min2(min_2), max2(max_2) {}
+        Box(PointID min_1, PointID max_1, PointID min_2, PointID max_2)
+            : min1(min_1), max1(max_1), min2(min_2), max2(max_2) {}
 
-    bool isCell() const {
-        return max1 - min1 == 1 && max2 - min2 == 1;
-    }
-};
-using Boxes = std::vector<Box>;
-
-//
-// Inputs
-//
-struct Inputs {
-    CIntervals::iterator begin1;
-    CIntervals::iterator end1;
-    CIntervals::iterator begin2;
-    CIntervals::iterator end2;
-
-    bool haveDownInput() const {
-        return begin1 != end1;
-    }
-
-    bool haveLeftInput() const {
-        return begin2 != end2;
-    }
-
-    bool downContains(PointID point_id) const {
-        for (auto it = begin1; it != end1; ++it) {
-            if (it->begin <= point_id && it->end >= point_id)
-                return true;
+        bool isCell() const {
+            return max1 - min1 == 1 && max2 - min2 == 1;
         }
-        return false;
-    }
+    };
+    using Boxes = std::vector<Box>;
 
-    bool leftContains(PointID point_id) const {
-        for (auto it = begin2; it != end2; ++it) {
-            if (it->begin <= point_id && it->end >= point_id)
-                return true;
+    //
+    // Inputs
+    //
+    struct Inputs {
+        CIntervals::iterator begin1;
+        CIntervals::iterator end1;
+        CIntervals::iterator begin2;
+        CIntervals::iterator end2;
+
+        bool haveDownInput() const {
+            return begin1 != end1;
         }
-        return false;
-    }
-};
 
-//
-// Outputs
-//
-struct Outputs {
-    CIntervalsID id1;
-    CIntervalsID id2;
-};
+        bool haveLeftInput() const {
+            return begin2 != end2;
+        }
 
-//
-// QSimpleInterval
-//
-struct QSimpleInterval {
-    QSimpleInterval() : valid(false) {}
+        bool downContains(PointID point_id) const {
+            for (auto it = begin1; it != end1; ++it) {
+                if (it->begin <= point_id && it->end >= point_id)
+                    return true;
+            }
+            return false;
+        }
 
-    QSimpleInterval(CPoint const& begin, CPoint const& end)
-        : valid(true), free(begin, end) {}
+        bool leftContains(PointID point_id) const {
+            for (auto it = begin2; it != end2; ++it) {
+                if (it->begin <= point_id && it->end >= point_id)
+                    return true;
+            }
+            return false;
+        }
+    };
 
-    void setFreeInterval(CPoint const& begin, CPoint const& end) {
-        free = {begin, end};
-        //valid = true;
-    }
+    //
+    // Outputs
+    //
+    struct Outputs {
+        CIntervalsID id1;
+        CIntervalsID id2;
+    };
 
-    void setFreeInterval(PointID begin, PointID end) {
-        free = {begin, 0., end, 0.};
-        //valid = true;
-    }
+    //
+    // QSimpleInterval
+    //
+    struct QSimpleInterval {
+        QSimpleInterval() : valid(false) {}
 
-    void invalidateFreeInterval() {
-        free.begin = CPoint{};
-        free.end = CPoint{};
-    }
+        QSimpleInterval(CPoint const& begin, CPoint const& end)
+            : valid(true), free(begin, end) {}
 
-    void setOuterInterval(CPoint const& outerbegin, CPoint const& outerend) {
-        outer.begin = outerbegin;
-        outer.end = outerend;
-    }
+        void setFreeInterval(CPoint const& begin, CPoint const& end) {
+            free = {begin, end};
+            //valid = true;
+        }
 
-    void setOuterInterval(PointID begin, PointID end) {
-        setOuterInterval(CPoint(begin, 0.), CPoint(end, 0.));
-    }
+        void setFreeInterval(PointID begin, PointID end) {
+            free = {begin, 0., end, 0.};
+            //valid = true;
+        }
 
-    CInterval const& getFreeInterval() {
-        return free;
-    }
+        void invalidateFreeInterval() {
+            free.begin = CPoint{};
+            free.end = CPoint{};
+        }
 
-    CInterval const& getOuterInterval() {
-        return outer;
-    }
+        void setOuterInterval(CPoint const& outerbegin,
+                CPoint const& outerend) {
+            outer.begin = outerbegin;
+            outer.end = outerend;
+        }
 
-    void setLastValidPoint(PointID const& point) {
-        last_valid_point = point;
-        //valid = false;
-    }
+        void setOuterInterval(PointID begin, PointID end) {
+            setOuterInterval(CPoint(begin, 0.), CPoint(end, 0.));
+        }
 
-    PointID const& getLastValidPoint() const {
-        return last_valid_point;
-    }
+        CInterval const& getFreeInterval() {
+            return free;
+        }
 
-    bool hasPartialInformation() const {
-        return last_valid_point.valid();
-    }
+        CInterval const& getOuterInterval() {
+            return outer;
+        }
 
-    void validate() {
-        valid = true;
-    }
+        void setLastValidPoint(PointID const& point) {
+            last_valid_point = point;
+            //valid = false;
+        }
 
-    void invalidate() {
-        valid = false;
-    }
+        PointID const& getLastValidPoint() const {
+            return last_valid_point;
+        }
 
-    void clamp(CPoint const& min, CPoint const& max) {
-        free.clamp(min, max);
-        outer.clamp(min,max);
-    } 
+        bool hasPartialInformation() const {
+            return last_valid_point.valid();
+        }
 
-    bool is_empty() const {
-        return free.is_empty();
-    }
+        void validate() {
+            valid = true;
+        }
 
-    bool is_valid() const {
-        return valid;
-    }
+        void invalidate() {
+            valid = false;
+        }
 
-private:
-    bool valid;
-    CInterval free;
-    PointID last_valid_point;
+        void clamp(CPoint const& min, CPoint const& max) {
+            free.clamp(min, max);
+            outer.clamp(min,max);
+        } 
 
-    CInterval outer;
-};
+        bool is_empty() const {
+            return free.is_empty();
+        }
 
-using QSimpleIntervals = std::vector<QSimpleInterval>;
-using QSimpleID = ID<QSimpleInterval>;
+        bool is_valid() const {
+            return valid;
+        }
 
-//
-// QSimpleOutputs
-//
-struct QSimpleOutputs {
-    QSimpleID id1;
-    QSimpleID id2;
-};
+    private:
+        bool valid;
+        CInterval free;
+        PointID last_valid_point;
 
-//
-// BoxData
-//
-struct BoxData {
-    Box box;
-    Inputs inputs;
-    Outputs outputs;
-    QSimpleOutputs qsimple_outputs;
-};
+        CInterval outer;
+    };
+
+    using QSimpleIntervals = std::vector<QSimpleInterval>;
+    using QSimpleID = ID<QSimpleInterval>;
+
+    //
+    // QSimpleOutputs
+    //
+    struct QSimpleOutputs {
+        QSimpleID id1;
+        QSimpleID id2;
+    };
+
+    //
+    // BoxData
+    //
+    struct BoxData {
+        Box box;
+        Inputs inputs;
+        Outputs outputs;
+        QSimpleOutputs qsimple_outputs;
+    };
+}
+#endif

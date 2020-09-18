@@ -5,8 +5,7 @@
 #include "Frechet/certificate.h"
 #include "Curve.h"
 
-struct FrechetAbstract
-{
+struct FrechetAbstract {
     virtual ~FrechetAbstract() {}
     virtual bool lessThan(distance_t distance, Curve const& curve1,
         Curve const& curve2) = 0;

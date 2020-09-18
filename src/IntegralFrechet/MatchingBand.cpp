@@ -3,7 +3,7 @@
 #include "IntegralFrechet/MatchingBand.h"
 
 namespace {
-    Point lowest_with_x(const Points& matching, distance_t x, std::size_t i) {
+    Point lowest_with_x(Points const& matching, distance_t x, std::size_t i) {
         // Find index of the first point p with p.x >= x
         while (matching[i].x < x) {
             ++i;
@@ -18,7 +18,7 @@ namespace {
         return matching[i - 1] * (1 - t) + matching[i] * t;
     }
 
-    Point lowest_with_y(const Points& matching, distance_t y, std::size_t i) {
+    Point lowest_with_y(Points const& matching, distance_t y, std::size_t i) {
         // Find index of the first point p with p.y >= y
         while (matching[i].y < y) {
             ++i;
@@ -34,8 +34,8 @@ namespace {
     }
 }
 
-MatchingBand::MatchingBand(const Curve& curve_x, const Curve& curve_y,
-        const Points& matching, distance_t radius):
+MatchingBand::MatchingBand(Curve const& curve_x, Curve const& curve_y,
+        Points const& matching, distance_t radius):
         lower_y_at_x(curve_x.size()), upper_y_at_x(curve_x.size()),
         lower_x_at_y(curve_y.size()), upper_x_at_y(curve_y.size()) {
     MonotoneComparator compare(BFDirection::Forward);
