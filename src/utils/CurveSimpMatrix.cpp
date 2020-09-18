@@ -4,13 +4,14 @@
 #include <stdexcept>
 #include <system_error>
 
-CurveSimpMatrix::CurveSimpMatrix(const std::string& path) {
+CurveSimpMatrix::CurveSimpMatrix(std::string const& path) {
     read(path);
 }
 
-CurveSimpMatrix::CurveSimpMatrix(const Curves& curves, const Curves&
-        simplifications, const std::function<distance_t(const Curve&,
-        const Curve&)>& dist) : matrix(curves.size()) {
+CurveSimpMatrix::CurveSimpMatrix(Curves const& curves,
+        Curves const& simplifications,
+        std::function<distance_t(Curve const&, Curve const&)> const& dist)
+        : matrix(curves.size()) {
     using szt = Curves::size_type;
     if (curves.size() != simplifications.size())
         throw std::runtime_error("There must be the same number of curves and "
@@ -26,7 +27,7 @@ CurveSimpMatrix::CurveSimpMatrix(const Curves& curves, const Curves&
     }
 }
 
-void CurveSimpMatrix::write(const std::string& path,
+void CurveSimpMatrix::write(std::string const& path,
         unsigned int precision) const {
     std::ofstream file(path, std::ios::out | std::ios::trunc);
     if (!file)
@@ -34,8 +35,8 @@ void CurveSimpMatrix::write(const std::string& path,
                                 "Failed to open " + path);
 
     file.precision(precision);
-    for (const auto& row: matrix) {
-        for (const auto& distance: row) {
+    for (auto const& row: matrix) {
+        for (auto const& distance: row) {
             file << distance << " ";
         }
         file << "\n";
@@ -44,7 +45,7 @@ void CurveSimpMatrix::write(const std::string& path,
     file.close();
 }
 
-void CurveSimpMatrix::read(const std::string& path) {
+void CurveSimpMatrix::read(std::string const& path) {
     matrix.clear();
 
     std::ifstream file(path);

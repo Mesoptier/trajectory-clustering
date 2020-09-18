@@ -41,13 +41,13 @@ namespace synth {
      * \param count The number of curves to generate.
      * \return The generated curves.
      */
-    std::vector<Curve> generate_curves(const Curve& curve, std::size_t count);
+    std::vector<Curve> generate_curves(Curve const& curve, std::size_t count);
 
     /**
      * \brief Generate 20 curves starting from base curve and save them in files
      * in a subdirectory.
      * \param base The true curve.
      */
-    void write_curves(const Curve& base);
+    void write_curves(Curve const& base);
 }
 #endif

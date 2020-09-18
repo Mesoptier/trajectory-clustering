@@ -9,15 +9,15 @@
 
 class Edge {
 public:
-    const Point first;
-    const Point second;
+    Point const first;
+    Point const second;
 
     Point diff;
     distance_t length;
 
     Line line;
 
-    Edge(const Point& f, const Point& s):
+    Edge(Point const& f, Point const& s):
         first(f), second(s), diff(s - f), length(norm(diff)),
         line(Line::fromTwoPoints(f, s)) {}
 
@@ -33,7 +33,7 @@ public:
         return first * (1 - t) + second * t;
     }
 
-    distance_t param(const Point& point) const {
+    distance_t param(Point const& point) const {
         // ASSUMPTION: point lies on this edge's infinite line
         if (line.isVertical())
             return (first.y - point.y) / (first.y - second.y) * length;
@@ -47,7 +47,7 @@ public:
         writer.closeFunction();
     }
 
-    friend std::ostream& operator<<(std::ostream& out, const Edge& edge) {
+    friend std::ostream& operator<<(std::ostream& out, Edge const& edge) {
         out << "V1: " << edge.first << std::endl
             << "V2: " << edge.second << std::endl;
         return out;

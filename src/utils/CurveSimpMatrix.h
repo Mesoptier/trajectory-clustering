@@ -26,7 +26,7 @@ public:
      * \brief Create a new matrix from file (row-major order).
      * \param path The input file.
      */
-    explicit CurveSimpMatrix(const std::string& path);
+    explicit CurveSimpMatrix(std::string const& path);
 
     /**
      * \brief Create a new matrix from data.
@@ -34,8 +34,16 @@ public:
      * \param simplifications The simplifications, one per curve.
      * \param dist The distance function to use in filling the matrix.
      */
-    explicit CurveSimpMatrix(const Curves& curves, const Curves& simplifications,
-        const std::function<distance_t(const Curve&, const Curve&)>& dist);
+    explicit CurveSimpMatrix(Curves const& curves, Curves const& simplifications,
+        std::function<distance_t(Curve const&, Curve const&)> const& dist);
+
+    /**
+     * \brief Get the number of curves / simplifications.
+     * \return The number of curves.
+     */
+    std::size_t size() const override {
+        return matrix.size();
+    }
 
     /**
      * \brief Get the distance between curve i and simplification j.
@@ -53,7 +61,7 @@ public:
      * \param j Simplification index.
      * \return The distance, or 0 if i = j.
      */
-    const distance_t& at(std::size_t i, std::size_t j) const override {
+    distance_t const& at(std::size_t i, std::size_t j) const override {
         return matrix[i][j];
     }
 
@@ -62,7 +70,7 @@ public:
      * \param path The output file name.
      * \param precision Floating point precision, if applicable.
      */
-    void write(const std::string& path,
+    void write(std::string const& path,
         unsigned int precision = 10) const override;
 
     /**
@@ -70,6 +78,6 @@ public:
      * current contents.
      * \param path The input file name.
      */
-    void read(const std::string& path);
+    void read(std::string const& path);
 };
 #endif

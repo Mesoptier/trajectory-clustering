@@ -34,7 +34,7 @@ public:
         return points.empty();
     }
 
-    const Point& operator[](PointID id) const {
+    Point const& operator[](PointID id) const {
         return points[id];
     }
 
@@ -59,9 +59,9 @@ public:
         return curve_length(j) - curve_length(i);
     }
 
-    distance_t curve_length(const CPoint& point) const;
+    distance_t curve_length(CPoint const& point) const;
 
-    distance_t curve_length(const CPoint& i, const CPoint& j) const {
+    distance_t curve_length(CPoint const& i, CPoint const& j) const {
         return curve_length(j) - curve_length(i);
     }
 
@@ -73,7 +73,7 @@ public:
         return points.back();
     }
 
-    const Points& get_points() const {
+    Points const& get_points() const {
         return points;
     }
 
@@ -102,7 +102,7 @@ public:
 
     void push_back(Point point);
 
-    Point interpolate_at(const CPoint& point) const;
+    Point interpolate_at(CPoint const& point) const;
 
     SimplifiedCurve simplify() const;
 
@@ -116,7 +116,7 @@ public:
 
     distance_t getUpperBoundDistance(Curve const& other) const;
     
-    const std::vector<distance_t>& get_prefix_length_vector() const {
+    std::vector<distance_t> const& get_prefix_length_vector() const {
         return prefix_length;
     }
 

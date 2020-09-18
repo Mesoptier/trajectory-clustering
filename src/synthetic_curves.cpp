@@ -17,7 +17,7 @@ Point synth::DisplacementGenerator::generate_disp_vec() {
     return {length * std::cos(theta), length * std::sin(theta)};
 }
 
-std::vector<Curve> synth::generate_curves(const Curve& curve,
+std::vector<Curve> synth::generate_curves(Curve const& curve,
         std::size_t count) {
     DisplacementGenerator disp_gen(0.0, 1.0);
     std::vector<Curve> curves;
@@ -25,7 +25,7 @@ std::vector<Curve> synth::generate_curves(const Curve& curve,
     for (std::size_t i = 0; i < count; ++i) {
         Curve new_curve;
         auto translation = disp_gen.generate_disp_vec();
-        for (const auto& p: curve.get_points()) {
+        for (auto const& p: curve.get_points()) {
             auto disp_vec = disp_gen.generate_disp_vec() / 20.0;
             Point new_point = p + translation + disp_vec;
             new_curve.push_back(new_point);
@@ -35,7 +35,7 @@ std::vector<Curve> synth::generate_curves(const Curve& curve,
     return curves;
 }
 
-void synth::write_curves(const Curve& base) {
+void synth::write_curves(Curve const& base) {
     // auto curves = io::read_curves("data/characters/data");
     // Curve curve = curves[0];
     auto synthetic_curves = generate_curves(base, 20);

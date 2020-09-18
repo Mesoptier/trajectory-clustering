@@ -14,23 +14,23 @@ namespace {
 
 /* POINT */
 
-Point& Point::operator-=(const Point& point) {
+Point& Point::operator-=(Point const& point) {
     x -= point.x;
     y -= point.y;
     return *this;
 }
 
-Point Point::operator-(const Point& point) const {
+Point Point::operator-(Point const& point) const {
     return {x - point.x, y - point.y};
 }
 
-Point& Point::operator+=(const Point& point) {
+Point& Point::operator+=(Point const& point) {
     x += point.x;
     y += point.y;
     return *this;
 }
 
-Point Point::operator+(const Point& point) const {
+Point Point::operator+(Point const& point) const {
     return {x + point.x, y + point.y};
 }
 
@@ -54,23 +54,23 @@ Point Point::operator/(distance_t div) const {
     return {x / div, y / div};
 }
 
-bool Point::operator==(const Point& other) const {
+bool Point::operator==(Point const& other) const {
     return x == other.x && y == other.y;
 }
 
-bool Point::operator!=(const Point& other) const {
+bool Point::operator!=(Point const& other) const {
     return !(*this == other);
 }
 
-distance_t Point::dist_sqr(const Point& point) const {
+distance_t Point::dist_sqr(Point const& point) const {
     return pow2(x - point.x) + pow2(y - point.y);
 }
 
-distance_t Point::dist(const Point& point) const {
+distance_t Point::dist(Point const& point) const {
     return std::sqrt(dist_sqr(point));
 }
 
-distance_t norm(const Point& point, Norm p) {
+distance_t norm(Point const& point, Norm p) {
     switch (p) {
         case Norm::L1:
             return std::abs(point.x) + std::abs(point.y);
@@ -83,34 +83,34 @@ distance_t norm(const Point& point, Norm p) {
     }
 }
 
-Point normalise(const Point& point, Norm p) {
+Point normalise(Point const& point, Norm p) {
     return point / norm(point, p);
 }
 
 template<>
-bool approx_equal<Point>(const Point& a, const Point& b, double tol) {
+bool approx_equal<Point>(Point const& a, Point const& b, double tol) {
     return ::approx_equal(a.x, b.x, tol) && ::approx_equal(a.y, b.y, tol);
 }
 
-distance_t perp(const Point& a, const Point& b) {
+distance_t perp(Point const& a, Point const& b) {
     return a.x * b.y - a.y * b.x;
 }
 
-distance_t dot(const Point& a, const Point& b) {
+distance_t dot(Point const& a, Point const& b) {
     return a.x * b.x + a.y * b.y;
 }
 
-distance_t acute_angle(const Point& a, const Point& b) {
+distance_t acute_angle(Point const& a, Point const& b) {
     return std::acos(dot(a, b) / (norm(a) * norm(b))) / PI;
 }
 
-std::ostream& operator<<(std::ostream& out, const Point& p) {
+std::ostream& operator<<(std::ostream& out, Point const& p) {
     out << std::setprecision(15)
         << "{" << p.x << ", " << p.y << "}";
     return out;
 }
 
-std::ostream& operator<<(std::ostream& out, const Points& points) {
+std::ostream& operator<<(std::ostream& out, Points const& points) {
     out << "{";
     auto it = points.begin();
     while (it != points.end()) {
@@ -127,12 +127,12 @@ std::ostream& operator<<(std::ostream& out, const Points& points) {
 // Implicit Edge (pair of points)
 //
 namespace ImplicitEdge {
-    Point interpolate_at(const Point& s, const Point& t, distance_t dist) {
-        const auto len = s.dist(t);
+    Point interpolate_at(Point const& s, Point const& t, distance_t dist) {
+        auto const len = s.dist(t);
         if (len == 0)
             return s;
 
-        const auto i = dist / len;
+        auto const i = dist / len;
         return s * (1 - i) + t * i;
     }
 }
@@ -140,7 +140,7 @@ namespace ImplicitEdge {
 //
 // Directions
 //
-BFDirection getMonotoneDirection(const Point& a, const Point& b) {
+BFDirection getMonotoneDirection(Point const& a, Point const& b) {
 #ifndef NDEBUG
     if (approx_equal(a, b))
         throw std::logic_error("Points are equal, and therefore not monotone");
@@ -154,7 +154,7 @@ BFDirection getMonotoneDirection(const Point& a, const Point& b) {
     throw std::logic_error("Points are not monotone");
 }
 
-bool MonotoneComparator::operator()(const Point& a, const Point& b) {
+bool MonotoneComparator::operator()(Point const& a, Point const& b) {
     return direction == BFDirection::Forward
         ? (a.x < b.x + ABS_TOL && a.y < b.y - ABS_TOL) ||
             (a.x < b.x - ABS_TOL && a.y < b.y + ABS_TOL)
@@ -165,21 +165,21 @@ bool MonotoneComparator::operator()(const Point& a, const Point& b) {
 //
 // Lines
 //
-Point Line::closest(const Point& point) const {
+Point Line::closest(Point const& point) const {
     return direction * dot(point - origin, direction) + origin;
 }
 
-int Line::side(const Point& point) const {
-    const auto val = perp(point - origin, direction);
+int Line::side(Point const& point) const {
+    auto const val = perp(point - origin, direction);
     return approx_zero(val) ? 0 : (val > 0 ? 1 : -1);
 }
 
-bool Line::includesPoint(const Point& point) const {
+bool Line::includesPoint(Point const& point) const {
     return side(point) == 0;
 }
 
-Point intersect(const Line& line1, const Line& line2) {
-    const auto t1 = perp(line2.origin - line1.origin, line2.direction) /
+Point intersect(Line const& line1, Line const& line2) {
+    auto const t1 = perp(line2.origin - line1.origin, line2.direction) /
         perp(line1.direction, line2.direction);
     assert(line1.includesPoint(line1(t1)));
     assert(line2.includesPoint(line1(t1)));
@@ -189,13 +189,13 @@ Point intersect(const Line& line1, const Line& line2) {
 //
 // CPoint
 //
-std::ostream& operator<<(std::ostream& out, const CPoint& p) {
+std::ostream& operator<<(std::ostream& out, CPoint const& p) {
     out << std::setprecision(15)
         << "(" << static_cast<size_t>(p.point) << " + " << p.fraction << ")";
     return out;
 }
 
-std::ostream& operator<<(std::ostream& out, const CPosition& pos) {
+std::ostream& operator<<(std::ostream& out, CPosition const& pos) {
     out << "(" << pos[0] << ", " << pos[1] << ")";
     return out;
 }
@@ -220,8 +220,8 @@ Interval IntersectionAlgorithm::intersection_interval(Point circle_center,
         distance_t radius, Point line_start, Point line_end,
         Interval * outer /* = nullptr*/) {
     // The line can be represented as line_start + lambda * v
-    const Point v = line_end - line_start;
-    const distance_t rad_sqr = radius * radius;
+    Point const v = line_end - line_start;
+    distance_t const rad_sqr = radius * radius;
     
     // Find points p = line_start + lambda * v with
     //     dist(p, circle_center) = radius
@@ -237,18 +237,18 @@ Interval IntersectionAlgorithm::intersection_interval(Point circle_center,
     // <=> lambda^2 + (2 b / a) * lambda + (c / a) = 0
     // <=> lambda1/2 = - (b / a) +/- sqrt((b / a)^2 - c / a)
     
-    const distance_t a = pow2(v.x) + pow2(v.y);
-    const distance_t b = (line_start.x - circle_center.x) * v.x
+    distance_t const a = pow2(v.x) + pow2(v.y);
+    distance_t const b = (line_start.x - circle_center.x) * v.x
         + (line_start.y - circle_center.y) * v.y;
-    const distance_t c = pow2(line_start.x - circle_center.x)
+    distance_t const c = pow2(line_start.x - circle_center.x)
         + pow2(line_start.y - circle_center.y) - pow2(radius);
 
     distance_t mid = -b / a;
     distance_t discriminant = pow2(mid) - c / a;
 
-    const bool smallDistAtZero = smallDistanceAt(0., line_start, line_end,
+    bool const smallDistAtZero = smallDistanceAt(0., line_start, line_end,
         circle_center, rad_sqr);
-    const bool smallDistAtOne = smallDistanceAt(1., line_start, line_end,
+    bool const smallDistAtOne = smallDistanceAt(1., line_start, line_end,
         circle_center, rad_sqr);
     bool smallDistAtMid = smallDistanceAt(mid, line_start, line_end,
         circle_center, rad_sqr);
@@ -303,10 +303,10 @@ Interval IntersectionAlgorithm::intersection_interval(Point circle_center,
         sqrt_discr = std::sqrt(discriminant);
         sqrt_discr_computed = true;
         
-        const distance_t lambda1 = mid - sqrt_discr;
-        const distance_t innershift = std::min(lambda1 + save_eps_half,
+        distance_t const lambda1 = mid - sqrt_discr;
+        distance_t const innershift = std::min(lambda1 + save_eps_half,
             std::min(1., mid));
-        const distance_t outershift = lambda1 - save_eps_half;
+        distance_t const outershift = lambda1 - save_eps_half;
         if (innershift >= outershift &&
             smallDistanceAt(innershift, line_start, line_end, circle_center,
                 rad_sqr) &&
@@ -353,10 +353,10 @@ Interval IntersectionAlgorithm::intersection_interval(Point circle_center,
         if (!sqrt_discr_computed)
             sqrt_discr = std::sqrt(discriminant);
         
-        const distance_t lambda2 = mid + sqrt_discr;
-        const distance_t innershift = std::max(lambda2 - save_eps_half,
+        distance_t const lambda2 = mid + sqrt_discr;
+        distance_t const innershift = std::max(lambda2 - save_eps_half,
             std::max(0., mid));
-        const distance_t outershift = lambda2 + save_eps_half;
+        distance_t const outershift = lambda2 + save_eps_half;
         if (innershift <= outershift &&
             smallDistanceAt(innershift, line_start, line_end, circle_center,
                 rad_sqr) &&
@@ -460,7 +460,7 @@ Ellipse segmentsToEllipse(Point const& a1, Point const& b1, Point const& a2,
 
 namespace {
     bool inCircle(Point const& p, Circle const& circle) {
-        const distance_t eps = 0.00000000000001;
+        distance_t const eps = 1e-12;
         return p.dist_sqr(circle.center) <= circle.radius + eps;
     }
 
@@ -548,18 +548,16 @@ Circle calcMinEnclosingCircle(Points points) {
     return current_circle;
 }
 
-// Computes the minimum distance from a point to a segment
-// defined by endpoints source and target
-distance_t segPointDist(Point& source, Point& target, Point& point) {
-    Line line = Line::fromTwoPoints(source, target);
+distance_t segPointDist(Point const& source, Point const& target,
+        Point const& point) {
+    auto line = Line::fromTwoPoints(source, target);
     Point line_vec = target - source;
-    Point normal_vec = {-line_vec.y, line_vec.x};
+    Point normal_vec{-line_vec.y, line_vec.x};
 
-    Line normal_src = Line(source, normal_vec);
-    Line normal_tgt = Line(target, normal_vec);
+    Line normal_src(source, normal_vec);
+    Line normal_tgt(target, normal_vec);
 
     if (normal_src.side(point) != normal_tgt.side(point))
         return point.dist(line.closest(point));
-
     return std::min(point.dist(source), point.dist(target));
 }

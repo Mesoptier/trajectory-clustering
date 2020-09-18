@@ -30,7 +30,7 @@ SymmetricMatrixT<T> SymmetricMatrixT<T>::read(std::ifstream& file) {
 }
 
 template<typename T>
-void SymmetricMatrixT<T>::write(const std::string& path,
+void SymmetricMatrixT<T>::write(std::string const& path,
         unsigned int precision) const {
     std::ofstream file(path, std::ios::out | std::ios::trunc);
     if (!file)

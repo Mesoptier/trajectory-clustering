@@ -32,13 +32,13 @@ struct Point {
 
     Point(distance_t dx, distance_t dy) : x(dx), y(dy) {}
 
-    Point& operator-=(const Point& point);
+    Point& operator-=(Point const& point);
 
-    Point operator-(const Point& point) const;
+    Point operator-(Point const& point) const;
 
-    Point& operator+=(const Point& point);
+    Point& operator+=(Point const& point);
 
-    Point operator+(const Point& point) const;
+    Point operator+(Point const& point) const;
 
     Point& operator*=(distance_t mult);
 
@@ -48,38 +48,38 @@ struct Point {
 
     Point operator/(distance_t div) const;
 
-    bool operator==(const Point& other) const;
+    bool operator==(Point const& other) const;
 
-    bool operator!=(const Point& other) const;
+    bool operator!=(Point const& other) const;
 
-    distance_t dist_sqr(const Point& point) const;
+    distance_t dist_sqr(Point const& point) const;
 
-    distance_t dist(const Point& point) const;
+    distance_t dist(Point const& point) const;
 
-    friend std::ostream& operator<<(std::ostream& out, const Point& p);
+    friend std::ostream& operator<<(std::ostream& out, Point const& p);
 };
 
 template<>
-bool approx_equal<Point>(const Point& a, const Point& b, double tol);
+bool approx_equal<Point>(Point const& a, Point const& b, double tol);
 
 /**
  * Computes perp dot product between two vectors.
  * See: http://mathworld.wolfram.com/PerpDotProduct.html
  */
-distance_t perp(const Point& a, const Point& b);
+distance_t perp(Point const& a, Point const& b);
 
-distance_t dot(const Point& a, const Point& b);
+distance_t dot(Point const& a, Point const& b);
 
-distance_t acute_angle(const Point& a, const Point& b);
+distance_t acute_angle(Point const& a, Point const& b);
 
-distance_t norm(const Point& point, Norm p = Norm::L2);
+distance_t norm(Point const& point, Norm p = Norm::L2);
 
-Point normalise(const Point& point, Norm p = Norm::L2);
+Point normalise(Point const& point, Norm p = Norm::L2);
 
 using PointID = ID<Point>;
 using Points = std::vector<Point>;
 
-std::ostream& operator<<(std::ostream& out, const Points& points);
+std::ostream& operator<<(std::ostream& out, Points const& points);
 
 //
 // Implicit Edge (pair of points)
@@ -88,7 +88,7 @@ namespace ImplicitEdge {
     /**
      * Get the point that lies dist along the edge.
      */
-    Point interpolate_at(const Point& s, const Point& t, distance_t dist);
+    Point interpolate_at(Point const& s, Point const& t, distance_t dist);
 }
 
 //
@@ -100,14 +100,14 @@ enum class BFDirection {
     Forward = 1,
 };
 
-BFDirection getMonotoneDirection(const Point& a, const Point &b);
+BFDirection getMonotoneDirection(Point const& a, Point const& b);
 
 struct MonotoneComparator {
     BFDirection direction;
 
     explicit MonotoneComparator(BFDirection dir): direction(dir) {}
 
-    bool operator()(const Point& a, const Point& b);
+    bool operator()(Point const& a, Point const& b);
 };
 
 struct Line
@@ -117,13 +117,13 @@ struct Line
 
     Line() = default;
 
-    Line(const Point& o, const Point& d)
+    Line(Point const& o, Point const& d)
         : origin(o), direction(normalise(d)) {}
 
     /**
      * Create line from two points that lie on the line.
      */
-    static Line fromTwoPoints(const Point& a, const Point& b) {
+    static Line fromTwoPoints(Point const& a, Point const& b) {
         assert(!approx_equal(a, b));
         return {a, b - a};
     }
@@ -151,7 +151,7 @@ struct Line
         return origin + direction * t;
     }
 
-    distance_t operator()(const Point& p) const {
+    distance_t operator()(Point const& p) const {
         if (std::abs(direction.x) > 0.707)
             return (p.x - origin.x) / (direction.x);
         return (p.y - origin.y) / (direction.y);
@@ -184,37 +184,37 @@ struct Line
         return (y - origin.y) * direction.x / direction.y + origin.x;
     }
 
-    Point closest(const Point& point) const;
-    int side(const Point& point) const;
+    Point closest(Point const& point) const;
+    int side(Point const& point) const;
 
     /**
      * Test whether the given point lies on this line.
      */
-    bool includesPoint(const Point& point) const;
+    bool includesPoint(Point const& point) const;
 
     /**
      * Find point at which the two given lines intersect.
      * ASSUMPTION: line1 and line2 are not parallel
      */
-    friend Point intersect(const Line& line1, const Line& line2);
+    friend Point intersect(Line const& line1, Line const& line2);
 
-    friend bool isParallel(const Line& line1, const Line& line2) {
+    friend bool isParallel(Line const& line1, Line const& line2) {
         return approx_equal(std::abs(dot(line1.direction, line2.direction)),
                             1.0);
     }
 
-    friend bool isSameDirection(const Line& line1, const Line& line2) {
+    friend bool isSameDirection(Line const& line1, Line const& line2) {
         return approx_equal(dot(line1.direction, line2.direction), 1.0);
     }
 
-    friend bool isOppositeDirection(const Line& line1, const Line& line2) {
+    friend bool isOppositeDirection(Line const& line1, Line const& line2) {
         return approx_equal(dot(line1.direction, line2.direction), -1.0);
     }
 
     /**
      * Test whether the two given lines are perpendicular to each other.
      */
-    friend bool isPerpendicular(const Line& line1, const Line& line2) {
+    friend bool isPerpendicular(Line const& line1, Line const& line2) {
         return approx_zero(dot(line1.direction, line2.direction));
     }
 };
@@ -353,7 +353,7 @@ public:
         return stream.str();
     }
 
-    friend std::ostream& operator<<(std::ostream& out, const CPoint& p);
+    friend std::ostream& operator<<(std::ostream& out, CPoint const& p);
 };
 
 using CPosition = std::array<CPoint, 2>;
@@ -362,7 +362,7 @@ using CPositions = std::vector<CPosition>;
 namespace std {
     template<>
     struct hash<CPosition> {
-        std::size_t operator()(const CPosition& x) const noexcept {
+        std::size_t operator()(CPosition const& x) const noexcept {
             std::size_t seed = 0;
             hash_combine(seed, x[0]);
             hash_combine(seed, x[1]);
@@ -372,7 +372,7 @@ namespace std {
 
     template<>
     struct hash<CPoint> {
-        std::size_t operator()(const CPoint& x) const noexcept {
+        std::size_t operator()(CPoint const& x) const noexcept {
             std::size_t seed = 0;
             hash_combine(seed, x.getPoint());
             hash_combine(seed, x.getFraction());
@@ -381,7 +381,7 @@ namespace std {
     };
 }
 
-std::ostream& operator<<(std::ostream& out, const CPosition& pos);
+std::ostream& operator<<(std::ostream& out, CPosition const& pos);
 
 struct CInterval;
 
@@ -428,7 +428,7 @@ struct Interval
 
 using Intervals = std::vector<Interval>;
 
-std::ostream& operator<<(std::ostream& out, const Interval& interval);
+std::ostream& operator<<(std::ostream& out, Interval const& interval);
 
 struct CInterval {
     CPoint begin;
@@ -485,7 +485,7 @@ struct CInterval {
     }
 };
 
-std::ostream& operator<<(std::ostream& out, const CInterval& interval);
+std::ostream& operator<<(std::ostream& out, CInterval const& interval);
 
 class IntersectionAlgorithm {
 public:
@@ -554,5 +554,14 @@ struct Circle {
 
 Circle calcMinEnclosingCircle(Points points);
 
-distance_t segPointDist(Point& source, Point& target, Point& point);
+/**
+ * \brief Computes the minimum distance from a point to a segment defined by the
+ * endpoints source and target.
+ * \param source An endpoint of the segment.
+ * \param target An endpoint of the segment.
+ * \param point The point to measure the distance to.
+ * \return The distance from the point to the segment.
+ */
+distance_t segPointDist(Point const& source, Point const& target,
+    Point const& point);
 #endif

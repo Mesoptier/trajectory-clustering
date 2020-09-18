@@ -14,7 +14,7 @@ namespace io {
      * \param curve The resulting curve.
      * \param header_size The number of lines of the file header.
      */
-    void read_curve(const std::string& filename, Curve& curve,
+    void read_curve(std::string const& filename, Curve& curve,
         std::size_t header_size = 0);
 
     /**
@@ -24,7 +24,7 @@ namespace io {
      * \param header_size The number of lines of the file header.
      * \return The curve.
      */
-    Curve read_curve(const std::string& filename, std::size_t header_size = 0);
+    Curve read_curve(std::string const& filename, std::size_t header_size = 0);
 
     /**
      * \brief Read all the curves from dataset.txt in a directory.
@@ -32,7 +32,7 @@ namespace io {
      * \param header_size The number of lines of the file header.
      * \return The curves.
      */
-    std::vector<Curve> read_curves(const std::string& directory,
+    std::vector<Curve> read_curves(std::string const& directory,
         std::size_t header_size = 0);
 
     /**
@@ -40,6 +40,6 @@ namespace io {
      * \param filename The output file.
      * \param points The curve / point sequence to write.
      */
-    void export_points(const std::string& filename, const Points& points);
+    void export_points(std::string const& filename, Points const& points);
 }
 #endif

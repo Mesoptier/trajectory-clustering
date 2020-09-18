@@ -49,7 +49,7 @@ void Curve::push_back(Point point) {
     points.push_back(std::move(point));
 }
 
-distance_t Curve::curve_length(const CPoint& p) const {
+distance_t Curve::curve_length(CPoint const& p) const {
     assert(p.getFraction() >= 0.0 && p.getFraction() <= 1.0);
     assert((p.getPoint() < points.size() - 1)
         || (p.getPoint() == points.size() - 1 && approx_zero(p.getFraction())));
@@ -59,7 +59,7 @@ distance_t Curve::curve_length(const CPoint& p) const {
             + prefix_length[p.getPoint() + 1] * p.getFraction();
 }
 
-Point Curve::interpolate_at(const CPoint& p) const {
+Point Curve::interpolate_at(CPoint const& p) const {
     assert(p.getFraction() >= 0. && p.getFraction() <= 1.);
     assert((p.getPoint() < points.size() - 1)
         || (p.getPoint() == points.size() - 1 && approx_zero(p.getFraction())));
@@ -99,7 +99,7 @@ CPoint Curve::get_cpoint_after(distance_t dist, PointID after_id) const {
 }
 
 SimplifiedCurve Curve::simplify() const {
-    const std::size_t k = 10;
+    std::size_t const k = 10;
 
     Curve curve(m_name);
     std::vector<PointID> original_points;
@@ -116,7 +116,7 @@ SimplifiedCurve Curve::simplify() const {
 
 Curve Curve::naive_l_simplification(std::size_t l) const {
     Curve curve(m_name);
-    const std::size_t period = points.size() > l ? points.size() / l : 1;
+    std::size_t const period = points.size() > l ? points.size() / l : 1;
 
     for (std::size_t i = 0; i < points.size(); i += period) {
         if (i == 0 || !approx_equal(curve.back(), points[i]))

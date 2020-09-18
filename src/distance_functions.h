@@ -13,7 +13,7 @@ namespace df {
      * \param curve_2 Second curve.
      * \return The distance.
      */
-    distance_t dtw(const Curve& curve_1, const Curve& curve_2);
+    distance_t dtw(Curve const& curve_1, Curve const& curve_2);
 
     /**
      * \brief Compute the CDTW distance between two curves (slow approximation).
@@ -21,7 +21,7 @@ namespace df {
      * \param curve_2 Second curve.
      * \return The distance.
      */
-    distance_t integral_frechet(const Curve& curve_1, const Curve& curve_2);
+    distance_t integral_frechet(Curve const& curve_1, Curve const& curve_2);
 
     /**
      * \brief Compute the CDTW distance between two curves (fast approximation).
@@ -32,8 +32,8 @@ namespace df {
      * \param curve_2 Second curve.
      * \return The distance.
      */
-    distance_t integral_frechet_fast(const Curve& curve_1,
-        const Curve& curve_2);
+    distance_t integral_frechet_fast(Curve const& curve_1,
+        Curve const& curve_2);
 
     /**
      * \brief Compute the Fréchet distance between two curves.
@@ -41,7 +41,7 @@ namespace df {
      * \param curve_2 Second curve.
      * \return The distance.
      */
-    distance_t frechet(const Curve& curve_1, const Curve& curve_2);
+    distance_t frechet(Curve const& curve_1, Curve const& curve_2);
 
     /**
      * \brief Compute the average Fréchet distance between two curves
@@ -50,7 +50,7 @@ namespace df {
      * \param curve_2 Second curve.
      * \return The distance.
      */
-    distance_t average_frechet(const Curve& curve_1, const Curve& curve_2);
+    distance_t average_frechet(Curve const& curve_1, Curve const& curve_2);
 
     /**
      * \brief Compute the average Fréchet distance between two curves
@@ -59,7 +59,7 @@ namespace df {
      * \param curve_2 Second curve.
      * \return The distance.
      */
-    distance_t average_frechet_fast(const Curve& curve_1, const Curve& curve_2);
+    distance_t average_frechet_fast(Curve const& curve_1, Curve const& curve_2);
 
     /**
      * \brief Check if the dynamic time warping distance between two curves is
@@ -69,7 +69,7 @@ namespace df {
      * \param delta The distance threshold.
      * \return True iff dtw(curve_1, curve_2) <= delta.
      */
-    bool dtw_lt(const Curve& curve_1, const Curve& curve_2, distance_t delta);
+    bool dtw_lt(Curve const& curve_1, Curve const& curve_2, distance_t delta);
 
     /**
      * \brief Check if the CDTW distance (slow approximation) between two curves
@@ -79,7 +79,7 @@ namespace df {
      * \param delta The distance threshold.
      * \return True iff integral_frechet(curve_1, curve_2) <= delta.
      */
-    bool integral_frechet_lt(const Curve& curve_1, const Curve& curve_2,
+    bool integral_frechet_lt(Curve const& curve_1, Curve const& curve_2,
         distance_t delta);
 
     /**
@@ -90,7 +90,7 @@ namespace df {
      * \param delta The distance threshold.
      * \return True iff integral_frechet_fast(curve_1, curve_2) <= delta.
      */
-    bool integral_frechet_fast_lt(const Curve& curve_1, const Curve& curve_2,
+    bool integral_frechet_fast_lt(Curve const& curve_1, Curve const& curve_2,
         distance_t delta);
 
     /**
@@ -101,7 +101,7 @@ namespace df {
      * \param delta The distance threshold.
      * \return True iff d_F(curve_1, curve_2) <= delta.
      */
-    bool frechet_lt(const Curve& curve_1, const Curve& curve_2,
+    bool frechet_lt(Curve const& curve_1, Curve const& curve_2,
         distance_t delta);
 
     /**
@@ -112,7 +112,7 @@ namespace df {
      * \param delta The distance threshold.
      * \return True iff average_frechet(curve_1, curve_2) <= delta.
      */
-    bool average_frechet_lt(const Curve& curve_1, const Curve& curve_2,
+    bool average_frechet_lt(Curve const& curve_1, Curve const& curve_2,
         distance_t delta);
 
     /**
@@ -123,7 +123,7 @@ namespace df {
      * \param delta The distance threshold.
      * \return True iff average_frechet_fast(curve_1, curve_2) <= delta.
      */
-    bool average_frechet_fast_lt(const Curve& curve_1, const Curve& curve_2,
+    bool average_frechet_fast_lt(Curve const& curve_1, Curve const& curve_2,
         distance_t delta);
 }
 #endif
