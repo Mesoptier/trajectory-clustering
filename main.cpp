@@ -1,690 +1,144 @@
 #include <iostream>
-#include <chrono>
-#include <fstream>
-#include <random>
-#include <limits>
+#include <string>
 
-#include "src/geom.h"
-#include "src/utils/io.h"
 #include "src/Curve.h"
-#include "src/IntegralFrechet/IntegralFrechet.h"
-#include "src/IntegralFrechet/metrics.h"
-#include "src/utils/SymmetricMatrix.h"
-#include "src/clustering/pam.h"
-#include "src/IntegralFrechet/MatchingBand.h"
-// #include "src/greedy_simplification.h"
-// #include "src/curve_simplification.h"
-// #include "src/clustering/clustering.h"
-#include "src/utils/CurveSimpMatrix.h"
-// #include "src/clustering/clustering_algs.h"
-// #include "src/clustering/center_algs.h"
-// #include "src/clustering/center_clustering_algs.h"
-// #include "src/greedy_l_simplification.h"
-#include "src/simplification/agarwal.h"
-#include "src/simplification/imaiiri.h"
-#include "src/DTW/dtw.h"
-#include "src/distance_functions.h"
-// #include "src/experiments.h"
+#include "src/classification_experiment.h"
+#include "src/experiments.h"
 #include "src/simplification_experiment.h"
-#include "src/synthetic_curves.h"
-// #include "src/classification_experiment.h"
+#include "src/utils/io.h"
 
 namespace {
-//
-// I/O helpers
-//
+    void simplification_comparison_and_plot() {
+        std::cout << "\n" << std::endl;
+        std::cout << std::string(80, '-') << "\nSIMPLIFICATION EXPERIMENT\n"
+            << std::string(80, '-') << "\n";
+        std::cout << "Load dataset, sample curves, subsample to complexity 50.\n"
+            << "Run different simplification approaches.\n"
+            << "For each curve, evaluate with CDTW and compute statistics over "
+            << "the dataset.\n"
+            << "Time is total time in ms. The rest are CDTW values.\n"
+            << std::endl
+            << "Save the simplifications and subsampled curves in ./simpl/.\n"
+            << "Report the costs for the specific curves.\n"
+            << "The curves chosen are the worst ones for specific approaches.\n"
+            << std::endl;
+        std::cout << "Character dataset\n";
+        auto const curves_char = io::read_curves("data/characters/data");
+        auto const samples_char = experiments::sample(curves_char, 10, 50);
+        experiments::evaluate(samples_char, 12, "char");
 
-std::vector<Curve> read_curves(const std::string& filename) {
-    auto start_time = std::chrono::high_resolution_clock::now();
-
-    const auto curves = io::read_curves(filename);
-
-    auto end_time = std::chrono::high_resolution_clock::now();
-    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time).count();
-    std::cout << "read_curves: " << duration << "ms\n";
-
-    return curves;
-}
-
-SymmetricMatrix read_matrix(const std::string& filename) {
-    auto start_time = std::chrono::high_resolution_clock::now();
-
-    std::ifstream file(filename);
-    const auto matrix = SymmetricMatrix::read(file);
-
-    auto end_time = std::chrono::high_resolution_clock::now();
-    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time).count();
-    std::cout << "read_matrix: " << duration << "ms\n";
-
-    return matrix;
-}
-
-void export_matrix(const SymmetricMatrix& matrix, const std::string& filename) {
-    matrix.write(filename);
-}
-
-
-//
-// Algorithms
-//
-
-SymmetricMatrix compute_distance_matrix(const std::vector<Curve>& curves) {
-    size_t n = curves.size();
-    SymmetricMatrix distance_matrix(n);
-
-    auto start_time = std::chrono::high_resolution_clock::now();
-
-    for (size_t i = 0; i < n; ++i) {
-        const auto curve1 = curves[i];
-
-        // Don't compute the j == i case, since the cost is always 0 (comparing identical curves)
-        distance_matrix.at(i, i) = 0;
-
-        for (size_t j = i + 1; j < n; ++j) {
-            const auto curve2 = curves[j];
-
-            IntegralFrechet alg(curve1, curve2, ParamMetric::LInfinity_NoShortcuts, 100, nullptr);
-            const auto result = alg.compute_matching();
-
-            // TODO: Weigh by max or sum?
-            // TODO: Move to IntegralFrechet class
-            distance_t averaged_cost = result.cost / std::max(curve1.curve_length(), curve2.curve_length());
-            distance_matrix.at(i, j) = averaged_cost;
-        }
-
-        std::cout << i << '\n';
+        std::cout << "Pigeon dataset\n";
+        auto const curves_pigeon = io::read_curves("data/Data_for_Mann_et_al_RSBL 2"
+            "/Bladon & Church route recapping/bladon heath/utm", 1);
+        auto const samples_pigeon = experiments::sample(curves_pigeon, 1, 40);
+        experiments::evaluate(samples_pigeon, 6, "pigeon", 2);
     }
 
-    auto end_time = std::chrono::high_resolution_clock::now();
-    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time).count();
-    std::cout << "compute_distance_matrix: " << duration << "ms\n";
+    void main_clustering_experiments() {
+        std::cout << "\n" << std::endl;
+        std::cout << std::string(80, '-') << "\nINITIAL CLUSTERING EXPERIMENT\n"
+            << std::string(80, '-') << "\n";
+        std::cout << "Load dataset, sample curves, subsample to complexity 200.\n"
+            << "Run different clustering approaches.\n"
+            << "For each cluster, evaluate with k-medians + CDTW.\n"
+            << "Save results in results/initial_clustering_experiment/"
+            << "results.txt\n" << std::endl;
+        experiments::initial_clustering_experiment();
 
-    return distance_matrix;
-}
-
-void compute_clusters(const SymmetricMatrix& distance_matrix, size_t k) {
-    auto start_time = std::chrono::high_resolution_clock::now();
-
-    clustering::pam::compute(distance_matrix.n, k, distance_matrix);
-
-    auto end_time = std::chrono::high_resolution_clock::now();
-    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time).count();
-    std::cout << "compute_clusters: " << duration << "ms\n";
-}
-
-IntegralFrechet::MatchingResult compute_matching(const Curve& curve1, const Curve& curve2, distance_t resolution, const MatchingBand* const band) {
-    auto start_time = std::chrono::high_resolution_clock::now();
-
-    IntegralFrechet alg(curve1, curve2, ParamMetric::LInfinity_NoShortcuts, resolution, band);
-    const auto result = alg.compute_matching();
-
-    auto end_time = std::chrono::high_resolution_clock::now();
-    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time).count();
-    std::cout << "compute_matching: " << duration << "ms\n";
-
-    return result;
-}
-
-MatchingBand compute_band(const Curve& curve1, const Curve& curve2, const Points& matching, distance_t radius) {
-    auto start_time = std::chrono::high_resolution_clock::now();
-
-    const MatchingBand band(curve1, curve2, matching, radius);
-
-    auto end_time = std::chrono::high_resolution_clock::now();
-    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time).count();
-    std::cout << "compute_band: " << duration << "ms\n";
-
-    return band;
-}
-
-//
-// Experiments
-//
-
-/**
- * Reparametrize a matching over simplified curves to a matching over the original curves.
- *
- * @param matching - Simplified matching, will be reparametrized in-place.
- * @param c1 - Original curve for x-axis
- * @param c1_s - Simplified curve for x-axis
- * @param c2 - Original curve for y-axis
- * @param c2_s - Simplified curve for y-axis
- */
-void reparametrize_matching(Points& matching, const Curve& c1, const SimplifiedCurve& c1_s, const Curve& c2, const SimplifiedCurve& c2_s) {
-    PointID prev_id1 = 0;
-    PointID prev_id2 = 0;
-
-    for (auto& p : matching) {
-        // For p.x/p.y:
-        // - Find PointID's of corresponding edge in (c1_s/c2_s).curve
-        // - Find corresponding PointID's in c1/c2 from (c1_s/c2_s).original_points
-        // - Update p.x/p.y by linear interpolation
-
-        const auto cp1 = c1_s.curve.get_cpoint_after(p.x, prev_id1);
-        prev_id1 = cp1.getPoint();
-        p.x = c1.curve_length(c1_s.original_points[cp1.getPoint()]) * (1 - cp1.getFraction());
-        if (cp1.getFraction() != 0) {
-            p.x += c1.curve_length(c1_s.original_points[cp1.getPoint() + 1]) * cp1.getFraction();
-        }
-
-        const auto cp2 = c2_s.curve.get_cpoint_after(p.y, prev_id2);
-        prev_id2 = cp2.getPoint();
-        p.y = c2.curve_length(c2_s.original_points[cp2.getPoint()]) * (1 - cp2.getFraction());
-        if (cp2.getFraction() != 0) {
-            p.y += c2.curve_length(c2_s.original_points[cp2.getPoint() + 1]) * cp2.getFraction();
-        }
-    }
-}
-
-void experiment_with_or_without_bands() {
-    struct Stat {
-        distance_t band_cost;
-        long long int band_time;
-        distance_t no_band_cost;
-        long long int no_band_time;
-    };
-    std::vector<Stat> stats;
-
-    distance_t simple_resolution = 10;
-    distance_t resolution = 1;
-    distance_t band_radius = 1;
-
-    const auto curves = read_curves("data/characters/data");
-
-    std::random_device rd;
-    std::mt19937_64 generator(rd());
-    std::uniform_int_distribution<size_t> distribution(0, curves.size() - 1);
-
-    size_t k_max = 1000;
-    for (size_t k = 0; k < k_max; ++k) {
-        auto i = distribution(generator);
-        auto j = distribution(generator);
-
-        const auto curve1 = curves.at(i);
-        const auto curve2 = curves.at(j);
-
-        // With band
-        auto start_band = std::chrono::high_resolution_clock::now();
-        const auto curve1_simpl = curve1.simplify();
-        const auto curve2_simpl = curve2.simplify();
-        auto matching_simpl = compute_matching(curve1_simpl.curve, curve2_simpl.curve, simple_resolution, nullptr).matching;
-        reparametrize_matching(matching_simpl, curve1, curve1_simpl, curve2, curve2_simpl);
-
-        const auto band = compute_band(curve1, curve2, matching_simpl, band_radius);
-        const auto result_band = compute_matching(curve1, curve2, resolution, &band);
-        auto end_band = std::chrono::high_resolution_clock::now();
-        auto duration_band = std::chrono::duration_cast<std::chrono::milliseconds>(end_band - start_band).count();
-
-        // Without band
-        auto start_no_band = std::chrono::high_resolution_clock::now();
-        const auto result_no_band = compute_matching(curve1, curve2, resolution, nullptr);
-        auto end_no_band = std::chrono::high_resolution_clock::now();
-        auto duration_no_band = std::chrono::duration_cast<std::chrono::milliseconds>(end_no_band - start_no_band).count();
-
-        stats.push_back({
-            result_band.cost,
-            duration_band,
-            result_no_band.cost,
-            duration_no_band,
-        });
-
-        std::cout << (k + 1) << " / " << k_max << '\n';
+        std::cout << "\n" << std::endl;
+        std::cout << std::string(80, '-') << "\nCENTER UPDATE EXPERIMENTS\n"
+            << std::string(80, '-') << "\n";
+        std::cout << "For each of the datasets, subsample curves to complexity 200.\n"
+            << "After clustering with PAM, run different center update approaches.\n"
+            << "For each cluster, evaluate with k-medians + CDTW.\n"
+            << "Save results in results/ subdirectories.\n" << std::endl;
+        std::cout << "Character dataset\n";
+        experiments::center_update_experiment_characters("characters", 50, 2, 8);
+        std::cout << "Pigeon dataset\n";
+        experiments::center_update_experiment_pigeons("pigeons", 3, 10);
+        std::cout << "Movebank dataset\n";
+        experiments::center_update_experiment_movebank("movebank", 3, 14);
     }
 
-    std::ofstream file("data/out/band_stats.tsv");
-    file << "band_cost\tband_time\tno_band_cost\tno_band_time\n";
-    for (const auto& stat : stats) {
-        file << stat.band_cost << '\t' << stat.band_time << '\t' << stat.no_band_cost << '\t' << stat.no_band_time << '\n';
-    }
-    file.close();
-}
-
-void experiment_visualize_band() {
-    const auto curve1 = io::read_curve("data/characters/data/a0001.txt");
-    const auto curve2 = io::read_curve("data/characters/data/a0002.txt");
-
-    // Without band
-    const auto result_no_band = compute_matching(curve1, curve2, 1, nullptr);
-    io::export_points("data/out/debug_points_old.csv", result_no_band.search_stat.nodes_as_points);
-    io::export_points("data/out/matching3.csv", result_no_band.matching);
-    std::cout << "matching (no band) cost: " << result_no_band.cost << '\n';
-
-    // With band
-    auto start_time = std::chrono::high_resolution_clock::now();
-
-    const auto curve1_simpl = curve1.simplify();
-    const auto curve2_simpl = curve2.simplify();
-    auto matching_simpl = compute_matching(curve1_simpl.curve, curve2_simpl.curve, 10, nullptr).matching;
-    reparametrize_matching(matching_simpl, curve1, curve1_simpl, curve2, curve2_simpl);
-
-    const auto band = compute_band(curve1, curve2, matching_simpl, 2);
-    const auto result = compute_matching(curve1, curve2, 1, &band);
-
-    auto end_time = std::chrono::high_resolution_clock::now();
-    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time).count();
-    std::cout << "main: " << duration << "ms\n";
-
-    io::export_points("data/out/curve1.csv", curve1.get_points());
-    io::export_points("data/out/curve2.csv", curve2.get_points());
-    io::export_points("data/out/matching1.csv", result.matching);
-    io::export_points("data/out/matching2.csv", matching_simpl);
-    io::export_points("data/out/debug_points.csv", result.search_stat.nodes_as_points);
-
-    std::cout << "matching cost: " << result.cost << '\n';
-}
-
-std::vector<Curve> sample_curves(std::vector<Curve> curves, unsigned period) {
-
-    std::vector<Curve> samples = std::vector<Curve>();
-
-    for (std::size_t i = 0; i < curves.size(); ++i) {
-        if (i % period == 0) {
-            samples.push_back(curves[i]);
-        }
+    void k_clustering_experiments() {
+        std::cout << "\n" << std::endl;
+        std::cout << std::string(80, '-')
+            << "\nCENTER UPDATE EXPERIMENTS FOR RANGE OF K\n"
+            << std::string(80, '-') << "\n";
+        std::cout << "For each dataset, do the center update experiments for "
+            << "different values of k.\n"
+            << "Save results in results/ subdirectories.\n" << std::endl;
+        std::cout << "Character dataset\n";
+        experiments::curve_complexity_experiment_characters();
+        std::cout << "Pigeon dataset\n";
+        experiments::curve_complexity_experiment_pigeons();
     }
 
-    return samples;
-}
+    void extra_experiments() {
+        std::cout << "\n" << std::endl;
+        std::cout << std::string(80, '-') << "\nSYNTHETIC CURVES EXPERIMENT\n"
+            << std::string(80, '-') << "\n";
+        std::cout << "Load the first handwritten a, subsample to complexity 200.\n"
+            << "Perturb the points a bit to create many different curves.\n"
+            << "Attempt to recreate the true center with a clustering approach.\n"
+            << "Save results in plot.txt\n" << std::endl;
+        experiments::synthetic_curve_experiment();
 
-void evaluate_greedy_simplification() {
-    std::vector<Curve> curves = sample_curves(read_curves("data/characters/data"), 20);
+        std::cout << "\n" << std::endl;
+        std::cout << std::string(80, '-') << "\nCLASSIFICATION EXPERIMENT\n"
+            << std::string(80, '-') << "\n";
+        std::cout << "Load a sample of the character dataset.\n"
+            << "Cluster the curves to check if we correctly identify the letters.\n"
+            << "Report results on stdout.\n" << std::endl;
+        classification::characterClassification();
 
-    std::vector<std::size_t> greedy_node_count;
-    std::vector<distance_t> greedy_integral_distance;
-    std::vector<std::size_t> benchmark_node_count;
-    std::vector<distance_t> benchmark_integral_distance;
-
-    std::fstream greedy;
-    greedy.open("greedy_stats.txt", std::fstream::out | std::fstream::trunc);
-    std::fstream benchmark;
-    benchmark.open("benchmark_stats.txt", std::fstream::out | std::fstream::trunc);
-
-    for (Curve curve: curves) {
-
-        std::cout << curve.name() << "\n";
-
-        Curve simplification = curve.simplify().curve;
-        Curve greedy_simp = simplification::greedy::simplify(curve, 0.25,
-            [](const Curve& a, const Curve& b, distance_t t) {
-                return IntegralFrechet(a, b, ParamMetric::LInfinity_NoShortcuts,
-                    1, nullptr).compute_matching().cost <= t;
-            });
-
-        // io::export_points(curve.name() + "-simplification.txt", greedy_simp.get_points());
-        // io::export_points(curve.name() + "-regular-simplification.txt", simplification.get_points());
-
-        greedy_node_count.push_back(greedy_simp.get_points().size());
-        //std::cout << "added greedy count \n";
-        greedy_integral_distance.push_back(
-            IntegralFrechet(greedy_simp, curve, ParamMetric::LInfinity_NoShortcuts, 1, nullptr).compute_matching().cost
-        );
-        //std::cout << "added greedy distance \n";
-        benchmark_node_count.push_back(simplification.get_points().size());
-        //std::cout << "added benchmark count \n";
-        benchmark_integral_distance.push_back(
-            IntegralFrechet(simplification, curve, ParamMetric::LInfinity_NoShortcuts, 1, nullptr).compute_matching().cost
-        );
-
-        greedy << greedy_node_count.back() << "," << greedy_integral_distance.back() << "\n";
-        benchmark << benchmark_node_count.back() << "," << benchmark_integral_distance.back() << "\n";
+        std::cout << "\n" << std::endl;
+        std::cout << std::string(80, '-') << "\nWEDGE PARAMETER EXPERIMENT\n"
+            << std::string(80, '-') << "\n";
+        std::cout << "Load the trajectories of a specific pigeon.\n"
+            << "Identify the best parameters (eps, r) for the grid search.\n"
+            << "Report results on stdout.\n" << std::endl;
+        experiments::find_wedge_params_pigeons();
     }
-
-    greedy.close();
-    benchmark.close();
-}
-
-
-
-void evaluate_frechet_simplifications() {
-    std::vector<Curve> curves = sample_curves(read_curves("data/characters/data"), 20);
-    const auto simplifications = read_curves("data/simplifications");
-
-    std::fstream frechet_stats;
-    frechet_stats.open("frechet_stats.csv", std::fstream::out | std::fstream::trunc);
-
-    for (std::size_t i = 0; i < curves.size(); ++i) {
-
-        Curve original_curve = curves[i];
-        Curve simplification = simplifications[i];
-
-        const auto distance =
-        IntegralFrechet(original_curve, simplification, ParamMetric::LInfinity_NoShortcuts, 1, nullptr)
-        .compute_matching()
-        .cost;
-
-        frechet_stats << simplification.get_points().size() << "," << distance << "\n";
-    }
-
-    frechet_stats.close();
-}
-
-void write_simplifications() {
-    using Curves = std::vector<Curve>;
-    Curves curves = read_curves("data/characters/data");
-
-    Curves greedy_simplifications;
-    Curves regular_simplifications;
-
-    std::cout << "computing greedy simplifications... \n";
-    for (auto curve: curves) {
-        greedy_simplifications.push_back(
-            simplification::greedy::simplify(curve, 0.25,
-            [](const Curve& a, const Curve& b, distance_t t) {
-                return IntegralFrechet(a, b, ParamMetric::LInfinity_NoShortcuts,
-                    1, nullptr).compute_matching().cost <= t;
-            })
-        );
-    }
-
-    std::cout << "computing regular simplifications... \n";
-    for (auto curve: curves) {
-        regular_simplifications.push_back(
-            curve.simplify().curve
-        );
-    }
-
-    std::fstream greedy_dataset_file;
-    greedy_dataset_file.open("greedy_simplifications/dataset.txt", std::fstream::out | std::fstream::trunc);
-
-    std::fstream regular_dataset_file;
-    regular_dataset_file.open("regular_simplifications/dataset.txt", std::fstream::out | std::fstream::trunc);
-
-    for (std::size_t i = 0; i < curves.size(); ++i) {
-
-        greedy_dataset_file << "greedy_simplifications/gs-" + std::to_string(i) + ".txt" << "\n";        
-        std::fstream greedy_simp;
-        greedy_simp.open("greedy_simplifications/gs-" + std::to_string(i) + ".txt", std::fstream::out | std::fstream::trunc);
-        for (auto point: greedy_simplifications[i].get_points()) {
-            greedy_simp << point.x << " " << point.y << "\n";
-        }
-        greedy_simp.close();
-
-        regular_dataset_file << "regular_simplifications/rs-" + std::to_string(i) + ".txt" << "\n";  
-        std::fstream regular_simp;
-        regular_simp.open("regular_simplifications/rs-" + std::to_string(i) + ".txt", std::fstream::out | std::fstream::trunc);
-        for (auto point: regular_simplifications[i].get_points()) {
-            regular_simp << point.x << " " << point.y << "\n";
-        }
-        regular_simp.close();
-    }
-
-    regular_dataset_file.close();
-    greedy_dataset_file.close();
-
-}
-
-
-// void test_clustering_algs() {
-//     using Curves = std::vector<Curve>;
-//     using namespace clustering;
-//     using namespace df;
-//     // Curves curves = sample_curves(io::read_pigeon_curves("data/Data_for_Mann_et_al_RSBL 2/Bladon & Church route recapping/bladon heath"), 30);
-//     Curves curves = sample_curves(read_curves("data/characters/data"), 25);
-//     std::cout << "read curves...\n";
-//     std::cout << curves.size() << "\n";
-
-//     Clustering gonzalez_clustering = gonzalez(curves, 26, 5, integral_frechet, true);
-//     std::cout << "finshed gonzalez...\n";
-
-//     Clustering single_linkage_clustering = singleLinkage(curves, 26, 5, integral_frechet, true);
-//     std::cout << "finished single linkage...\n";
-
-//     Clustering complete_linkage_clustering = completeLinkage(curves, 26, 5, integral_frechet, true);
-//     std::cout << "finished complete linkage...\n";
-
-//     distance_t gonzalez_sum = 0;
-//     for (auto cluster: gonzalez_clustering) {
-//         CurveIDs ids = cluster.curve_ids;
-//         for (auto id: ids) {
-//             gonzalez_sum += IntegralFrechet(curves[id], cluster.center_curve, ParamMetric::LInfinity_NoShortcuts, 1, nullptr)
-//             .compute_matching()
-//             .cost;
-//         }
-//     }
-
-//     std::cout << "gonzalez: " << gonzalez_sum << "\n";
-    
-
-//     distance_t single_linkage_sum = 0;
-//     for (auto cluster: single_linkage_clustering) {
-//         for (auto id: cluster.curve_ids)
-//             single_linkage_sum += IntegralFrechet(curves[id], cluster.center_curve, ParamMetric::LInfinity_NoShortcuts, 1, nullptr)
-//             .compute_matching()
-//             .cost;
-//     }
-
-//     std::cout << "single linkage: " << single_linkage_sum << "\n";
-
-//     distance_t complete_linkage_sum = 0;
-//     for (auto cluster: complete_linkage_clustering) {
-//         for (auto id: cluster.curve_ids)
-//             complete_linkage_sum += IntegralFrechet(curves[id], cluster.center_curve, ParamMetric::LInfinity_NoShortcuts, 1, nullptr)
-//             .compute_matching()
-//             .cost;
-//     }
-
-//     std::cout << "complete linkage: " << complete_linkage_sum << "\n";
-// }
-
-// distance_t evaluate_clustering(Clustering clustering, Curves curves, distance_t(*dist_func)(Curve, Curve)) {
-
-//     distance_t cost = 0;
-
-//     for (auto cluster: clustering) {
-//         for (auto curve_id: cluster.curve_ids) {
-//             cost += dist_func(curves[curve_id], cluster.center_curve);
-//         }
-//     }
-
-//     return cost;
-// }
-
-// void test_center_algs() {
-//     Curves curves = read_curves("data/characters/data");
-//     curves = Curves(curves.begin(), curves.begin() + 26);
-//     /*
-//     Curve curve = curves[0];
-//     Curve segment = Curve("", {curve.get_points()[6], curve.get_points()[8]});
-//     std::cout << curve.name() << "\n";
-//     std::cout << IntegralFrechet(Curve("", {curve.get_points()[6], curve.get_points()[7], curve.get_points()[8]}), segment, ParamMetric::LInfinity_NoShortcuts, 100)
-//     .compute_matching().cost << "\n";*/
-
-//     Clustering clustering = runGonzalez(curves, 1, 10, integral_frechet, true);
-//     std::cout << "computed initial cluster center...\n";
-//     // clustering[0].center_curve = curves[0].simplify(true);
-
-//     std::fstream script;
-//     script.open("gnuplot_script.txt", std::fstream::out | std::fstream::trunc);
-
-//     script << "plot ";
-//     for (std::size_t i = 0; i < curves.size(); ++i) {
-//         Curve curve = curves[i];
-//         script << "\"" << curve.name() + "\" with linespoints ls 0.7 lt rgb \"black\" ps 0.01, ";
-//     }
-
-//     std::fstream initial_center;
-//     initial_center.open("cluster/initial_center.txt", std::fstream::out | std::fstream::trunc);
-//     for (auto p: clustering[0].center_curve.get_points()) {
-//         initial_center << p.x << " " << p.y << "\n";
-//     }
-//     initial_center.close();
-
-//     script << "\"cluster/initial_center.txt\" with linespoints ls 2 lw 3 lt rgb \"green\", ";
-
-//     for (std::size_t i = 0; i < curves.size(); ++i) {
-//         Curve curve = curves[i];
-//         Points matching = matching_of_vertices(clustering[0].center_curve, curve);
-//         std::fstream vertices;
-//         vertices.open("cluster/matching" + std::to_string(i) + ".txt", std::fstream::out | std::fstream::trunc);
-//         for (std::size_t j = 0; j < matching.size(); ++j) {
-//             vertices << matching[j].x << " " << matching[j].y << "\n";
-//             vertices << clustering[0].center_curve.get_points()[j].x << " " << clustering[0].center_curve.get_points()[j].y << "\n\n";
-//         }
-//         vertices.close();
-//         script << "\"cluster/matching" + std::to_string(i) + ".txt\" with linespoints ls 1 lt rgb \"blue\", ";
-//     }
-
-//     int improvement_count = 0;
-//     while (calcFSACenters(curves, clustering, 10, average_frechet, C2CDist::Median, CenterCurveUpdateMethod::frechetMean)) {
-//         std::cout << "found new center!!\n";
-//         improvement_count++;
-//     }
-
-//     std::cout << "finished\n";
-//     std::cout << improvement_count << "\n";
-
-//     std::fstream improved_cluster;
-//     improved_cluster.open("cluster/improved_cluster.txt", std::fstream::out | std::fstream::trunc);
-//     for (auto p: clustering[0].center_curve.get_points()) {
-//         improved_cluster << p.x << " " << p.y << "\n";
-//     }
-//     improved_cluster.close();
-//     script << "\"cluster/improved_cluster.txt\" with linespoints ls 3 lw 3 lt rgb \"red\"";
-//     script.close();
-// }
-
-// void test_pam_with_centering() {
-//     Curves curves = sample_curves(read_curves("data/characters/data"), 30);
-//     Clustering clustering = clustering::pam_with_centering(curves, 10, 10, df::integral_frechet, "");
-// }
-
-void test_frechet() {
-    Curves curves = read_curves("data/characters/data");
-    curves = sample_curves(curves, 50);
-
-
-    Curves simplifications = Curves();
-    for (auto& curve: curves) {
-        std::cout << curve.name() << "\n";
-        simplifications.push_back(
-            simplification::greedy::simplify(curve, 10,
-                [](const Curve& a, const Curve& b, distance_t t) {
-                    return df::frechet(a, b) <= t;
-                })
-        );
-    }
-    // Clustering pam_clustering = pam_with_centering(curves, 10, 10, average_frechet, "characters_matrix.txt");
-    // Clustering gonzalez_clustering = runGonzalez(curves, 10, 10, frechet, true);
-
-    // std::cout << "cost of pam clustering...\n";
-    // std::cout << evaluate_clustering(pam_clustering, curves, average_frechet) << "\n";
-
-    // std::cout << "cost of gonzalez clustering...\n";
-    // std::cout << evaluate_clustering(gonzalez_clustering, curves, average_frechet) << "\n";
-}
-
-// void compute_curve_simp_matrix() {
-//     Curves curves = experiments::read_data();
-//     Curves simplifications;
-
-//     for (auto curve: curves) {
-//         simplifications.push_back(
-//             curve.naive_l_simplification(10)
-//         );
-
-//         std::cout << simplifications.back().get_points().size() << "\n";
-//     }
-
-//     std::cout << "computed simplifications...\n";
-
-//     CurveSimpMatrix matrix = CurveSimpMatrix(curves, simplifications, df::average_frechet);
-//     matrix.write("pigeon_matrix.txt");
-// }
-
-void simplification_comparison_and_plot() {
-    std::cout << std::string(80, '-') << "\nSIMPLIFICATION EXPERIMENT\n"
-        << std::string(80, '-') << "\n";
-    std::cout << "Load dataset, sample curves, subsample to complexity 50.\n"
-        << "Run different simplification approaches.\n"
-        << "For each curve, evaluate with CDTW and compute statistics over the "
-        << "dataset.\n"
-        << "Time is total time in ms. The rest are CDTW values.\n" << std::endl
-        << "Save the simplifications and subsampled curves in ./simpl/.\n"
-        << "Report the costs for the specific curves.\n"
-        << "The curves chosen are the worst ones for specific approaches.\n"
-        << std::endl;
-    std::cout << "Character dataset\n";
-    auto const curves_char = io::read_curves("data/characters/data");
-    auto const samples_char = experiments::sample(curves_char, 10, 50);
-    experiments::evaluate(samples_char, 12, "char");
-
-    std::cout << "Pigeon dataset\n";
-    auto const curves_pigeon = io::read_curves("data/Data_for_Mann_et_al_RSBL 2"
-        "/Bladon & Church route recapping/bladon heath/utm", 1);
-    auto const samples_pigeon = experiments::sample(curves_pigeon, 1, 40);
-    experiments::evaluate(samples_pigeon, 6, "pigeon", 2);
-}
-
 }
 
 int main() {
     static_assert(std::numeric_limits<distance_t>::is_iec559,
         "IEEE 754 arithmetic is assumed.");
-    // io::read_curves("data/Data_for_Mann_et_al_RSBL 2/Bladon & Church route recapping/bladon heath", 1);
-    // io::read_curves("data");
-//    const auto distance_matrix = read_matrix("data/out/distance_matrix.mtx");
-//    compute_clusters(distance_matrix, 19); // "characters" has 19 classes
-
-    //const auto curves = read_curves("data/characters/data");
-    //const auto distance_matrix = compute_distance_matrix(curves);
-    //export_matrix(distance_matrix, "data/out/distance_matrix.mtx");
-
-    //experiment_visualize_band();
-    //evaluate_greedy_simplification();
-    // evaluate_frechet_simplifications();
-    // test_clustering();
-    // write_simplifications();
-    // test_clustering_algs();
-    // test_center_algs();
-    // test_pam_with_centering();
-
-    // const auto curves = read_curves("data/characters/data");
-    // const auto dm = compute_distance_matrix(curves);
-    // export_matrix(dm, "data/out/distance_matrix.mtx");
-
-    // const auto distance_matrix = read_matrix("data/out/distance_matrix.mtx");
-    // compute_clusters(distance_matrix, 19); // "characters" has 19 classes
-
-    // test_frechet();
-    // compute_curve_simp_matrix();
-    // run_experiments();
-    // preliminary_experiments();
-
+    std::cout << "This is the codebase illustrating the experiments in the "
+        << "paper\n(k, l)-Medians Clustering of Trajectories Using Continuous "
+        << "Dynamic Time Warping\nby Milutin Brankovic, Kevin Buchin, Koen "
+        << "Klaren, Andre Nusser, Aleksandr Popov,\nand Sampson Wong.\nPlease "
+        << "consult https://github.com/Mesoptier/trajectory-clustering for more"
+        << " info.\n\nWe first run the simplification-related experiments (see "
+        << "Sections 5.2, 6.3);\nthen we evaluate the initial clustering "
+        << "approaches on the pigeon dataset (see\nSections 5.1, 6.2); then we "
+        << "compare the center update methods on all three\ndatasets, taking "
+        << "the best simplification and initial clustering approaches (see\n"
+        << "Sections 5.3, 6.4). Finally, we run some extra experiments that "
+        << "may provide some\nextra information, but are less interesting and "
+        << "did not make the cut.\n" << std::endl;
     simplification_comparison_and_plot();
+    main_clustering_experiments();
+    char answer = 'z';
+    do {
+        std::cout << "Would you like to perform the center update experiments "
+            << "on all datasets for\ndifferent values of k? This might take a "
+            << "while. [y/n]\n";
+        std::cin >> answer;
+    } while (!std::cin.fail() && answer != 'y' && answer != 'n');
+    if (answer == 'y')
+        k_clustering_experiments();
 
-    // experiments::center_update_experiments();
-    // characterClassification();
-    // synth::generate_curves(Curve({{0, 0}, {10, 10}, {20, 20}, {30, 30}, {40, 40}, {50, 50}, {60, 60}, {70, 70}, {80, 80}, {90, 90}, {100, 100}, {110, 110}, {120, 120}, {130, 130}}), 5);
-    // synth::write_curves();
-    // synthetic_curve_experiment();
-    // Curve curve1 = Curve({{-13.519655, 518.2176}, {-13.4540596224652, 518.171459590597}, {-13.4312466704293, 518.128483280568}, {-13.3730548740233, 518.11155638744}, {-13.3532487713532, 518.103879442256}, {-13.3012273722711, 518.081146702316}, {-13.2822606164468, 518.062349118219}, {-13.2407413511353, 518.010277368733}, {-13.2249619456808, 517.946611346145}, {-13.2343869456808, 517.908641346145}, {-13.2343869456808, 517.908641346145}, {-13.2343869456808, 517.908641346145}, {-13.1726447645511, 517.82374300373}});
-    // std::cout << approx_equal(curve1[curve1.size()-2], curve1[curve1.size()-3]) << "\n";
-// {
-//     auto start_time = std::chrono::high_resolution_clock::now();
-//     auto ret = simplification::imai_iri::simplify(curves[0], 5);
-//     auto end_time = std::chrono::high_resolution_clock::now();
-//     auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time).count();
-//     std::cout << "Time: " << duration << "ms\n";
-//     std::cout << "Cost: " << ret.first << "\n";
-//     std::cout << "Curve:";
-//     for (const auto& p: ret.second.get_points())
-//         std::cout << " " << p;
-//     std::cout << "\n";
-//     std::cout << "Length: " << ret.second.size() << std::endl;
-// }
-// {
-//     auto start_time = std::chrono::high_resolution_clock::now();
-//     DTW distance(curves[0], curves[1]);
-//     auto end_time = std::chrono::high_resolution_clock::now();
-//     auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time).count();
-//     std::cout << "Time: " << duration << "ms\n";
-//     std::cout << "Cost: " << distance.cost() << "\n";
-//     std::cout << "Matching:";
-//     for (const auto& p: distance.matching())
-//         std::cout << " (" << p.first << ", " << p.second << ")";
-//     std::cout << std::endl;
-// }
-    // experiment_with_or_without_bands();
-    // experiment_visualize_band();
+    answer = 'z';
+    do {
+        std::cout << "Would you like to perform extra experiments (not described"
+            << " in the paper)?\nThey are probably less interesting / incomplete."
+            << " [y/n]\n";
+        std::cin >> answer;
+    } while (!std::cin.fail() && answer != 'y' && answer != 'n');
+    if (answer == 'y')
+        extra_experiments();
+    std::cout << "Bye!" << std::endl;
     return 0;
 }

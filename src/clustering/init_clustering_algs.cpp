@@ -171,6 +171,23 @@ namespace {
             clustering[min_cluster_id].curve_ids.push_back(curve_id);
         }
     }
+
+    Clustering convert_cids_to_clustering(std::size_t k, Curves const& curves,
+            std::vector<std::size_t> const& initial_centers, std::size_t l,
+            CurveSimpMatrix const& dist_matrix,
+            std::function<bool(Curve const&, Curve const&, distance_t)> const& lt_simp,
+            bool naive_simplification) {
+        Clustering result;
+        result.reserve(k);
+        for (auto const& id: initial_centers) {
+            auto center = naive_simplification ?
+                curves[id].naive_l_simplification(l) : 
+                simplification::greedy::simplify(curves[id], l, lt_simp);
+            result.push_back({{}, std::move(center), id});
+        }
+        updateClustering(result, dist_matrix);
+        return result;
+    }
 } // end anonymous namespace
 
 std::string clustering::toString(ClusterAlg cluster_alg) {
@@ -204,6 +221,10 @@ Clustering clustering::computeClustering(Curves const& curves,
             lt_simp, naive_simplification);
     case ClusterAlg::PAM:
         return pam_with_simplifications(curves, k, l,
+            dynamic_cast<CurveSimpMatrix const&>(dist_matrix),
+            lt_simp, naive_simplification);
+    case ClusterAlg::GonzalezPAM:
+        return gonzalez_pam(curves, k, l,
             dynamic_cast<CurveSimpMatrix const&>(dist_matrix),
             lt_simp, naive_simplification);
     }
@@ -276,19 +297,30 @@ Clustering clustering::pam_with_simplifications(Curves const& curves,
         bool naive_simplification) {
     std::vector<std::size_t> initial_centers =
         clustering::pam::compute(curves.size(), k, dist_matrix);
+    return convert_cids_to_clustering(k, curves, initial_centers, l,
+        dist_matrix, lt_simp, naive_simplification);
+}
 
-    // Convert the result into the required format and compute simplifications
-    // of the center curves.
-    Clustering clustering;
-    for (auto const& center_id: initial_centers) {
-        DEBUG(curves[center_id].name());
-        auto simplified_center = naive_simplification ?
-            curves[center_id].naive_l_simplification(l) :
-            simplification::greedy::simplify(curves[center_id], l, lt_simp);
-        clustering.push_back({{}, simplified_center, center_id, 0});
-    }
-    ::updateClustering(clustering, dist_matrix);
-    return clustering;
+Clustering clustering::gonzalez_pam(Curves const& curves,
+        std::size_t k, std::size_t l, CurveSimpMatrix const& dist_matrix,
+        std::function<bool(Curve const&, Curve const&, distance_t)> const& lt_simp,
+        bool naive_simplification) {
+    // 1. Run Gonzalez.
+    auto dummy_dist = [](Curve const&, Curve const&) {
+        return 0.0;
+    };
+    Clustering initial = gonzalez(curves, k, l, dist_matrix, dummy_dist,
+        lt_simp, naive_simplification);
+    // 2. Shuffle things around.
+    std::vector<std::size_t> medoids;
+    medoids.reserve(k);
+    for (auto const& cluster: initial)
+        medoids.emplace_back(cluster.center_id);
+    // 3. Run PAM improvement on the centers from Gonzalez.
+    clustering::pam::compute_init(curves.size(), dist_matrix, medoids);
+    // 4. Shuffle things around again.
+    return convert_cids_to_clustering(k, curves, medoids, l, dist_matrix,
+        lt_simp, naive_simplification);
 }
 
 void clustering::updateClustering(Clustering& clustering, Curves const& curves,

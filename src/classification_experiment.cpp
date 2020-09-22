@@ -18,7 +18,7 @@ using time_point = hrc::time_point;
 using ns = std::chrono::nanoseconds;
 using ms = std::chrono::milliseconds;
 
-Curves classification::sample(const Curves& curves, unsigned period) {
+Curves classification::sample(Curves const& curves, unsigned period) {
     Curves samples;
     for (std::size_t i = 0; i < curves.size(); i += period)
         samples.push_back(curves[i]);
@@ -26,7 +26,9 @@ Curves classification::sample(const Curves& curves, unsigned period) {
 }
 
 void classification::characterClassification(
-        clustering::ClusterAlg cluster_alg, clustering::CenterAlg center_alg) {
+        clustering::ClusterAlg cluster_alg, clustering::CenterAlg center_alg,
+        std::function<distance_t(Curve const&, Curve const&)> const& init_dist,
+        std::function<distance_t(Curve const&, Curve const&)> const& dist) {
     unsigned const k = 6;
     unsigned const l = 12;
     unsigned const k_xv = 5; // the k of the cross-validation
@@ -68,7 +70,9 @@ void classification::characterClassification(
                     curves_slots[j].begin(), curves_slots[j].end());
             }
             auto clustering = computeCenterClustering(training_curves, k, l,
-                cluster_alg, center_alg, df::frechet, df::frechet, "", 1);
+                false, false, cluster_alg, center_alg,
+                CurveSimpMatrix({}, {}, df::frechet), init_dist, dist,
+                df::frechet_lt, 1);
             for (auto const& cluster: clustering)
                 centers.push_back(std::move(cluster.center_curve));
 

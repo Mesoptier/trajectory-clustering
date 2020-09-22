@@ -4,6 +4,7 @@ set(SOURCE_FILES
     classification_experiment.cpp
     Curve.cpp
     distance_functions.cpp
+    experiments.cpp
     geom.cpp
     simplification_experiment.cpp
     synthetic_curves.cpp
@@ -11,6 +12,7 @@ set(SOURCE_FILES
     clustering/center_update.cpp
     clustering/init_clustering_algs.cpp
     clustering/pam.cpp
+    clustering/plot_clustering.cpp
     clustering/util/wedge.cpp
     DTW/dtw.cpp
     Frechet/filter.cpp
@@ -32,4 +34,3 @@ set(SOURCE_FILES
 
 add_library(TrajectoryClustering_lib STATIC ${SOURCE_FILES} ${HEADER_FILES})
 target_include_directories(TrajectoryClustering_lib PUBLIC ./)
-# target_link_libraries (TrajectoryClustering_lib Eigen3::Eigen)

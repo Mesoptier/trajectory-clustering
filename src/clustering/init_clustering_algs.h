@@ -15,6 +15,7 @@ namespace clustering {
         SingleLinkage,
         CompleteLinkage,
         Gonzalez,
+        GonzalezPAM,
         PAM
     };
     std::string toString(ClusterAlg cluster_alg);
@@ -44,6 +45,11 @@ namespace clustering {
 
     Clustering pam_with_simplifications(Curves const& curves,
         std::size_t k, std::size_t l, CurveSimpMatrix const& dist_matrix,
+        std::function<bool(Curve const&, Curve const&, distance_t)> const& lt_simp,
+        bool naive_simplification);
+
+    Clustering gonzalez_pam(Curves const& curves, std::size_t k, std::size_t l,
+        CurveSimpMatrix const& dist_matrix,
         std::function<bool(Curve const&, Curve const&, distance_t)> const& lt_simp,
         bool naive_simplification);
 

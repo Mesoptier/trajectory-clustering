@@ -11,7 +11,7 @@
 namespace detail {
     template<typename... Args>
     Clustering computeCenterClusteringRound(Curves const& curves,
-            std::size_t k, std::size_t l, bool fix_endpoints,
+            std::size_t k, std::size_t l, bool fix_start, bool fix_end,
             clustering::ClusterAlg cluster_alg, clustering::CenterAlg center_alg,
             DistanceMatrix<distance_t> const& dist_matrix,
             std::function<distance_t(Curve const&, Curve const&)> const&
@@ -24,10 +24,11 @@ namespace detail {
 
         // iterate as long as there are new centers
         unsigned count = 1;
-        unsigned const max_count = 1;
+        unsigned const max_count = 20;
         while (count <= max_count) {
             bool res = clustering::computeCenters(curves, clustering,
-                center_alg, fix_endpoints, dist, std::forward<Args>(args)...);
+                center_alg, fix_start, fix_end, dist,
+                std::forward<Args>(args)...);
             if (!res)
                 break;
             clustering::updateClustering(clustering, curves, dist);
@@ -40,7 +41,7 @@ namespace detail {
 namespace clustering {
     template<typename... Args>
     Clustering computeCenterClustering(Curves const& curves,
-            std::size_t k, std::size_t l, bool fix_endpoints,
+            std::size_t k, std::size_t l, bool fix_start, bool fix_end,
             ClusterAlg cluster_alg, CenterAlg center_alg,
             DistanceMatrix<distance_t> const& dist_matrix,
             std::function<distance_t(Curve const&, Curve const&)> const&
@@ -52,12 +53,12 @@ namespace clustering {
         Clustering min_clustering;
         distance_t min_cost = std::numeric_limits<distance_t>::max();
 
-        // To accommodate for randomness in initial clustering and updates, we try
-        // the entire pipeline several times and pick the best result.
+        // To accommodate for randomness in initial clustering and updates, we
+        // try the entire pipeline several times and pick the best result.
         for (unsigned round = 0; round < max_rounds; ++round) {
             auto clustering = detail::computeCenterClusteringRound(curves, k, l,
-                fix_endpoints, cluster_alg, center_alg, dist_matrix, init_dist,
-                dist, lt_simp, std::forward<Args>(args)...);
+                fix_start, fix_end, cluster_alg, center_alg, dist_matrix,
+                init_dist, dist, lt_simp, std::forward<Args>(args)...);
             distance_t cost_sum = 0.0;
             for (auto const& cluster: clustering)
                 cost_sum += cluster.cost;

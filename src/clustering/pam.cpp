@@ -190,3 +190,33 @@ std::vector<std::size_t> clustering::pam::compute(std::size_t n, std::size_t k,
 
     return medoids;
 }
+
+void clustering::pam::compute_init(std::size_t n,
+        DistanceMatrix<distance_t> const& d, std::vector<std::size_t>& init) {
+    std::size_t k = init.size();
+    std::vector<distance_t> smallest_dist(n,
+        std::numeric_limits<distance_t>::infinity());
+
+    for (std::size_t i = 0; i < n; ++i) {
+        for (std::size_t j = 0; j < k; ++j) {
+            auto new_dist = d.at(i, init[j]);
+            if (new_dist < smallest_dist[i])
+                smallest_dist[i] = new_dist;
+        }
+    }
+    distance_t td = 0.0;
+    for (auto const& dist: smallest_dist)
+        td += dist;
+
+    swap(n, d, td, init);
+
+    std::sort(init.begin(), init.end());
+
+    #ifndef NDEBUG
+    std::cerr << "td: " << td << '\n';
+    std::cerr << "medoids:";
+    for (auto const& m: init)
+        std::cerr << ' ' << m;
+    std::cerr << std::endl;
+    #endif
+}

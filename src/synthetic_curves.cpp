@@ -36,8 +36,6 @@ std::vector<Curve> synth::generate_curves(Curve const& curve,
 }
 
 void synth::write_curves(Curve const& base) {
-    // auto curves = io::read_curves("data/characters/data");
-    // Curve curve = curves[0];
     auto synthetic_curves = generate_curves(base, 20);
     std::ofstream dataset("synthetic_curves/dataset.txt",
         std::fstream::out | std::fstream::trunc);

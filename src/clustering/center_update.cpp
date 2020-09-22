@@ -72,7 +72,7 @@ namespace {
 }
 
 Curve clustering::fsa_update(Curves const& curves, Cluster const& cluster,
-        bool fix_endpoints) {
+        bool fix_start, bool fix_end) {
     std::vector<Points> matchings;
     auto const& center_curve = cluster.center_curve;
     Curve new_center_curve;
@@ -83,14 +83,13 @@ Curve clustering::fsa_update(Curves const& curves, Cluster const& cluster,
         matchings.push_back(std::move(matching));
     }
 
-    if (fix_endpoints)
+    if (fix_start)
         new_center_curve.push_back(center_curve[0]);
 
-    for (PointID point_id = fix_endpoints;
-            point_id < center_curve.size() - fix_endpoints; ++point_id) {
+    for (PointID i = fix_start; i < center_curve.size() - fix_end; ++i) {
         Points matching_points;
         for (auto const& matching: matchings) {
-            matching_points.push_back(matching[point_id]);
+            matching_points.push_back(matching[i]);
         }
         auto min_enclosing_circle = calcMinEnclosingCircle(matching_points);
         Point new_point = min_enclosing_circle.center;
@@ -99,13 +98,13 @@ Curve clustering::fsa_update(Curves const& curves, Cluster const& cluster,
             new_center_curve.push_back(new_point);
     }
 
-    if (fix_endpoints)
+    if (fix_end)
         new_center_curve.push_back(center_curve.back());
     return new_center_curve;
 }
 
 Curve clustering::dba_update(Curves const& curves, Cluster const& cluster,
-        bool fix_endpoints) {
+        bool fix_start, bool fix_end) {
     auto const& center_curve = cluster.center_curve;
     Curve new_center_curve;
     std::vector<std::vector<Points>> matchings;
@@ -128,11 +127,10 @@ Curve clustering::dba_update(Curves const& curves, Cluster const& cluster,
         matchings.push_back(std::move(matching));
     }
 
-    if (fix_endpoints)
+    if (fix_start)
         new_center_curve.push_back(center_curve[0]);
 
-    for (PointID i = fix_endpoints;
-            i < center_curve.size() - fix_endpoints; ++i) {
+    for (PointID i = fix_start; i < center_curve.size() - fix_end; ++i) {
         Points points_to_average;
 
         for (auto const& matching: matchings)
@@ -146,13 +144,13 @@ Curve clustering::dba_update(Curves const& curves, Cluster const& cluster,
             new_center_curve.push_back(new_point);
     }
 
-    if (fix_endpoints)
+    if (fix_end)
         new_center_curve.push_back(center_curve.back());
     return new_center_curve;
 }
 
 Curve clustering::cdba_update(Curves const& curves, Cluster const& cluster,
-        bool fix_endpoints) {
+        bool fix_start, bool fix_end) {
     auto const& center_curve = cluster.center_curve;
     Curve new_center_curve;
     std::vector<std::vector<Points>> matchings;
@@ -192,11 +190,10 @@ Curve clustering::cdba_update(Curves const& curves, Cluster const& cluster,
         matchings.push_back(std::move(matching));
     }
 
-    if (fix_endpoints)
+    if (fix_start)
         new_center_curve.push_back(center_curve[0]);
 
-    for (PointID i = fix_endpoints;
-            i < center_curve.size() - fix_endpoints; ++i) {
+    for (PointID i = fix_start; i < center_curve.size() - fix_end; ++i) {
         Points points_to_average;
         for (auto const& matching: matchings)
             for (auto const& point: matching[i])
@@ -209,13 +206,13 @@ Curve clustering::cdba_update(Curves const& curves, Cluster const& cluster,
             new_center_curve.push_back(new_point);
     }
 
-    if (fix_endpoints)
+    if (fix_end)
         new_center_curve.push_back(center_curve.back());
     return new_center_curve;
 }
 
 Curve clustering::wedge_update(Curves const& curves, Cluster const& cluster,
-        bool fix_endpoints, distance_t eps, int radius) {
+        bool fix_start, bool fix_end, distance_t eps, int radius) {
     const auto& center_curve = cluster.center_curve;
     Curve new_center_curve;
     std::map<CurveID, Points> matching_paths;
@@ -259,38 +256,51 @@ Curve clustering::wedge_update(Curves const& curves, Cluster const& cluster,
             new_center_curve.push_back(new_point);
     }
 
-    if (fix_endpoints) {
+    if (fix_start && fix_end) {
         new_center_curve.push_back(center_curve.back());
         return new_center_curve;
     }
 
+    if (!fix_end) {
+        Points last_points{new_center_curve.back(), center_curve.back(),
+            {0, 0}};
+        Wedge last_wedge(last_points, WedgePoints());
+        for (auto const& curve_id: cluster.curve_ids) {
+            Curve const& curve = curves[curve_id];
+            Points param_space_path = matching_paths.at(curve_id);
+            WedgePoints last_wps = get_points_matched_to_segment(
+                param_space_path, center_curve, curve,
+                center_curve.size() - 2, 0);
+            last_wedge.wedge_points.insert(last_wedge.wedge_points.end(),
+                std::make_move_iterator(last_wps.begin()),
+                std::make_move_iterator(last_wps.end()));
+        }
+        auto last_point = grid_search(last_wedge, eps, radius);
+        if (!approx_equal(last_point, new_center_curve.back()))
+            new_center_curve.push_back(last_point);
+    }
+
+    if (fix_start)
+        return new_center_curve;
+
+    // !fix_start: need to rewrite the curve.
     Points first_points{{0, 0}, new_center_curve[0], new_center_curve[1]};
-    Points last_points{new_center_curve.back(), center_curve.back(), {0, 0}};
-    Wedge first_wedge(first_points, WedgePoints()),
-        last_wedge(last_points, WedgePoints());
+    Wedge first_wedge(first_points, WedgePoints());
     for (auto const& curve_id: cluster.curve_ids) {
         Curve const& curve = curves[curve_id];
         Points param_space_path = matching_paths.at(curve_id);
         WedgePoints first_wps = get_points_matched_to_segment(param_space_path,
             center_curve, curve, 0, 1);
-        WedgePoints last_wps = get_points_matched_to_segment(param_space_path,
-            center_curve, curve, center_curve.size() - 2, 0);
         first_wedge.wedge_points.insert(first_wedge.wedge_points.end(),
             std::make_move_iterator(first_wps.begin()),
             std::make_move_iterator(first_wps.end()));
-        last_wedge.wedge_points.insert(last_wedge.wedge_points.end(),
-            std::make_move_iterator(last_wps.begin()),
-            std::make_move_iterator(last_wps.end()));
     }
     auto first_point = grid_search(first_wedge, eps, radius);
-    auto last_point = grid_search(last_wedge, eps, radius);
 
     // This is ugly, but what can we do?
     Points final_points(new_center_curve.size());
     final_points[0] = first_point;
     for (std::size_t i = 1; i < new_center_curve.size(); ++i)
         final_points[i] = new_center_curve[i];
-    if (!approx_equal(last_point, new_center_curve.back()))
-        final_points.push_back(std::move(last_point));
     return Curve(final_points);
 }

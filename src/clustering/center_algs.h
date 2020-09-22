@@ -16,7 +16,7 @@ namespace clustering {
      * \brief Iterative center update methods (see paper).
      */
     enum class CenterAlg {
-        fsa, dba, cdba, wedge
+        fsa, dba, cdba, wedge, none
     };
 
     /**
@@ -56,8 +56,9 @@ namespace detail {
      * \param curves The set of curves clustered.
      * \param clustering The clustering on curves (will be updated).
      * \param c2c_dist The aggregation function for clusters.
-     * \param fix_endpoints Whether to fix the endpoints when updating the
+     * \param fix_start Whether to fix the starting points when updating the
      * center curves.
+     * \param fix_end Ditto for the end points.
      * \param dist The distance function for the curves.
      * \param center_curve_update The single center curve update function.
      * \param args Extra arguments passed to the center update function.
@@ -65,7 +66,7 @@ namespace detail {
      */
     template<typename F, typename... Args>
     bool updateCenters(clustering::Curves const& curves, Clustering& clustering,
-            clustering::C2CDist c2c_dist, bool fix_endpoints,
+            clustering::C2CDist c2c_dist, bool fix_start, bool fix_end,
             std::function<distance_t(Curve const&, Curve const&)> const& dist,
             F const& center_curve_update, Args&&... args) {
 
@@ -77,7 +78,7 @@ namespace detail {
 
         for (auto& cluster: clustering) {
             Curve new_center_curve = center_curve_update(curves, cluster,
-                fix_endpoints, std::forward<Args>(args)...);
+                fix_start, fix_end, std::forward<Args>(args)...);
 
             if (cluster.center_curve != new_center_curve) {
                 auto new_dist = calcC2CDist(curves, new_center_curve,
@@ -99,30 +100,34 @@ namespace clustering {
      * \param curves The set of curves clustered.
      * \param clustering The clustering on curves (will be updated).
      * \param center_alg The algorithm to use for center update.
-     * \param fix_endpoints Whether to fix the endpoints when updating the
+     * \param fix_start Whether to fix the starting points when updating the
      * center curves.
+     * \param fix_end Ditto for the end points.
      * \param dist The distance function for the curves.
      * \param args Extra arguments passed to the center update function.
      * \return True if centers have been updated.
      */
     template<typename... Args>
     bool computeCenters(Curves const& curves, Clustering& clustering,
-            CenterAlg center_alg, bool fix_endpoints,
+            CenterAlg center_alg, bool fix_start, bool fix_end,
             std::function<distance_t(Curve const&, Curve const&)> const& dist,
             Args&&... args) {
         switch (center_alg) {
         case CenterAlg::fsa:
             return detail::updateCenters(curves, clustering, C2CDist::Max,
-                fix_endpoints, dist, fsa_update);
+                fix_start, fix_end, dist, fsa_update);
         case CenterAlg::dba:
             return detail::updateCenters(curves, clustering, C2CDist::Mean,
-                fix_endpoints, dist, dba_update);
+                fix_start, fix_end, dist, dba_update);
         case CenterAlg::cdba:
             return detail::updateCenters(curves, clustering, C2CDist::Median,
-                fix_endpoints, dist, cdba_update);
+                fix_start, fix_end, dist, cdba_update);
         case CenterAlg::wedge:
             return detail::updateCenters(curves, clustering, C2CDist::Median,
-                fix_endpoints, dist, wedge_update, std::forward<Args>(args)...);
+                fix_start, fix_end, dist, wedge_update,
+                std::forward<Args>(args)...);
+        case CenterAlg::none:
+            return false;
         }
         ERROR("No matching center_alg enum passed.");
     }
