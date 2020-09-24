@@ -196,8 +196,9 @@ std::string clustering::toString(ClusterAlg cluster_alg) {
     case ClusterAlg::CompleteLinkage: return "CompleteLinkage";
     case ClusterAlg::Gonzalez: return "Gonzalez";
     case ClusterAlg::PAM: return "PAM";
+    case ClusterAlg::GonzalezPAM: return "Gonzalez + PAM";
+    default: ERROR("Unknown cluster_alg.");
     }
-    ERROR("Unknown cluster_alg.");
 }
 
 Clustering clustering::computeClustering(Curves const& curves,
@@ -227,8 +228,8 @@ Clustering clustering::computeClustering(Curves const& curves,
         return gonzalez_pam(curves, k, l,
             dynamic_cast<CurveSimpMatrix const&>(dist_matrix),
             lt_simp, naive_simplification);
+    default: ERROR("No matching cluster_alg enum passed.");
     }
-    ERROR("No matching cluster_alg enum passed.");
 }
 
 Clustering clustering::singleLinkage(Curves const& curves,
@@ -306,7 +307,7 @@ Clustering clustering::gonzalez_pam(Curves const& curves,
         std::function<bool(Curve const&, Curve const&, distance_t)> const& lt_simp,
         bool naive_simplification) {
     // 1. Run Gonzalez.
-    auto dummy_dist = [](Curve const&, Curve const&) {
+    auto dummy_dist = [](Curve const&, Curve const&) noexcept {
         return 0.0;
     };
     Clustering initial = gonzalez(curves, k, l, dist_matrix, dummy_dist,

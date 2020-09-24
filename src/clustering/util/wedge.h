@@ -14,10 +14,10 @@ namespace clustering {
      */
     struct WedgePoint {
         Point point;
-        std::size_t matching_segment_index;
+        unsigned matching_segment_index;
         distance_t weight;
 
-        WedgePoint(Point p, std::size_t i, distance_t w) : point(std::move(p)),
+        WedgePoint(Point p, unsigned i, distance_t w) : point(std::move(p)),
             matching_segment_index(std::move(i)), weight(std::move(w)) {}
     };
     using WedgePoints = std::vector<WedgePoint>;
@@ -49,7 +49,7 @@ namespace clustering {
      */
     WedgePoints get_points_matched_to_segment(Points const& param_space_path,
         Curve const& curve_1, Curve const& curve_2,
-        std::size_t src_index, std::size_t seg_index);
+        std::size_t src_index, unsigned seg_index);
 
     /**
      * \brief Compute the cost of the wedge (see paper).

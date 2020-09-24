@@ -96,9 +96,9 @@ void classification::characterClassification(
                 std::size_t min_id = 0;
                 for (CurveID center_id = 0; center_id < centers.size(); ++center_id) {
                     auto const& center = centers[center_id];
-                    distance_t dist = df::frechet(curve, center);
-                    if (dist < min_dist) {
-                        min_dist = dist;
+                    distance_t d = df::frechet(curve, center);
+                    if (d < min_dist) {
+                        min_dist = d;
                         min_id = center_id;
                     }
                 }

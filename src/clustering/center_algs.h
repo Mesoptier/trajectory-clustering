@@ -124,12 +124,13 @@ namespace clustering {
                 fix_start, fix_end, dist, cdba_update);
         case CenterAlg::wedge:
             return detail::updateCenters(curves, clustering, C2CDist::Median,
-                fix_start, fix_end, dist, wedge_update,
+                fix_start, fix_end, dist, wedge_wrap<Args...>,
                 std::forward<Args>(args)...);
         case CenterAlg::none:
             return false;
+        default:
+            ERROR("No matching center_alg enum passed.");
         }
-        ERROR("No matching center_alg enum passed.");
     }
 }
 #endif

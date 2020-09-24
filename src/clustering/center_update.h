@@ -61,5 +61,28 @@ namespace clustering {
     Curve wedge_update(Curves const& curves, Cluster const& cluster,
         bool fix_start = false, bool fix_end = false,
         distance_t eps = 0.125, int radius = 20);
+
+    /**
+     * \brief A wrapper to dispatch calls to wedge_update.
+     *
+     * If we try to use wedge_update directly, C++ does not know that it has
+     * default arguments, so not setting the values for eps or radius leads
+     * to code not compiling. This wrapper calls the function directly, so
+     * default arguments work as expected.
+     * \param curves The set of curves.
+     * \param cluster One of the clusters resulting from clustering curves.
+     * \param fix_start Whether we should fix or are allowed to move the
+     * starting point of the center curve.
+     * \param fix_end Ditto for the end point.
+     * \param args The optional arguments for the wedge method: nothing, or just
+     * eps, or eps and radius.
+     * \return The new center curve.
+     */
+    template<typename... Args>
+    Curve wedge_wrap(Curves const& curves, Cluster const& cluster,
+            bool fix_start, bool fix_end, Args... args) {
+        return wedge_update(curves, cluster, fix_start, fix_end,
+            std::forward<Args>(args)...);
+    }
 }
 #endif

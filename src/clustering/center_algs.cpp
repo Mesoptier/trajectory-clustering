@@ -7,8 +7,8 @@ std::string clustering::toString(CenterAlg center_alg) {
     case CenterAlg::cdba: return "CDBA";
     case CenterAlg::wedge: return "Wedge method";
     case CenterAlg::none: return "No center update";
+    default: ERROR("Unknown center_alg.");
     }
-    ERROR("Unknown center_alg.");
 }
 
 distance_t clustering::calcC2CDist(Curves const& curves,
@@ -27,6 +27,7 @@ distance_t clustering::calcC2CDist(Curves const& curves,
         case C2CDist::Max:
             d = std::max(d, curve_dist);
             break;
+        default: ERROR("Unknown c2c_dist.");
         }
     }
     return d;

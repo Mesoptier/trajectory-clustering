@@ -50,7 +50,7 @@ namespace {
         matrix.write(out);
     }
 
-    void compute_dist_matrix(Curves const& curves,
+    [[maybe_unused]] void compute_dist_matrix(Curves const& curves,
             std::function<distance_t(Curve const&, Curve const&)> const& dist,
             std::string const& out) {
         SymmetricMatrix matrix(curves.size());
@@ -70,7 +70,7 @@ namespace {
         return CurveSimpMatrix(file);
     }
 
-    SymmetricMatrix read_or_create(std::string const& file,
+    [[maybe_unused]] SymmetricMatrix read_or_create(std::string const& file,
             Curves const& curves,
             std::function<distance_t(Curve const&, Curve const&)> const& dist) {
         if (!std::filesystem::exists(file))
@@ -130,7 +130,7 @@ void experiments::initial_clustering_experiment() {
         for (auto const& curve: raw_pigeon_curves)
             curves.emplace_back(curve.naive_l_simplification(200));
 
-        auto const dummy_dist = [](Curve const&, Curve const&) {
+        auto const dummy_dist = [](Curve const&, Curve const&) noexcept {
             return 0.0;
         };
         CurveSimpMatrix dist_matrix = read_or_create(dist_matrix_path, curves,
@@ -197,7 +197,7 @@ void experiments::center_update_experiment_movebank(
         throw std::runtime_error("Failed to open file " + filename);
     clustering_names << "cdba\nwedge\ndba\nfsa";
 
-    auto const dummy_dist = [](Curve const&, Curve const&) {
+    auto const dummy_dist = [](Curve const&, Curve const&) noexcept {
         return 0.0;
     };
     CurveSimpMatrix dist_matrix = read_or_create("movebank.txt", curves, l,
@@ -256,7 +256,7 @@ void experiments::center_update_experiment_characters(
             "k_med_scores.csv");
     k_med_scores << "characters,DBA,FSA,CDBA,Wedge,initial\n";
 
-    auto const dummy_dist = [](Curve const&, Curve const&) {
+    auto const dummy_dist = [](Curve const&, Curve const&) noexcept {
         return 0.0;
     };
     for (auto const& [letter, crv]: curves_by_letter) {
@@ -332,7 +332,7 @@ void experiments::center_update_experiment_pigeons(
         "H22", "H27", "H30", "H35", "H38", "H41", "H42", "H71"};
     std::vector<std::string> p_ws {
         "H23", "H31", "H32", "H34", "H36", "H50", "H58", "H62"};
-    std::array<std::vector<std::string> const&, 4> sites {
+    std::vector<std::vector<std::string>> sites {
         p_bl, p_ch, p_hp, p_ws};
     std::array<std::string, 4> site_paths {
         "Bladon & Church route recapping/bladon heath",
@@ -357,7 +357,7 @@ void experiments::center_update_experiment_pigeons(
             "k_med_scores.csv");
     k_med_scores << "pigeons\tdba\tfsa\tcdba\twedge\tinitial\n";
 
-    auto const dummy_dist = [](Curve const&, Curve const&) {
+    auto const dummy_dist = [](Curve const&, Curve const&) noexcept {
         return 0.0;
     };
     for (std::string const& pigeon: pigeons) {
@@ -438,7 +438,7 @@ void experiments::find_wedge_params_pigeons() {
         curves.emplace_back(curve.naive_l_simplification(200));
 
     std::size_t k = 3, l = 10;
-    auto const dummy_dist = [](Curve const&, Curve const&) {
+    auto const dummy_dist = [](Curve const&, Curve const&) noexcept {
         return 0.0;
     };
     CurveSimpMatrix dist_matrix = read_or_create("pigeons/" + pigeon + ".txt",
