@@ -11,14 +11,8 @@ out/
 .vscode
 
 #plotting
-curves
-plot.txt
 figures
 results
-
-cluster
-benchmark_stats.csv
-data/
 
 characters_matrix.txt
 pigeon_matrix.txt
@@ -32,10 +26,8 @@ cmake_install.cmake
 
 # and executables
 gmon.out
-src/experiments
-analysis.txt
 
 # and random things
 compile_commands.json
 *.tar.xz
-test_script.txt
+
