@@ -30,5 +30,5 @@ def main():
                     print(x, y, file=out)
     pathlib.Path('mixoutALL_shifted.mat').unlink()
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     main()

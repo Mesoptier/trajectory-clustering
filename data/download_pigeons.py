@@ -39,5 +39,5 @@ def main():
                     if x.name != 'dataset.txt':
                         print(x.name, file=ds)
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     main()
