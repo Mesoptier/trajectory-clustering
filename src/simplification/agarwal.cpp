@@ -67,7 +67,7 @@ namespace {
         PointID start = 0, exp = 1;
         while (start + exp < in.size()) {
             PointID next = std::min(start + 2 * exp, in.size());
-            for (PointID i = exp; i < next; ++i)
+            for (PointID i = start + exp; i < next; ++i)
                 next_curve.push_back(in[i]);
             if (less_than(Curve({next_curve.front(), next_curve.back()}),
                           next_curve, delta)) {
@@ -76,7 +76,7 @@ namespace {
             }
             else {
                 next_curve = prefix_curve;
-                PointID max = next - 1, min = exp;
+                PointID max = next - 1, min = start + exp;
                 while (max > min) {
                     auto mid = min + (max - min) / 2;
                     for (PointID i = min; i <= mid; ++i)
@@ -92,19 +92,20 @@ namespace {
                     }
                 }
                 simplified_curve.push_back(prefix_curve.back());
-                prefix_curve = Curve({simplified_curve.back()});
-                next_curve = prefix_curve;
                 start += prefix_curve.size() - 1;
                 exp = 1;
+                prefix_curve = Curve({simplified_curve.back()});
+                next_curve = prefix_curve;
             }
         }
 
-        simplified_curve.push_back(in.back());
+        if (!approx_equal(simplified_curve.back(), in.back()))
+            simplified_curve.push_back(in.back());
         return simplified_curve;
     }
 }
 
-Curve simplification::greedy::simplify(Curve const& in, PointID const& ell,
+Curve simplification::greedy::simplify(Curve const& in, std::size_t ell,
         std::function<bool(Curve const&, Curve const&, distance_t)> const&
         less_than) {
     static constexpr distance_t epsilon = 1e-8;
@@ -132,7 +133,7 @@ Curve simplification::greedy::simplify(Curve const& in, PointID const& ell,
 Curve simplification::greedy::simplify(Curve const& in, distance_t delta,
         std::function<bool(Curve const&, Curve const&, distance_t)> const&
         less_than) {
-    if (in.size() < 100)
+    if (in.size() < 200)
         return simplify_naive(in, delta, less_than);
     return simplify_exponential(in, delta, less_than);
 }

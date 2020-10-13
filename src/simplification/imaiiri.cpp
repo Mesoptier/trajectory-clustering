@@ -45,7 +45,7 @@ namespace {
 }
 
 std::pair<distance_t, Curve> simplification::imai_iri::simplify(Curve const& in,
-        PointID const& ell,
+        std::size_t ell,
         std::function<distance_t(Curve const&, Curve const&)> const& dist,
         bool max) {
     assert(in.size() > 1);
@@ -53,7 +53,11 @@ std::pair<distance_t, Curve> simplification::imai_iri::simplify(Curve const& in,
     SymmetricMatrix distances(in.size());
     for (PointID i(0); i < in.size(); ++i) {
         for (PointID j(i); j < in.size(); ++j) {
-            if (i == j)
+            // We never want a shortcut that does not go anywhere. This means
+            // our simplification has two identical points next to each other,
+            // so we can just remove one of them and get a solution that is also
+            // feasible, but better in terms of the number of segments.
+            if (i == j || approx_zero(in[i].dist_sqr(in[j])))
                 distances.at(i, j) = std::numeric_limits<distance_t>::infinity();
             else if (j == i + 1)
                 distances.at(i, j) = 0.0;
@@ -109,7 +113,7 @@ std::pair<distance_t, Curve> simplification::imai_iri::simplify(Curve const& in,
     return {cost, Curve("", simpl_points)};
 }
 
-Curve simplification::imai_iri::simplify(Curve const& in, PointID const& ell,
+Curve simplification::imai_iri::simplify(Curve const& in, std::size_t ell,
         std::function<bool(Curve const&, Curve const&, distance_t)> const&
         less_than) {
     // Note: if you know that the value of distance is the distance between

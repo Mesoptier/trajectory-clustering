@@ -9,7 +9,7 @@
 
 namespace {
     void simplification_comparison_and_plot() {
-        std::cout << "\n" << std::endl;
+        std::cout << std::endl;
         std::cout << std::string(80, '-') << "\nSIMPLIFICATION EXPERIMENT\n"
             << std::string(80, '-') << "\n";
         std::cout << "Load dataset, sample curves, subsample to complexity 50.\n"
@@ -28,14 +28,14 @@ namespace {
         experiments::evaluate(samples_char, 12, "char");
 
         std::cout << "Pigeon dataset\n";
-        auto const curves_pigeon = io::read_curves("data/Data_for_Mann_et_al_RSBL 2"
+        auto const curves_pigeon = io::read_curves("data/Data_for_Mann_et_al_RSBL"
             "/Bladon & Church route recapping/bladon heath/utm", 1);
         auto const samples_pigeon = experiments::sample(curves_pigeon, 1, 40);
         experiments::evaluate(samples_pigeon, 6, "pigeon", 2);
     }
 
     void main_clustering_experiments() {
-        std::cout << "\n" << std::endl;
+        std::cout << std::endl;
         std::cout << std::string(80, '-') << "\nINITIAL CLUSTERING EXPERIMENT\n"
             << std::string(80, '-') << "\n";
         std::cout << "Load dataset, sample curves, subsample to complexity 200.\n"
@@ -43,9 +43,9 @@ namespace {
             << "For each cluster, evaluate with k-medians + CDTW.\n"
             << "Save results in results/initial_clustering_experiment/"
             << "results.txt\n" << std::endl;
-        experiments::initial_clustering_experiment();
+        // experiments::initial_clustering_experiment();
 
-        std::cout << "\n" << std::endl;
+        std::cout << std::endl;
         std::cout << std::string(80, '-') << "\nCENTER UPDATE EXPERIMENTS\n"
             << std::string(80, '-') << "\n";
         std::cout << "For each of the datasets, subsample curves to complexity 200.\n"
@@ -61,7 +61,7 @@ namespace {
     }
 
     void k_clustering_experiments() {
-        std::cout << "\n" << std::endl;
+        std::cout << std::endl;
         std::cout << std::string(80, '-')
             << "\nCENTER UPDATE EXPERIMENTS FOR RANGE OF K\n"
             << std::string(80, '-') << "\n";
@@ -75,7 +75,7 @@ namespace {
     }
 
     void extra_experiments() {
-        std::cout << "\n" << std::endl;
+        std::cout << std::endl;
         std::cout << std::string(80, '-') << "\nSYNTHETIC CURVES EXPERIMENT\n"
             << std::string(80, '-') << "\n";
         std::cout << "Load the first handwritten a, subsample to complexity 200.\n"
@@ -84,7 +84,7 @@ namespace {
             << "Save results in plot.txt\n" << std::endl;
         experiments::synthetic_curve_experiment();
 
-        std::cout << "\n" << std::endl;
+        std::cout << std::endl;
         std::cout << std::string(80, '-') << "\nCLASSIFICATION EXPERIMENT\n"
             << std::string(80, '-') << "\n";
         std::cout << "Load a sample of the character dataset.\n"
@@ -92,7 +92,7 @@ namespace {
             << "Report results on stdout.\n" << std::endl;
         classification::characterClassification();
 
-        std::cout << "\n" << std::endl;
+        std::cout << std::endl;
         std::cout << std::string(80, '-') << "\nWEDGE PARAMETER EXPERIMENT\n"
             << std::string(80, '-') << "\n";
         std::cout << "Load the trajectories of a specific pigeon.\n"
@@ -118,7 +118,7 @@ int main() {
         << "Sections 5.3, 6.4). Finally, we run some extra experiments that "
         << "may provide some\nextra information, but are less interesting and "
         << "did not make the cut.\n" << std::endl;
-    simplification_comparison_and_plot();
+    // simplification_comparison_and_plot();
     main_clustering_experiments();
     char answer = 'z';
     do {

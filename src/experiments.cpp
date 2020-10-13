@@ -124,7 +124,7 @@ void experiments::initial_clustering_experiment() {
         std::string const& dist_matrix_path = dist_matrix_paths[i];
 
         Curves raw_pigeon_curves = io::read_curves(
-            "data/Data_for_Mann_et_al_RSBL 2/" + site + "/utm/");
+            "data/Data_for_Mann_et_al_RSBL/" + site + "/utm", 1);
         Curves curves;
         curves.reserve(raw_pigeon_curves.size());
         for (auto const& curve: raw_pigeon_curves)
@@ -137,7 +137,6 @@ void experiments::initial_clustering_experiment() {
             10, df::integral_frechet);
 
         for (std::size_t k = 1; k <= 10; ++k) {
-            std::cout << site << "\n";
             // Run the experiment 6 times without center updates, helps with
             // randomness in Gonzalez initialization.
             Clustering gonzalez_pam_res =
@@ -259,6 +258,7 @@ void experiments::center_update_experiment_characters(
     auto const dummy_dist = [](Curve const&, Curve const&) noexcept {
         return 0.0;
     };
+    std::filesystem::create_directory("characters");
     for (auto const& [letter, crv]: curves_by_letter) {
         CurveSimpMatrix dist_matrix = read_or_create(std::string("characters/")
             + letter + ".txt", crv, l, df::integral_frechet);
@@ -360,9 +360,10 @@ void experiments::center_update_experiment_pigeons(
     auto const dummy_dist = [](Curve const&, Curve const&) noexcept {
         return 0.0;
     };
+    std::filesystem::create_directory("pigeons");
     for (std::string const& pigeon: pigeons) {
-        Curves raw_curves = io::read_curves("data/Data_for_Mann_et_al_RSBL 2/" +
-            pigeon + "/utm/");
+        Curves raw_curves = io::read_curves("data/Data_for_Mann_et_al_RSBL/" +
+            pigeon + "/utm", 1);
         Curves curves;
         curves.reserve(raw_curves.size());
         for (auto const& curve: raw_curves)
@@ -430,8 +431,8 @@ void experiments::curve_complexity_experiment_pigeons() {
 void experiments::find_wedge_params_pigeons() {
     std::string const pigeon =
         "Bladon & Church route recapping/bladon heath/a55";
-    Curves raw_curves = io::read_curves("data/Data_for_Mann_et_al_RSBL 2/" +
-        pigeon + "/utm/");
+    Curves raw_curves = io::read_curves("data/Data_for_Mann_et_al_RSBL/" +
+        pigeon + "/utm", 1);
     Curves curves;
     curves.reserve(raw_curves.size());
     for (auto const& curve: raw_curves)
@@ -441,6 +442,7 @@ void experiments::find_wedge_params_pigeons() {
     auto const dummy_dist = [](Curve const&, Curve const&) noexcept {
         return 0.0;
     };
+    std::filesystem::create_directory("pigeons");
     CurveSimpMatrix dist_matrix = read_or_create("pigeons/" + pigeon + ".txt",
         curves, l, df::integral_frechet);
     Clustering initial_clustering = clustering::computeClustering(curves, k, l,

@@ -14,7 +14,7 @@ namespace simplification::greedy {
      * two curves, returns true if d(c1, c2) < dist.
      * \return The simplified curve.
      */
-    Curve simplify(Curve const& in, PointID const& ell,
+    Curve simplify(Curve const& in, std::size_t ell,
         std::function<bool(Curve const&, Curve const&, distance_t)> const&
         less_than);
 

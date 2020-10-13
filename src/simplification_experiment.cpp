@@ -49,13 +49,13 @@ void experiments::evaluate(std::vector<Curve> const& curves,std::size_t ell,
     std::array lt_names {"DTW    ", "Frechet", "CDTW   ", "F CDTW "};
     std::array lt_brief {"dtw", "fr", "cdtw", "fcdtw"};
 
-    auto simpl1 = static_cast<Curve(*)(Curve const&, PointID const&,
+    auto simpl1 = static_cast<Curve(*)(Curve const&, std::size_t,
         std::function<bool(Curve const&, Curve const&, distance_t)> const&)>
         (simplification::greedy::simplify);
-    auto simpl2 = static_cast<Curve(*)(Curve const&, PointID const&,
+    auto simpl2 = static_cast<Curve(*)(Curve const&, std::size_t,
         std::function<bool(Curve const&, Curve const&, distance_t)> const&)>
         (simplification::imai_iri::simplify);
-    auto simpl_alt = [](Curve const& in, PointID const& l,
+    auto simpl_alt = [](Curve const& in, std::size_t l,
             std::function<distance_t(Curve const&, Curve const&)> const& d) {
         return simplification::imai_iri::simplify(in, l, d, false).second;
     };
@@ -131,14 +131,15 @@ void experiments::evaluate(std::vector<Curve> const& curves,std::size_t ell,
             io::export_points(simpl_dir / ("best" + std::to_string(worst_index)),
                 r2.get_points());
 
-        stats << "Cost for curve " << worst_index << ":\n"
-            << "                CDTW cost Frechet cost\n" << std::fixed
-            << std::setprecision(4) << std::setw(15) << r1n << " "
-            << std::setw(9) << df::integral_frechet(wc, r1) << " "
-            << std::setw(12) << df::frechet(wc, r1) << "\n"
-            << "Imai-Iri + CDTW " << std::setw(9)
-            << df::integral_frechet(wc, r2) << " " << std::setw(12)
-            << df::frechet(wc, r2) << "\n" << std::endl;
+            stats << "Cost for curve " << worst_index << ":\n"
+                << "                CDTW cost Frechet cost\n" << std::fixed
+                << std::setprecision(4) << std::setw(15)
+                << alg_name << " + " << lt_name << " "
+                << std::setw(9) << df::integral_frechet(wc, r1) << " "
+                << std::setw(12) << df::frechet(wc, r1) << "\n"
+                << "Imai-Iri + CDTW " << std::setw(9)
+                << df::integral_frechet(wc, r2) << " " << std::setw(12)
+                << df::frechet(wc, r2) << "\n" << std::endl;
         }
     }
     std::cout << "\n" << stats.str();
