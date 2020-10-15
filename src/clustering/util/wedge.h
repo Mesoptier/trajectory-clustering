@@ -40,7 +40,7 @@ namespace clustering {
      * segment of curve_1.
      * \param param_space_path The matching.
      * \param curve_1 The center curve, on which the wedge is computed.
-     * \param curve_2 One o f the curves in the cluster.
+     * \param curve_2 One of the curves in the cluster.
      * \param src_index Index of the point in curve_1 marking the start of the
      * segment that we are matching to.
      * \param seg_index 0 or 1, depending on whether the segment starting at

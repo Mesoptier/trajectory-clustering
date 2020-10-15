@@ -43,7 +43,7 @@ namespace {
             << "For each cluster, evaluate with k-medians + CDTW.\n"
             << "Save results in results/initial_clustering_experiment/"
             << "results.txt\n" << std::endl;
-        // experiments::initial_clustering_experiment();
+        experiments::initial_clustering_experiment();
 
         std::cout << std::endl;
         std::cout << std::string(80, '-') << "\nCENTER UPDATE EXPERIMENTS\n"
@@ -118,7 +118,7 @@ int main() {
         << "Sections 5.3, 6.4). Finally, we run some extra experiments that "
         << "may provide some\nextra information, but are less interesting and "
         << "did not make the cut.\n" << std::endl;
-    // simplification_comparison_and_plot();
+    simplification_comparison_and_plot();
     main_clustering_experiments();
     char answer = 'z';
     do {

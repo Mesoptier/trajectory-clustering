@@ -11,19 +11,15 @@ CurveSimpMatrix::CurveSimpMatrix(std::string const& path) {
 CurveSimpMatrix::CurveSimpMatrix(Curves const& curves,
         Curves const& simplifications,
         std::function<distance_t(Curve const&, Curve const&)> const& dist)
-        : matrix(curves.size()) {
+        : matrix(curves.size(), std::vector<distance_t>(curves.size())) {
     using szt = Curves::size_type;
     if (curves.size() != simplifications.size())
         throw std::runtime_error("There must be the same number of curves and "
             "simplifications in CurveSimpMatrix constructor");
 
     for (szt i = 0; i < curves.size(); ++i) {
-        for (szt j = 0; j < curves.size(); ++j) {
-            if (i == j)
-                matrix[i].push_back(0);
-            else
-                matrix[i].push_back(dist(curves[i], simplifications[j]));
-        }
+        for (szt j = 0; j < curves.size(); ++j)
+            matrix[i][j] = (i == j) ? 0.0 : dist(curves[i], simplifications[j]);
     }
 }
 

@@ -83,14 +83,17 @@ namespace {
 }
 
 void experiments::synthetic_curve_experiment() {
+    std::filesystem::create_directory("synthetic_curves");
     if (!std::filesystem::exists("synthetic_curves/dataset.txt")) {
         Curve base = io::read_curves("data/characters/data")[0];
         synth::write_curves(base.naive_l_simplification(200));
     }
     Curves curves = io::read_curves("synthetic_curves");
+    CurveSimpMatrix dummy_matrix({}, {},
+        [](Curve const&, Curve const&) noexcept { return 0.0; });
     Clustering gonzalez_clustering = clustering::computeCenterClustering(
         curves, 1, 15, false, false, clustering::ClusterAlg::Gonzalez,
-        clustering::CenterAlg::cdba, SymmetricMatrix(0),
+        clustering::CenterAlg::cdba, dummy_matrix,
         df::integral_frechet_fast, df::integral_frechet, df::frechet_lt, 1);
     clustering::plot_clustering(gonzalez_clustering, curves, "plot.txt");
 }
@@ -360,7 +363,8 @@ void experiments::center_update_experiment_pigeons(
     auto const dummy_dist = [](Curve const&, Curve const&) noexcept {
         return 0.0;
     };
-    std::filesystem::create_directory("pigeons");
+    for (auto const& site: site_paths)
+        std::filesystem::create_directories("pigeons/" + site);
     for (std::string const& pigeon: pigeons) {
         Curves raw_curves = io::read_curves("data/Data_for_Mann_et_al_RSBL/" +
             pigeon + "/utm", 1);
@@ -398,19 +402,19 @@ void experiments::center_update_experiment_pigeons(
             df::integral_frechet, df::frechet_lt, 1, 5, 10);
 
         clustering::plot_clustering(dba_res, curves,
-            "results/" + directory + "/dba_" + pigeon + ".txt");
+            "results/" + directory + "/" + pigeon + "_dba.txt");
         clustering::plot_clustering(fsa_res, curves,
-            "results/" + directory + "/fsa_" + pigeon + ".txt");
+            "results/" + directory + "/" + pigeon + "_fsa.txt");
         clustering::plot_clustering(cdba_res, curves,
-            "results/" + directory + "/cdba_" + pigeon + ".txt");
+            "results/" + directory + "/" + pigeon + "_cdba.txt");
         clustering::plot_clustering(wedge_res, curves,
-            "results/" + directory + "/wedge_" + pigeon + ".txt");
+            "results/" + directory + "/" + pigeon + "_wedge.txt");
         clustering::plot_clustering(initial, curves,
-            "results/" + directory + "/init_" + pigeon + ".txt");
+            "results/" + directory + "/" + pigeon + "_init.txt");
 
-        plots << "dba_" << pigeon << "\n" << "fsa_" << pigeon << "\n"
-            << "cdba_" << pigeon << "\n" << "wedge_" << pigeon << "\n"
-            << "init_" << pigeon << std::endl;
+        plots << pigeon << "_dba\n" << pigeon << "_fsa\n"
+            << pigeon << "_cdba\n" << pigeon << "_wedge\n"
+            << pigeon <<"_init" << std::endl;
 
         k_med_scores << pigeon << "\t"
             << kMedianCost(curves, dba_res, df::integral_frechet) << "\t"

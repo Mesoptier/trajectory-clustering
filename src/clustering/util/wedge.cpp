@@ -15,8 +15,10 @@ auto clustering::get_points_matched_to_segment(Points const& param_space_path,
 
     std::vector<distance_t> x_coords(param_space_path.size());
     std::size_t p = 0;
-    for (auto const& point: param_space_path)
+    for (auto const& point: param_space_path) {
         x_coords[p] = point.x;
+        ++p;
+    }
 
     auto it = std::lower_bound(x_coords.begin(), x_coords.end(), src_dist);
     auto src_ind = static_cast<std::size_t>(std::distance(x_coords.begin(), it));

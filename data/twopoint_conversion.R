@@ -29,3 +29,5 @@ for (i in 1:count) {
     write.table(tr_proj, file.path(base, "projection", lines[i]),
         row.names=FALSE, col.names=FALSE)
 }
+file.copy(file.path(base, "dataset.txt"), file.path(base, "projection"),
+    overwrite=TRUE)

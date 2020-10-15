@@ -1,7 +1,7 @@
 This is the repository for the code that supplements the paper
 “(k, ℓ)-Medians Clustering of Trajectories Using Continuous Dynamic Time Warping”
 by Milutin Brankovic, Kevin Buchin, Koen Klaren, André Nusser, Aleksandr Popov,
-and Sampson Wong, published in _28th International Conferenceon Advances in
+and Sampson Wong, published in _28th International Conference on Advances in
 Geographic Information Systems (SIGSPATIAL ’20)._
 
 # Prerequisites
