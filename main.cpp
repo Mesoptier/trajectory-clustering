@@ -82,7 +82,7 @@ namespace {
             << "Perturb the points a bit to create many different curves.\n"
             << "Attempt to recreate the true center with a clustering approach.\n"
             << "Save results in plot.txt\n" << std::endl;
-        experiments::synthetic_curve_experiment();
+        // experiments::synthetic_curve_experiment();
 
         std::cout << std::endl;
         std::cout << std::string(80, '-') << "\nCLASSIFICATION EXPERIMENT\n"
@@ -90,7 +90,10 @@ namespace {
         std::cout << "Load a sample of the character dataset.\n"
             << "Cluster the curves to check if we correctly identify the letters.\n"
             << "Report results on stdout.\n" << std::endl;
-        classification::characterClassification();
+        classification::classify_characters();
+
+        std::cout << "Pigeons";
+        classification::identify_pigeons();
 
         std::cout << std::endl;
         std::cout << std::string(80, '-') << "\nWEDGE PARAMETER EXPERIMENT\n"
@@ -98,7 +101,7 @@ namespace {
         std::cout << "Load the trajectories of a specific pigeon.\n"
             << "Identify the best parameters (eps, r) for the grid search.\n"
             << "Report results on stdout.\n" << std::endl;
-        experiments::find_wedge_params_pigeons();
+        // experiments::find_wedge_params_pigeons();
     }
 }
 
@@ -118,8 +121,8 @@ int main() {
         << "Sections 5.3, 6.4). Finally, we run some extra experiments that "
         << "may provide some\nextra information, but are less interesting and "
         << "did not make the cut.\n" << std::endl;
-    simplification_comparison_and_plot();
-    main_clustering_experiments();
+    // simplification_comparison_and_plot();
+    // main_clustering_experiments();
     char answer = 'z';
     do {
         std::cout << "Would you like to perform the center update experiments "
