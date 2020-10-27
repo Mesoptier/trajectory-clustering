@@ -34,7 +34,7 @@ namespace classification {
      * \param center_alg The iterative centre improvement algorithm.
      */
     void classify_characters(
-        clustering::ClusterAlg cluster_alg = clustering::ClusterAlg::PAM,
+        clustering::ClusterAlg cluster_alg = clustering::ClusterAlg::Gonzalez,
         clustering::CenterAlg center_alg = clustering::CenterAlg::cdba,
         std::function<distance_t(Curve const&, Curve const&)> const& init_dist =
             df::integral_frechet,
@@ -42,7 +42,7 @@ namespace classification {
             df::integral_frechet);
 
     void identify_pigeons(
-        clustering::ClusterAlg cluster_alg = clustering::ClusterAlg::PAM,
+        clustering::ClusterAlg cluster_alg = clustering::ClusterAlg::Gonzalez,
         clustering::CenterAlg center_alg = clustering::CenterAlg::cdba,
         std::function<distance_t(Curve const&, Curve const&)> const& init_dist =
             df::integral_frechet,
