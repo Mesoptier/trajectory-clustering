@@ -163,9 +163,9 @@ void classification::identify_pigeons(
                 + sites[site_id][pid] + "/utm";
             Curves raw_curves = io::read_curves(path, 1);
             Curves curves;
-            curves.reserve(raw_curves.size());
-            for (auto const& curve: raw_curves)
-                curves.emplace_back(curve.naive_l_simplification(200));
+            curves.reserve(raw_curves.size() - 4);
+            for (std::size_t i = 4; i < raw_curves.size(); ++i)
+                curves.emplace_back(raw_curves[i].naive_l_simplification(200));
             pigeon_curves.push_back(std::move(curves));
         }
 
@@ -218,7 +218,7 @@ void classification::identify_pigeons(
                     std::cout << "Pigeon " << pid << ":";
                     for (auto const& p: curve.get_points())
                         std::cout << " " << p.x << " " << p.y;
-                    std::cout << "\nCenter:";
+                    std::cout << "\nCenter " << min_id << ":";
                     for (auto const& p: centers[min_id].get_points())
                         std::cout << " " << p.x << " " << p.y;
                     std::cout << "\n" << std::endl;
