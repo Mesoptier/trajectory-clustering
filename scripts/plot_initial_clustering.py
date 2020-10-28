@@ -48,9 +48,13 @@ l4 = [
 
 data = [l1, l2, l3, l4]
 
-labels = ["Gonzalez + PAM", "PAM", "Gonzalez"]
+labels = ["G.+PAM", "PAM", "G."]
 
 def export_plot(X, Y_tuples, L, title, filename):
+    font = {'family' : 'normal', 'size'   : 18}
+    plt.rc('font', **font)
+    #  rcParams.update({'figure.autolayout': True})
+
     fig,ax = plt.subplots()
     linestyles = ['-', '-.', '--']
     linewidths= [3,2,2]
@@ -61,8 +65,8 @@ def export_plot(X, Y_tuples, L, title, filename):
     plt.legend()
     plt.title(title)
     plt.xlabel("k")
-    plt.ylabel("cost")
-    plt.savefig(filename)
+    plt.ylabel("k-medians cost")
+    plt.savefig(filename, bbox_inches='tight')
     plt.clf()
 
 for i in range(4):
