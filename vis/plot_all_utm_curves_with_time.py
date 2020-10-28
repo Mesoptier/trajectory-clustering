@@ -31,7 +31,8 @@ def saveCurves(curves, filename):
     values = [ (1./len(curves))*i for i in range(len(curves)) ]
     for curve,value in zip(curves,values):
         plt.plot(curve[0], curve[1], c=(value,0.,0.))
-    plt.savefig(filename)
+    plt.axis('off')
+    plt.savefig(filename, bbox_inches='tight')
     plt.clf()
 
 if len(sys.argv) != 1:
@@ -40,6 +41,6 @@ if len(sys.argv) != 1:
 
 for i,utm_dir in enumerate(utm_dirs):
     curve_directory = prefix + utm_dir
-    filename = "out/" + str(i) + ".png"
+    filename = "out/" + str(i) + ".pdf"
     curves = readCurves(curve_directory)
     saveCurves(curves, filename)
