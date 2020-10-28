@@ -9,7 +9,7 @@ import glob
 def readCurves(curve_directory):
     curves = []
 
-    for filename in glob.glob(curve_directory + "/*"):
+    for filename in sorted(glob.glob(curve_directory + "/*")):
         curve = [[],[]] # a curve is an x and a y list
         if filename == curve_directory + "/dataset.txt":
             continue
@@ -18,15 +18,16 @@ def readCurves(curve_directory):
             for line in f:
                 A = line.split()
                 if A:
-                    curve[0].append(A[0])
-                    curve[1].append(A[1])
+                    curve[0].append(float(A[0]))
+                    curve[1].append(float(A[1]))
         curves.append(curve)
 
     return curves
 
 def showCurves(curves):
-    for curve in curves:
-        plt.plot(curve[0], curve[1])
+    values = [ (1./len(curves))*i for i in range(len(curves)) ]
+    for curve,value in zip(curves,values):
+        plt.plot(curve[0], curve[1], c=(value,0.,0.))
     plt.show()
 
 if len(sys.argv) != 2:
