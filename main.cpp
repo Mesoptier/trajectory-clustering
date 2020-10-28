@@ -90,7 +90,7 @@ namespace {
         std::cout << "Load a sample of the character dataset.\n"
             << "Cluster the curves to check if we correctly identify the letters.\n"
             << "Report results on stdout.\n" << std::endl;
-        classification::classify_characters();
+        // classification::classify_characters();
 
         std::cout << "Pigeons";
         classification::identify_pigeons();

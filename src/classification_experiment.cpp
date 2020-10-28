@@ -213,8 +213,16 @@ void classification::identify_pigeons(
                 auto const k = pigeon_ks[site_id][pid];
                 if (pid == min_id / k)
                     ++correct;
-                else
+                else {
                     ++wrong;
+                    std::cout << "Pigeon " << pid << ":";
+                    for (auto const& p: curve.get_points())
+                        std::cout << " " << p.x << " " << p.y;
+                    std::cout << "\nCenter:";
+                    for (auto const& p: centers[min_id].get_points())
+                        std::cout << " " << p.x << " " << p.y;
+                    std::cout << "\n" << std::endl;
+                }
             }
         }
         auto time = std::chrono::duration_cast<ms>(hrc::now() - start);
