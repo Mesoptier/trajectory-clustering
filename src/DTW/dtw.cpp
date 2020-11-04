@@ -4,7 +4,7 @@
 #include <tuple>
 #include <vector>
 
-distance_t DTW::dist(const Point& a, const Point& b) {
+distance_t DTW::dist(Point const& a, Point const& b) {
     auto diff = b - a;
     return norm(diff, n);
 }
@@ -14,12 +14,12 @@ std::pair<std::size_t, std::size_t> DTW::min_prev(std::size_t i, std::size_t j) 
                                  costs[i - 1][j - 1].cost});
     if (mdist == costs[i - 1][j - 1].cost)
         return {i - 1, j - 1};
-    if (mdist == costs[i - 1][j].cost) 
+    if (mdist == costs[i - 1][j].cost)
         return {i - 1, j};
     return {i, j - 1};
 }
 
-DTW::DTW(const Curve& c1, const Curve& c2, Norm metric):
+DTW::DTW(Curve const& c1, Curve const& c2, Norm metric):
     costs(c1.size() + 1, std::vector<entry>(c2.size() + 1, entry())),
     n(metric) {
     costs[0][0].cost = 0.0;
@@ -46,6 +46,6 @@ distance_t DTW::cost() const {
     return costs[costs.size() - 1][costs[0].size() - 1].cost;
 }
 
-const std::vector<std::pair<PointID, PointID>>& DTW::matching() const {
+std::vector<std::pair<PointID, PointID>> const& DTW::matching() const {
     return m_matching;
 }

@@ -1,7 +1,8 @@
-#include "include.h"
+#include "IntegralFrechet/metrics/include.h"
 
 namespace {
-    void steepest_descent(const Cell& cell, Point s, const Point& t, Points& path) {
+    void steepest_descent(Cell const& cell, Point s, Point const& t,
+            Points& path) {
         path.push_back(s);
 
         // If source is monotone greater than target, we need to do steepest
@@ -36,7 +37,8 @@ namespace {
 
         if (ell_m_side == 0) { // -> s is on ell_m
             if (compare(s, cell.mid)) {
-                // Move along ell_m until center or until the point where steepest descent from t hits ell_m
+                // Move along ell_m until center or until the point where
+                // steepest descent from t hits ell_m
                 s = std::min({
                     cell.mid,
                     intersect(cell.ell_m, Line::vertical(t)),
@@ -52,14 +54,15 @@ namespace {
 }
 
 template<>
-Points compute_matching<ParamMetric::L1>(const Cell& cell, const Point& s, const Point& t) {
-    // Early return for degenerate cases (where subcell bounded by s and t has zero width and/or height)
+Points compute_matching<ParamMetric::L1>(Cell const& cell,
+        Point const& s, Point const& t) {
+    // Early return for degenerate cases (where subcell bounded by s and t has
+    // zero width and/or height)
     if (approx_equal(s.x, t.x) || approx_equal(s.y, t.y)) {
-        if (approx_equal(s, t)) {
+        if (approx_equal(s, t))
             return {s};
-        } else {
+        else
             return {s, t};
-        }
     }
 
     Points path1;
@@ -73,17 +76,18 @@ Points compute_matching<ParamMetric::L1>(const Cell& cell, const Point& s, const
 
     // Steepest descent from both ends should find the same minimum
     #ifndef NDEBUG
-    if (!approx_equal(path1.back(), path2.back())) {
+    if (!approx_equal(path1.back(), path2.back()))
         throw std::logic_error("paths should find same minimum");
-    }
     #endif
 
-    // Combine the two steepest descent paths into one, skipping the duplicated minimum
+    // Combine the two steepest descent paths into one, skipping the duplicated
+    // minimum
     path1.insert(path1.end(), path2.rbegin() + 1, path2.rend());
     return path1;
 }
 
 template<>
-distance_t integrate_linear_dist<ParamMetric::L1>(const Cell& /*cell*/, const Point& s, const Point& t) {
+distance_t integrate_linear_dist<ParamMetric::L1>(Cell const& /*cell*/,
+        Point const& s, Point const& t) {
     return std::abs(t.x - s.x) + std::abs(t.y - s.y);
 }

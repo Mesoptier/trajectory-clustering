@@ -4,18 +4,14 @@
 #include <cmath>
 #include <functional>
 
-const double ABS_TOL = 1e-9;
+double const ABS_TOL = 1e-9;
 
 template<class T>
-bool approx_equal(const T& a, const T& b, double tol = ABS_TOL) {
-    if (a == b) {
+bool approx_equal(T const& a, T const& b, double tol = ABS_TOL) {
+    if (a == b)
         return true;
-    }
-
-    if (std::isinf(a) || std::isinf(b)) { // && a != b
+    if (std::isinf(a) || std::isinf(b)) // && a != b
         return false;
-    }
-
     return std::abs(a - b) <= tol;
 }
 
@@ -25,10 +21,8 @@ bool approx_zero(T a, double tol = ABS_TOL) {
 }
 
 template <class T>
-inline void hash_combine(std::size_t& seed, const T& v)
-{
+inline void hash_combine(std::size_t& seed, T const& v) {
     std::hash<T> hasher;
     seed ^= hasher(v) + 0x9e3779b9 + (seed<<6) + (seed>>2);
 }
-
 #endif //CODE_UTIL_H

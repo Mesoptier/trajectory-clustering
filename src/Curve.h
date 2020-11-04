@@ -1,19 +1,26 @@
-#pragma once
+#ifndef CURVE_H
+#define CURVE_H
 
+#include <cstddef>
 #include "Edge.h"
 
 struct SimplifiedCurve;
 
 class Curve {
-    const std::string m_name;
+    std::string m_name;
     Points points;
 
     // Total arc length of the curve up to the i-th point
     std::vector<distance_t> prefix_length;
 
 public:
+    Curve() = default;
+
     explicit Curve(std::string name);
-    explicit Curve(std::string name, const Points& points);
+
+    explicit Curve(std::string name, Points points);
+
+    explicit Curve(Points points);
 
     std::string name() const {
         return m_name;
@@ -22,29 +29,51 @@ public:
     std::size_t size() const {
         return points.size();
     }
+
     bool empty() const {
         return points.empty();
     }
-    const Point& operator[](PointID id) const { return points[id]; }
+
+    Point const& operator[](PointID id) const {
+        return points[id];
+    }
+
+    bool operator==(Curve const& other) const {
+        return std::equal(points.cbegin(), points.cend(),
+            other.points.cbegin(), other.points.cend());
+    }
+
+    bool operator!=(Curve const& other) const {
+        return !(*this == other);
+    }
 
     distance_t curve_length() const {
         return prefix_length.back();
     }
+
     distance_t curve_length(PointID id) const {
         return prefix_length.at(id);
     }
+
     distance_t curve_length(PointID i, PointID j) const {
         return curve_length(j) - curve_length(i);
     }
-    distance_t curve_length(const CPoint& point) const;
-    distance_t curve_length(const CPoint& i, const CPoint j) const {
+
+    distance_t curve_length(CPoint const& point) const;
+
+    distance_t curve_length(CPoint const& i, CPoint const& j) const {
         return curve_length(j) - curve_length(i);
     }
 
-    Point front() const { return points.front(); }
-    Point back() const { return points.back(); }
+    Point front() const {
+        return points.front();
+    }
 
-    const Points& get_points() const {
+    Point back() const {
+        return points.back();
+    }
+
+    Points const& get_points() const {
         return points;
     }
 
@@ -71,11 +100,35 @@ public:
      */
     CPoint get_cpoint_after(distance_t dist, PointID after_id = 0) const;
 
-    void push_back(const Point& point);
+    void push_back(Point point);
 
-    Point interpolate_at(const CPoint& point) const;
+    Point interpolate_at(CPoint const& point) const;
 
     SimplifiedCurve simplify() const;
+
+    Curve naive_l_simplification(std::size_t l) const;
+
+    struct ExtremePoints {
+        distance_t min_x, min_y, max_x, max_y;
+    };
+
+    ExtremePoints const& getExtremePoints() const;
+
+    distance_t getUpperBoundDistance(Curve const& other) const;
+    
+    std::vector<distance_t> const& get_prefix_length_vector() const {
+        return prefix_length;
+    }
+
+private:
+    ExtremePoints extreme_points = {
+        std::numeric_limits<distance_t>::max(),
+        std::numeric_limits<distance_t>::max(),
+        std::numeric_limits<distance_t>::lowest(),
+        std::numeric_limits<distance_t>::lowest()
+    };
+
+    void set_extreme_points();
 };
 
 struct SimplifiedCurve {
@@ -88,3 +141,7 @@ struct SimplifiedCurve {
      */
     std::vector<PointID> original_points;
 };
+
+using CurveID = ID<Curve>;
+using CurveIDs = std::vector<CurveID>;
+#endif

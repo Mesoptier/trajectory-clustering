@@ -4,22 +4,28 @@ project(trajectory-clustering LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-set(DEBUG_OPTIONS "-g")
+# CMake sets -g by default for Debug build
+set(DEBUG_OPTIONS "-Og")
 set(RELEASE_OPTIONS "-O3")
 
 option(ASAN "Use address sanitizer" Off)
 option(UBSAN "Use UB sanitizer" Off)
+option(PROF "Set up for use with gprof" Off)
 
 if(NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE Release)
 endif()
 # Debug, Release, RelWithDebugInfo, MinSizeRel
 
-add_compile_options("$<$<CONFIG:DEBUG>:${DEBUG_OPTIONS}>")
-add_compile_options("$<$<CONFIG:RELEASE>:${RELEASE_OPTIONS}>")
+add_compile_options("$<IF:$<CONFIG:DEBUG>,${DEBUG_OPTIONS},${RELEASE_OPTIONS}>")
 
 if(CMAKE_BUILD_TYPE STREQUAL "Release")
     add_definitions(-DNDEBUG)
+endif()
+
+if(PROF)
+    add_compile_options("-pg")
+    add_link_options("-pg")
 endif()
 
 if(NOT MSVC AND (ASAN OR UBSAN))
@@ -46,9 +52,9 @@ set(GNU_OPTIONS
 set(CLANG_OPTIONS
     "-Weverything" "-Wno-c++98-compat" "-Wno-covered-switch-default"
     "-Wno-float-equal" "-Wno-double-promotion" "-Wno-unused-template"
-    "-Wno-c++98-compat-pedantic" "-Wno-padded")
+    "-Wno-c++98-compat-pedantic" "-Wno-padded" "-Wno-weak-template-vtables")
 
-set(MSVC_OPTIONS "")
+set(MSVC_OPTIONS "/W4")
 
 if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
     target_compile_options(TrajectoryClustering_lib PRIVATE ${GNU_OPTIONS})

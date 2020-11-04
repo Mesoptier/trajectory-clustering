@@ -5,7 +5,7 @@
 #include <unordered_map>
 #include <algorithm>
 #include <iostream>
-#include "io.h"
+#include "utils/io.h"
 
 //#define A_STAR_LOGGING
 #define A_STAR_STATS
@@ -13,10 +13,10 @@
 namespace {
     // From: https://stackoverflow.com/a/26958878/1639600
     template<class Map>
-    const typename Map::mapped_type& get_with_default(
-        const Map& m,
-        const typename Map::key_type& key,
-        const typename Map::mapped_type& defval
+    typename Map::mapped_type const& get_with_default(
+        Map const& m,
+        typename Map::key_type const& key,
+        typename Map::mapped_type const& defval
     ) {
         typename Map::const_iterator it = m.find(key);
         if (it == m.end())
@@ -32,7 +32,7 @@ namespace a_star {
         size_t nodes_skipped;
         Points nodes_as_points;
 
-        friend std::ostream& operator<<(std::ostream& out, const Stats& stats) {
+        friend std::ostream& operator<<(std::ostream& out, Stats const& stats) {
             out << "nodes_opened: " << stats.nodes_opened
                 << " nodes_handled: " << stats.nodes_handled
                 << " nodes_skipped: " << stats.nodes_skipped;
@@ -63,7 +63,7 @@ struct SearchResult {
 
 template<class Node>
 std::vector<Node>
-reconstruct_path(const std::unordered_map<Node, Node>& came_from, Node current) {
+reconstruct_path(std::unordered_map<Node, Node> const& came_from, Node current) {
     std::vector<Node> path{current};
 
     auto it = came_from.find(current);
@@ -78,7 +78,7 @@ reconstruct_path(const std::unordered_map<Node, Node>& came_from, Node current) 
 
 template<class Graph>
 std::pair<typename Graph::cost_t, std::vector<typename Graph::Node>>
-a_star_search(const Graph& graph, typename Graph::Node start, typename Graph::Node goal) {
+a_star_search(Graph const& graph, typename Graph::Node start, typename Graph::Node goal) {
     using Node = typename Graph::Node;
     using cost_t = typename Graph::cost_t;
     constexpr cost_t inf = std::numeric_limits<cost_t>::infinity();
@@ -144,7 +144,7 @@ a_star_search(const Graph& graph, typename Graph::Node start, typename Graph::No
         #endif
 
         graph.get_neighbors(current, neighbors);
-        for (const Node& neighbor : neighbors) {
+        for (Node const& neighbor : neighbors) {
             cost_t neighbor_g = g_score[current] + graph.cost(current, neighbor);
             if (neighbor_g < get_with_default(g_score, neighbor, inf)) {
                 // Found better path to node neighbor
@@ -168,7 +168,7 @@ a_star_search(const Graph& graph, typename Graph::Node start, typename Graph::No
 
 template<class Graph>
 SearchResult<Graph>
-bidirectional_dijkstra_search(const Graph& graph, typename Graph::Node s, typename Graph::Node t) {
+bidirectional_dijkstra_search(Graph const& graph, typename Graph::Node s, typename Graph::Node t) {
     using Node = typename Graph::Node;
     using NodeID = size_t;
     using cost_t = typename Graph::cost_t;
@@ -254,7 +254,7 @@ bidirectional_dijkstra_search(const Graph& graph, typename Graph::Node s, typena
 
         graph.get_neighbors(current, neighbors, costs, dir);
         for (size_t i = 0; i < neighbors.size(); ++i) {
-            const Node& neighbor = neighbors[i];
+            Node const& neighbor = neighbors[i];
             cost_t neighbor_cost = current_cost + costs[i];
 
             auto neighbor_id_it = node_ids.find(neighbor);

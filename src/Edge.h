@@ -3,22 +3,21 @@
 #include <utility>
 #include <ostream>
 
-#include "util.h"
+#include "utils/util.h"
 #include "geom.h"
-#include "expressionml.h"
+#include "utils/expressionml.h"
 
-class Edge
-{
+class Edge {
 public:
-    const Point first;
-    const Point second;
+    Point const first;
+    Point const second;
 
     Point diff;
     distance_t length;
 
     Line line;
 
-    Edge(const Point& f, const Point& s):
+    Edge(Point const& f, Point const& s):
         first(f), second(s), diff(s - f), length(norm(diff)),
         line(Line::fromTwoPoints(f, s)) {}
 
@@ -26,7 +25,7 @@ public:
      * Get the Point that lies distance `d` along the edge.
      */
     Point interpolate_at(distance_t d) const {
-//        assert(0 <= d && d <= length);
+        assert(0 <= d && d <= length);
         return interp(d / length);
     }
 
@@ -34,14 +33,11 @@ public:
         return first * (1 - t) + second * t;
     }
 
-    distance_t param(const Point& point) const {
+    distance_t param(Point const& point) const {
         // ASSUMPTION: point lies on this edge's infinite line
-
-        if (line.isVertical()) {
+        if (line.isVertical())
             return (first.y - point.y) / (first.y - second.y) * length;
-        } else {
-            return (first.x - point.x) / (first.x - second.x) * length;
-        }
+        return (first.x - point.x) / (first.x - second.x) * length;
     }
 
     void writeExpressionML(ExpressionML::Writer& writer) const {
@@ -51,7 +47,7 @@ public:
         writer.closeFunction();
     }
 
-    friend std::ostream& operator<<(std::ostream& out, const Edge& edge) {
+    friend std::ostream& operator<<(std::ostream& out, Edge const& edge) {
         out << "V1: " << edge.first << std::endl
             << "V2: " << edge.second << std::endl;
         return out;

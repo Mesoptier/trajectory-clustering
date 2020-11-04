@@ -6,3 +6,28 @@ build
 
 # IntelliJ
 out/
+
+#vscode 
+.vscode
+
+#plotting
+#figures
+results
+
+characters_matrix.txt
+pigeon_matrix.txt
+pigeon_matrix_dtw.txt
+
+# Let's avoid CMake files
+CMakeFiles/
+CMakeCache.txt
+Makefile
+cmake_install.cmake
+
+# and executables
+gmon.out
+
+# and random things
+compile_commands.json
+*.tar.xz
+

@@ -16,22 +16,25 @@ namespace ExpressionML {
                   "<!DOCTYPE Expression SYSTEM 'http://www.wolfram.com/XML/notebookml1.dtd'>"
                   "<Expression xmlns:mathematica='http://www.wolfram.com/XML/' xmlns='http://www.wolfram.com/XML/'>";
         }
+
         void close() {
             os << "</Expression>";
         }
 
-        void openFunction(const std::string& symbol) {
+        void openFunction(std::string const& symbol) {
             os << "<Function>";
             writeSymbol(symbol);
         }
+
         void closeFunction() {
             os << "</Function>";
         }
 
-        void openRule(const std::string& key) {
+        void openRule(std::string const& key) {
             openFunction("Rule");
             writeString(key);
         }
+
         void closeRule() {
             closeFunction();
         }
@@ -39,26 +42,30 @@ namespace ExpressionML {
         void writeNumber(double n) {
             os << "<Number>" << n << "</Number>";
         }
-        void writeString(const std::string& string) {
+
+        void writeString(std::string const& string) {
             os << "<String>" << string << "</String>";
         }
-        void writeSymbol(const std::string& symbol) {
+
+        void writeSymbol(std::string const& symbol) {
             os << "<Symbol>" << symbol << "</Symbol>";
         }
-        void writePoint(const Point& point) {
+
+        void writePoint(Point const& point) {
             openFunction("List");
             writeNumber(point.x);
             writeNumber(point.y);
             closeFunction();
         }
-        void writePoints(const Points& points) {
+
+        void writePoints(Points const& points) {
             openFunction("List");
-            for (const auto& point : points) {
+            for (auto const& point : points)
                 writePoint(point);
-            }
             closeFunction();
         }
-        void writeLine(const Line& line) {
+
+        void writeLine(Line const& line) {
             openFunction("List");
             writePoint(line.origin);
             writePoint(line.direction);
@@ -66,5 +73,4 @@ namespace ExpressionML {
         }
     };
 }
-
 #endif //CODE_EXPRESSIONML_H
