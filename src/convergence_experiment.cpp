@@ -6,7 +6,7 @@
 #include "utils/io.h"
 
 namespace {
-    void testConvergence(std::string const& base_path, std::size_t k,
+    void test_convergence(std::string const& base_path, std::size_t k,
             std::size_t l) {
         auto curves = io::read_curves(base_path, 1);
 
@@ -54,7 +54,35 @@ namespace {
     }
 }
 
-void experiments::testConvergence() {
+void experiments::test_convergence() {
+    std::vector<std::string> const p_bl {
+        "a55", "brc", "c17", "c35", "p29", "p39", "p94"};
+    std::vector<std::string> const p_ch {
+        "a94", "c22", "c70", "k77", "l29", "liv", "r47", "s93"};
+    std::vector<std::string> const p_hp {
+        "H22", "H27", "H30", "H35", "H38", "H41", "H42", "H71"};
+    std::vector<std::string> const p_ws {
+        "H23", "H31", "H32", "H34", "H36", "H50", "H58", "H62"};
+    std::vector<std::vector<std::string>> const sites {
+        p_bl, p_ch, p_hp, p_ws};
+    std::array<std::string, 4> const site_paths {
+        "Bladon & Church route recapping/bladon heath",
+        "Bladon & Church route recapping/church hanborough",
+        "Horspath", "Weston"};
+
+    std::vector<std::size_t> const k_bl {4, 3, 3, 4, 4, 5, 4};
+    std::vector<std::size_t> const k_ch {4, 3, 5, 4, 4, 3, 4, 5};
+    std::vector<std::size_t> const k_hp {5, 3, 4, 4, 4, 6, 4, 5};
+    std::vector<std::size_t> const k_ws {6, 3, 4, 4, 3, 5, 5, 6};
+    std::vector<std::vector<std::size_t>> const pigeon_ks {
+        k_bl, k_ch, k_hp, k_ws};
+
+    std::vector<std::size_t> const l_bl {11, 10, 8, 8, 10, 14, 11};
+    std::vector<std::size_t> const l_ch {7, 11, 10, 9, 11, 9, 10, 10};
+    std::vector<std::size_t> const l_hp {9, 12, 6, 12, 10, 11, 11, 9};
+    std::vector<std::size_t> const l_ws {10, 9, 11, 13, 11, 11, 11, 12};
+    std::vector<std::vector<std::size_t>> const pigeon_ls {
+        k_bl, k_ch, k_hp, k_ws};
     for (std::size_t site_id = 0; site_id < site_directories.size(); ++site_id) {
         auto const& site_dir = site_directories[site_id];
         for (std::size_t pigeon_id = 0; pigeon_id < pigeon_directories[site_id].size(); ++pigeon_id) {
@@ -62,7 +90,7 @@ void experiments::testConvergence() {
             auto const k = pigeon_ks[site_id][pigeon_id];
             auto const l = pigeon_ls[site_id][pigeon_id];
             std::cout << pigeon_directories[site_id][pigeon_id] << ": ";
-            testConvergence(path, k, l);
+            test_convergence(path, k, l);
         }
     }
 }
