@@ -1,4 +1,5 @@
-#pragma once
+#ifndef EDGE_H
+#define EDGE_H
 
 #include <utility>
 #include <ostream>
@@ -53,3 +54,4 @@ public:
         return out;
     }
 };
+#endif

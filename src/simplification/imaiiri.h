@@ -1,5 +1,5 @@
-#ifndef IMAIIRI
-#define IMAIIRI
+#ifndef IMAI_IRI_H
+#define IMAI_IRI_H
 
 #include <functional>
 #include <utility>

@@ -1,5 +1,5 @@
-#ifndef MATRIXH
-#define MATRIXH
+#ifndef MATRIX_H
+#define MATRIX_H
 
 #include <cstddef>
 #include <vector>

@@ -1,5 +1,5 @@
-#ifndef DISTANCE_FUNCTIONS
-#define DISTANCE_FUNCTIONS
+#ifndef DISTANCE_FUNCTIONS_H
+#define DISTANCE_FUNCTIONS_H
 
 #include "Curve.h"
 

@@ -1,5 +1,5 @@
-#ifndef AGARWAL_GREEDY
-#define AGARWAL_GREEDY
+#ifndef AGARWAL_H
+#define AGARWAL_H
 
 #include <functional>
 #include "Curve.h"

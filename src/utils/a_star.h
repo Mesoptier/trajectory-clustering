@@ -1,4 +1,5 @@
-#pragma once
+#ifndef A_STAR_H
+#define A_STAR_H
 
 #include <queue>
 #include <ostream>
@@ -285,3 +286,4 @@ bidirectional_dijkstra_search(Graph const& graph, typename Graph::Node s, typena
 
     throw std::runtime_error("failed to find a path");
 }
+#endif

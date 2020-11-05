@@ -1,5 +1,5 @@
-#ifndef IDTYPE
-#define IDTYPE
+#ifndef ID_H
+#define ID_H
 
 #include <cstddef>
 #include <functional>

@@ -1,5 +1,5 @@
-#ifndef CURVE_SIMP_MATRIX
-#define CURVE_SIMP_MATRIX
+#ifndef CURVE_SIMP_MATRIX_H
+#define CURVE_SIMP_MATRIX_H
 
 #include <cstddef>
 #include <functional>

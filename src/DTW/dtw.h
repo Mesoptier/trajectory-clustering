@@ -1,5 +1,5 @@
-#ifndef DTWH
-#define DTWH
+#ifndef DTW_H
+#define DTW_H
 
 #include <cstddef>
 #include <limits>

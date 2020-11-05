@@ -1,4 +1,5 @@
-#pragma once
+#ifndef MATCHING_BAND_H
+#define MATCHING_BAND_H
 
 #include "Curve.h"
 
@@ -39,3 +40,4 @@ public:
         throw std::runtime_error("neither point has fraction 0.0");
     }
 };
+#endif

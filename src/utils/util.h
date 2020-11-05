@@ -1,5 +1,5 @@
-#ifndef CODE_UTIL_H
-#define CODE_UTIL_H
+#ifndef UTIL_H
+#define UTIL_H
 
 #include <cmath>
 #include <functional>

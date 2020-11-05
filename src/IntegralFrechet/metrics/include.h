@@ -1,4 +1,5 @@
-#pragma once
+#ifndef METRICS_INCLUDE_H
+#define METRICS_INCLUDE_H
 
 #include "IntegralFrechet/Cell.h"
 
@@ -49,3 +50,4 @@ distance_t compute_cost(Cell const& cell, Points const& matching) {
     }
     return cost;
 }
+#endif

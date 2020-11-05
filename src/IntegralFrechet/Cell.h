@@ -1,5 +1,5 @@
-#ifndef CELL
-#define CELL
+#ifndef CELL_H
+#define CELL_H
 
 #include "geom.h"
 #include "IntegralFrechet/metrics.h"
