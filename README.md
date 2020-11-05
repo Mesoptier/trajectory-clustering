@@ -44,3 +44,12 @@ cd ..
 # The experiments
 To run the experiments, simply execute `./build/TrajectoryClustering_run`.
 There is some extra explanation printed out to stdout when running the program.
+
+---
+Parts of the code related to the Fréchet distance computation and the basic
+clustering framework, as well some utility code, come courtesy of the authors
+of the [previous work on (k, l)-center
+clustering](https://gitlab.com/anusser/klcluster-sigspatial19/).
+
+This program is released under GPLv3 license, see [COPYING](COPYING) for the
+full text.
