@@ -1,5 +1,5 @@
-#ifndef FRECHET_LIGHT_TYPES
-#define FRECHET_LIGHT_TYPES
+#ifndef FRECHET_LIGHT_TYPES_H
+#define FRECHET_LIGHT_TYPES_H
 
 #include <vector>
 #include "Curve.h"

@@ -1,5 +1,5 @@
-#ifndef FRECHET_ABSTRACT
-#define FRECHET_ABSTRACT
+#ifndef FRECHET_ABSTRACT_H
+#define FRECHET_ABSTRACT_H
 
 #include <array>
 #include "Frechet/certificate.h"

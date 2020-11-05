@@ -1,5 +1,5 @@
-#ifndef CODE_EXPRESSIONML_H
-#define CODE_EXPRESSIONML_H
+#ifndef EXPRESSION_ML_H
+#define EXPRESSION_ML_H
 
 #include <sstream>
 #include "geom.h"

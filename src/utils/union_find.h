@@ -1,5 +1,5 @@
-#ifndef UNION_FINDH
-#define UNION_FINDH
+#ifndef UNION_FIND_H
+#define UNION_FIND_H
 
 #include <algorithm>
 #include <unordered_map>

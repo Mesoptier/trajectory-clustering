@@ -1,4 +1,5 @@
-#pragma once
+#ifndef INTEGRAL_FRECHET_H
+#define INTEGRAL_FRECHET_H
 
 #include <iostream>
 #include <utility>
@@ -59,3 +60,4 @@ public:
         };
     }
 };
+#endif
