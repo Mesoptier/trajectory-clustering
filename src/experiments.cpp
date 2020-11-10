@@ -461,8 +461,10 @@ void experiments::find_wedge_params_pigeons() {
     std::array<distance_t, 4> epsilons {10, 30, 50, 70};
     std::array<int, 5> radii {5, 10, 20, 30, 40};
     #pragma omp parallel for collapse(2) schedule(dynamic)
-    for (distance_t eps: epsilons) {
-        for (int radius: radii) {
+    for (unsigned i = 0; i < epsilons.size(); ++i) {
+        for (unsigned j = 0; j < radii.size(); ++j) {
+            distance_t eps = epsilons[i];
+            int radius = radii[j];
             Clustering start(initial_clustering);
             bool res = clustering::computeCenters(curves, start,
                 clustering::CenterAlg::wedge, true, true, df::integral_frechet,
