@@ -153,7 +153,7 @@ Curve clustering::cdba_update(Curves const& curves, Cluster const& cluster,
         bool fix_start, bool fix_end) {
     auto const& center_curve = cluster.center_curve;
     Curve new_center_curve;
-    std::vector<std::vector<Points>> matchings;
+    std::vector<std::vector<Points>> matchings(cluster.curve_ids.size());
 
     #pragma omp parallel for schedule(dynamic)
     for (std::size_t cid = 0; cid < cluster.curve_ids.size(); ++cid) {
@@ -188,7 +188,7 @@ Curve clustering::cdba_update(Curves const& curves, Cluster const& cluster,
                 }
             }
         }
-        matchings.push_back(std::move(matching));
+        matchings[cid] = std::move(matching);
     }
 
     if (fix_start)

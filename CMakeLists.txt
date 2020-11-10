@@ -19,10 +19,6 @@ endif()
 
 add_compile_options("$<IF:$<CONFIG:DEBUG>,${DEBUG_OPTIONS},${RELEASE_OPTIONS}>")
 
-if(CMAKE_BUILD_TYPE STREQUAL "Release")
-    add_definitions(-DNDEBUG)
-endif()
-
 if(PROF)
     add_compile_options("-pg")
     add_link_options("-pg")
