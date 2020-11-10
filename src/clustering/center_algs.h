@@ -71,11 +71,13 @@ namespace detail {
             F const& center_curve_update, Args&&... args) {
 
         bool found_new_center = false;
+        #pragma omp parallel for schedule(dynamic)
         for (auto& cluster: clustering)
             if (cluster.cost == std::numeric_limits<distance_t>::max())
                 cluster.cost = calcC2CDist(curves, cluster.center_curve,
                     cluster.curve_ids, c2c_dist, dist);
 
+        #pragma omp parallel for schedule(dynamic)
         for (auto& cluster: clustering) {
             Curve new_center_curve = center_curve_update(curves, cluster,
                 fix_start, fix_end, std::forward<Args>(args)...);

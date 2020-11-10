@@ -155,12 +155,13 @@ Curve clustering::cdba_update(Curves const& curves, Cluster const& cluster,
     Curve new_center_curve;
     std::vector<std::vector<Points>> matchings;
 
-    for (auto const& curve_id: cluster.curve_ids) {
-        auto const& curve = curves[curve_id];
+    #pragma omp parallel for schedule(dynamic)
+    for (std::size_t cid = 0; cid < cluster.curve_ids.size(); ++cid) {
+        auto const& curve = curves[cluster.curve_ids[cid]];
         auto const res = std::max(static_cast<std::size_t>(
             (center_curve.curve_length() + curve.curve_length())
             / (center_curve.size() + curve.size()) / 5), 1UL);
-        auto param_space_path =  IntegralFrechet(center_curve, curve,
+        auto param_space_path = IntegralFrechet(center_curve, curve,
             ParamMetric::L1, res, nullptr).compute_matching().matching;
         std::vector<Points> matching(center_curve.size());
 

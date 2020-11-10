@@ -7,10 +7,11 @@ Geographic Information Systems (SIGSPATIAL ’20)._
 # Prerequisites
 Make sure you have a modern C++ compiler that supports C++ 17.
 GCC, clang, or MSVC from the last few years should be fine.
-Make sure you also have Python 3 with requests, scipy, and matplotlib installed
-to get the data and do the plotting.
-We also use R with rgdal, sp, and mapmisc for coordinate projection when
-preparing the datasets.
+We have a soft dependency on OpenMP 3.0+ for some parallel code to speed up the clustering; it is
+not required to compile or run the code, however.
+Make sure you have Python 3 with requests, scipy, and matplotlib installed to get the data and do
+the plotting.
+We also use R with rgdal, sp, and mapmisc for coordinate projection when preparing the datasets.
 Other tools needed: git, cmake, make.
 
 # Setting up

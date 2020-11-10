@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.9)
+cmake_minimum_required(VERSION 3.13)
 project(trajectory-clustering LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 17)
@@ -67,6 +67,11 @@ elseif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
 else()
     target_compile_options(TrajectoryClustering_lib PRIVATE ${MSVC_OPTIONS})
     target_compile_options(TrajectoryClustering_run PRIVATE ${MSVC_OPTIONS})
+endif()
+
+find_package(OpenMP 3.0)
+if(OpenMP_CXX_FOUND)
+    target_link_libraries(TrajectoryClustering_lib PUBLIC OpenMP::OpenMP_CXX)
 endif()
 
 target_link_libraries(TrajectoryClustering_run PRIVATE TrajectoryClustering_lib)
