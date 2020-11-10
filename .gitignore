@@ -11,7 +11,7 @@ out/
 .vscode
 
 #plotting
-figures
+#figures
 results
 
 characters_matrix.txt
