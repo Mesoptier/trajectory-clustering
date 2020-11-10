@@ -16,7 +16,8 @@ distance_t clustering::calcC2CDist(Curves const& curves,
         std::function<distance_t(Curve const&, Curve const&)> const& dist) {
     distance_t d = 0.0;
     #pragma omp parallel for schedule(dynamic)
-    for (auto const& curve_id: curve_ids) {
+    for (std::size_t cid = 0; cid < curve_ids.size(); ++cid) {
+        auto const& curve_id = curve_ids[cid];
         auto curve_dist = dist(center_curve, curves[curve_id]);
         switch (c2c_dist) {
         case C2CDist::Median:
