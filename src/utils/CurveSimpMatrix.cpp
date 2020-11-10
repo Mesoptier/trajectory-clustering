@@ -17,6 +17,7 @@ CurveSimpMatrix::CurveSimpMatrix(Curves const& curves,
         throw std::runtime_error("There must be the same number of curves and "
             "simplifications in CurveSimpMatrix constructor");
 
+    #pragma omp parallel for collapse(2) schedule(dynamic)
     for (szt i = 0; i < curves.size(); ++i) {
         for (szt j = 0; j < curves.size(); ++j)
             matrix[i][j] = (i == j) ? 0.0 : dist(curves[i], simplifications[j]);

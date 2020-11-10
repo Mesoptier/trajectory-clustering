@@ -61,8 +61,5 @@ namespace clustering {
      */
     void updateClustering(Clustering& clustering, Curves const& curves,
         std::function<distance_t(Curve const&, Curve const&)> const& dist);
-
-    // distance_t kMedianCost(Curves const& curves, Clustering const& clustering,
-    //     std::function<distance_t(Curve const&, Curve const&)> const& dist);
 }
 #endif
