@@ -29,6 +29,14 @@ public:
     explicit CurveSimpMatrix(std::string const& path);
 
     /**
+     * \brief Create a new matrix from the underlying distances.
+     *
+     * Warning: no checks on the matrix are performed, even that it is square.
+     * \param dist The matrix of distances to use.
+     */
+    explicit CurveSimpMatrix(std::vector<std::vector<distance_t>> dist);
+
+    /**
      * \brief Create a new matrix from data.
      * \param curves The curves.
      * \param simplifications The simplifications, one per curve.
@@ -80,4 +88,7 @@ public:
      */
     void read(std::string const& path);
 };
+
+CurveSimpMatrix matrix_from_subset(CurveSimpMatrix const& matrix,
+    std::vector<std::size_t> const& indices);
 #endif

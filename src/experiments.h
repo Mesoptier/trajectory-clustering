@@ -28,5 +28,7 @@ namespace experiments {
     void curve_complexity_experiment_pigeons();
 
     void find_wedge_params_pigeons();
+
+    void test_windowed_convergence(unsigned step, unsigned w_size);
 }
 #endif

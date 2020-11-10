@@ -484,3 +484,74 @@ void experiments::find_wedge_params_pigeons() {
         std::to_string(best_eps) + ", r = " + std::to_string(best_r)  << "."
         << std::endl;
 }
+
+void experiments::test_windowed_convergence(unsigned step, unsigned w_size) {
+    std::vector<std::string> const p_bl {
+        "a55", "brc", "c17", "c35", "p29", "p39", "p94"};
+    std::vector<std::string> const p_ch {
+        "a94", "c22", "c70", "k77", "l29", "liv", "r47", "s93"};
+    std::vector<std::string> const p_hp {
+        "H22", "H27", "H30", "H35", "H38", "H41", "H42", "H71"};
+    std::vector<std::string> const p_ws {
+        "H23", "H31", "H32", "H34", "H36", "H50", "H58", "H62"};
+    std::vector<std::vector<std::string>> const sites {
+        p_bl, p_ch, p_hp, p_ws};
+    std::array<std::string, 4> const site_paths {
+        "Bladon & Church route recapping/bladon heath",
+        "Bladon & Church route recapping/church hanborough",
+        "Horspath", "Weston"};
+
+    std::vector<std::string> pigeons;
+    pigeons.reserve(p_bl.size() + p_ch.size() + p_hp.size() + p_ws.size());
+    for (std::size_t i = 0; i < sites.size(); ++i) {
+        for (std::size_t j = 0; j < sites[i].size(); ++j)
+            pigeons.emplace_back(site_paths[i] + "/" + sites[i][j]);
+        std::filesystem::create_directories("convergence/" + site_paths[i]);
+    }
+    for (auto const& site: site_paths)
+        std::filesystem::create_directories("pigeons/" + site);
+
+    std::size_t const k = 1, ell = 10;
+    auto const dummy_dist = [](Curve const&, Curve const&) noexcept {
+        return 0.0;
+    };
+
+    std::ofstream scores("convergence/scores.txt");
+    if (!scores.is_open())
+        throw std::runtime_error("Failed to open file covergence/scores.txt");
+    scores << "k = " << k << ", l = " << ell << ", w_size = " << w_size
+           << ", step = " << step << "\npigeon, start, score" << std::endl;
+
+    for (auto const& pigeon: pigeons) {
+        Curves raw_curves = io::read_curves("data/Data_for_Mann_et_al_RSBL/" +
+            pigeon + "/utm", 1);
+        Curves curves;
+        curves.reserve(raw_curves.size());
+        for (auto const& curve: raw_curves)
+            curves.emplace_back(curve.naive_l_simplification(200));
+
+        CurveSimpMatrix dist_matrix = read_or_create(
+            "pigeons/" + pigeon + ".txt", curves, ell, df::integral_frechet);
+
+        Curves window(w_size);
+        std::vector<std::size_t> indices(w_size);
+        for (unsigned start = 0; start <= curves.size() - w_size;
+                start += step) {
+            for (unsigned i = 0; i < w_size; ++i) {
+                window[i] = curves[start + i];
+                indices[i] = start + i;
+            }
+            auto wind_matrix = matrix_from_subset(dist_matrix, indices);
+            Clustering windowed = clustering::computeCenterClustering(window, k,
+                ell, true, true, clustering::ClusterAlg::PAM,
+                clustering::CenterAlg::cdba, wind_matrix, dummy_dist,
+                df::integral_frechet, df::frechet_lt, 1);
+            clustering::plot_clustering(windowed, window, "convergence/" +
+                pigeon + "_" + std::to_string(start) + "_" +
+                std::to_string(w_size));
+            scores << pigeon << ", " << start << ", " << windowed[0].cost
+                   << std::endl;
+
+        }
+    }
+}

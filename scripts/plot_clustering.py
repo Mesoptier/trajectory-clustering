@@ -60,5 +60,4 @@ if __name__ == "__main__":
     filename = sys.argv[1]
     figure_name = sys.argv[2]
     radius = float(sys.argv[3])
-    file = open(filename, "r")
-    plot_clustering(file, figure_name, radius)
+    plot_clustering(filename, figure_name, radius)

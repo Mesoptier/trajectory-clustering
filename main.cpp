@@ -93,7 +93,7 @@ namespace {
         // classification::classify_characters();
 
         std::cout << "Pigeons";
-        classification::identify_pigeons();
+        // classification::identify_pigeons();
 
         std::cout << std::endl;
         std::cout << std::string(80, '-') << "\nWEDGE PARAMETER EXPERIMENT\n"
@@ -102,6 +102,14 @@ namespace {
             << "Identify the best parameters (eps, r) for the grid search.\n"
             << "Report results on stdout.\n" << std::endl;
         // experiments::find_wedge_params_pigeons();
+
+        std::cout << std::endl;
+        std::cout << std::string(80, '-') << "\nWINDOWED CONVERGENCE EXPERIMENT\n"
+            << std::string(80, '-') << "\n";
+        std::cout << "Load the trajectories of each pigeon separately.\n"
+            << "Run (1, l)-clustering with a time window.\n"
+            << "Save results in convergence/.\n" << std::endl;
+        experiments::test_windowed_convergence(2, 5);
     }
 }
 

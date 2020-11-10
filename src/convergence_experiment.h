@@ -2,6 +2,6 @@
 #define CONVERGENCE_EXPERIMENT_H
 
 namespace experiments {
-    void test_convergence();
+    // void test_convergence();
 }
 #endif

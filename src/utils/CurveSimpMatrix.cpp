@@ -8,6 +8,11 @@ CurveSimpMatrix::CurveSimpMatrix(std::string const& path) {
     read(path);
 }
 
+CurveSimpMatrix::CurveSimpMatrix(std::vector<std::vector<distance_t>> dist):
+        matrix(std::move(dist)) {
+    // Empty.
+}
+
 CurveSimpMatrix::CurveSimpMatrix(Curves const& curves,
         Curves const& simplifications,
         std::function<distance_t(Curve const&, Curve const&)> const& dist)
@@ -61,4 +66,14 @@ void CurveSimpMatrix::read(std::string const& path) {
     }
 
     file.close();
+}
+
+CurveSimpMatrix matrix_from_subset(CurveSimpMatrix const& matrix,
+        std::vector<std::size_t> const& indices) {
+    std::vector<std::vector<distance_t>> distances(indices.size(),
+        std::vector<distance_t>(indices.size()));
+    for (unsigned i = 0; i < indices.size(); ++i)
+        for (unsigned j = 0; j < indices.size(); ++j)
+            distances[i][j] = matrix.at(indices[i], indices[j]);
+    return CurveSimpMatrix(distances);
 }

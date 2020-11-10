@@ -28,14 +28,14 @@ def main():
     for sd in subdirs:
         p = base / sd
         with open(p / 'dataset.txt', 'w') as ds:
-            for x in p.rglob('*.txt'):
+            for x in sorted(p.rglob('*.txt')):
                 if x.name != 'dataset.txt' and 'Untrimmed' not in x.parts and \
                         'untrimmed' not in x.parts:
                     print(x.relative_to(p), file=ds)
         pigeon_dirs = [d for d in p.iterdir() if d.is_dir()]
         for psd in pigeon_dirs:
             with open(psd / 'dataset.txt', 'w') as ds:
-                for x in (psd).glob('*.txt'):
+                for x in sorted((psd).glob('*.txt')):
                     if x.name != 'dataset.txt':
                         print(x.name, file=ds)
 
