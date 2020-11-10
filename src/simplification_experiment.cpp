@@ -131,13 +131,13 @@ void experiments::evaluate(std::vector<Curve> const& curves,std::size_t ell,
             io::export_points(simpl_dir / ("best" + std::to_string(worst_index)),
                 r2.get_points());
 
+            auto approach = std::string(alg_name) + " + " + lt_name;
             stats << "Cost for curve " << worst_index << ":\n"
-                << "                CDTW cost Frechet cost\n" << std::fixed
-                << std::setprecision(4) << std::setw(15)
-                << alg_name << " + " << lt_name << " "
+                << "                   CDTW cost Frechet cost\n" << std::fixed
+                << std::setprecision(4) << approach << " "
                 << std::setw(9) << df::integral_frechet(wc, r1) << " "
                 << std::setw(12) << df::frechet(wc, r1) << "\n"
-                << "Imai-Iri + CDTW " << std::setw(9)
+                << "Imai-Iri + CDTW    " << std::setw(9)
                 << df::integral_frechet(wc, r2) << " " << std::setw(12)
                 << df::frechet(wc, r2) << "\n" << std::endl;
         }
