@@ -163,8 +163,8 @@ void classification::identify_pigeons(
                 + sites[site_id][pid] + "/utm";
             Curves raw_curves = io::read_curves(path, 1);
             Curves curves;
-            curves.reserve(raw_curves.size() - 4);
-            for (std::size_t i = 4; i < raw_curves.size(); ++i)
+            curves.reserve(raw_curves.size() - 8);
+            for (std::size_t i = 8; i < raw_curves.size(); ++i)
                 curves.emplace_back(raw_curves[i].naive_l_simplification(200));
             pigeon_curves.push_back(std::move(curves));
         }
