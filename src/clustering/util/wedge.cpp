@@ -7,7 +7,7 @@ auto clustering::get_points_matched_to_segment(Points const& param_space_path,
         Curve const& curve_1, Curve const& curve_2,
         std::size_t src_index, unsigned seg_index) -> WedgePoints {
     assert(src_index < curve_1.size() - 1);
-    // assert(seg_index == 0 || seg_index == 1);
+    assert(seg_index == 0 || seg_index == 1);
 
     WedgePoints wedge_points;
     distance_t src_dist = curve_1.curve_length(src_index);

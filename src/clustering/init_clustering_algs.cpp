@@ -134,10 +134,12 @@ namespace {
         distances_to_center[cid] = 0.0;
         closest_center[cid] = result.size() - 1;
 
+        #pragma omp parallel for schedule(dynamic)
         for (CurveID curve_id = 0; curve_id < curves.size(); ++curve_id) {
             auto& current_dist = distances_to_center[curve_id];
             auto new_dist = use_mtrx ? dist_matrix.at(curve_id, cid)
                 : dist(center_curve, curves[curve_id]);
+            #pragma omp critical(center_curve_upd_dist)
             if (new_dist < current_dist) {
                 current_dist = new_dist;
                 closest_center[curve_id] = result.size() - 1;
@@ -344,13 +346,3 @@ void clustering::updateClustering(Clustering& clustering, Curves const& curves,
         clustering[min_cluster_id].curve_ids.push_back(curve_id);
     }
 }
-
-// distance_t clustering::kMedianCost(Curves const& curves,
-//         Clustering const& clustering,
-//         std::function<distance_t(Curve const&, Curve const&)> const& dist) {
-//     distance_t cost = 0.0;
-//     for (auto const& cluster: clustering)
-//         cost += calcC2CDist(curves, cluster.center_curve, cluster.curve_ids,
-//             C2CDist::Median, dist);
-//     return cost;
-// }

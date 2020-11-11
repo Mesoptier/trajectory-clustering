@@ -20,10 +20,12 @@ namespace {
     distance_t kMedianCost(Curves const& curves, Clustering const& clustering,
             std::function<distance_t(Curve const&, Curve const&)> const& dist) {
         distance_t cost = 0.0;
-        for (auto const& cluster: clustering)
+        #pragma omp parallel for schedule(dynamic) reduction(+:cost)
+        for (std::size_t i = 0; i < clustering.size(); ++i) {
+            auto const& cluster = clustering[i];
             cost += clustering::calcC2CDist(curves, cluster.center_curve,
                 cluster.curve_ids, clustering::C2CDist::Median, dist);
-
+        }
         return cost;
     }
 
@@ -54,6 +56,7 @@ namespace {
             std::function<distance_t(Curve const&, Curve const&)> const& dist,
             std::string const& out) {
         SymmetricMatrix matrix(curves.size());
+        #pragma omp parallel for schedule(dynamic)
         for (std::size_t i = 0; i < curves.size(); ++i) {
             matrix.at(i, i) = 0.0;
             for (std::size_t j = i + 1; j < curves.size(); ++j)
@@ -457,8 +460,11 @@ void experiments::find_wedge_params_pigeons() {
 
     std::array<distance_t, 4> epsilons {10, 30, 50, 70};
     std::array<int, 5> radii {5, 10, 20, 30, 40};
-    for (distance_t eps: epsilons) {
-        for (int radius: radii) {
+    #pragma omp parallel for collapse(2) schedule(dynamic)
+    for (unsigned i = 0; i < epsilons.size(); ++i) {
+        for (unsigned j = 0; j < radii.size(); ++j) {
+            distance_t eps = epsilons[i];
+            int radius = radii[j];
             Clustering start(initial_clustering);
             bool res = clustering::computeCenters(curves, start,
                 clustering::CenterAlg::wedge, true, true, df::integral_frechet,
@@ -466,6 +472,7 @@ void experiments::find_wedge_params_pigeons() {
             if (!res)
                 continue;
             auto new_cost = kMedianCost(curves, start, df::integral_frechet);
+            #pragma omp critical(find_best_wedge)
             if (new_cost < baseline) {
                 baseline = new_cost;
                 best_eps = eps;

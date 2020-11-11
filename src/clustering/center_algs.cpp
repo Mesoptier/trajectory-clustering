@@ -15,16 +15,21 @@ distance_t clustering::calcC2CDist(Curves const& curves,
         Curve const& center_curve, CurveIDs const& curve_ids, C2CDist c2c_dist,
         std::function<distance_t(Curve const&, Curve const&)> const& dist) {
     distance_t d = 0.0;
-    for (auto const& curve_id: curve_ids) {
+    #pragma omp parallel for schedule(dynamic)
+    for (std::size_t cid = 0; cid < curve_ids.size(); ++cid) {
+        auto const& curve_id = curve_ids[cid];
         auto curve_dist = dist(center_curve, curves[curve_id]);
         switch (c2c_dist) {
         case C2CDist::Median:
+            #pragma omp atomic
             d += curve_dist;
             break;
         case C2CDist::Mean:
+            #pragma omp atomic
             d += curve_dist * curve_dist;
             break;
         case C2CDist::Max:
+            #pragma omp critical(c2cdist_max)
             d = std::max(d, curve_dist);
             break;
         default: ERROR("Unknown c2c_dist.");
