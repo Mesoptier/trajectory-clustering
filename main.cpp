@@ -93,7 +93,7 @@ namespace {
         // classification::classify_characters();
 
         std::cout << "Pigeons";
-        classification::identify_pigeons();
+        // classification::identify_pigeons();
 
         std::cout << std::endl;
         std::cout << std::string(80, '-') << "\nWEDGE PARAMETER EXPERIMENT\n"

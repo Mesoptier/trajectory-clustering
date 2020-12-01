@@ -518,7 +518,7 @@ void experiments::test_windowed_convergence(unsigned step, unsigned w_size) {
 
     std::ofstream scores("convergence/scores.txt");
     if (!scores.is_open())
-        throw std::runtime_error("Failed to open file covergence/scores.txt");
+        throw std::runtime_error("Failed to open file convergence/scores.txt");
     scores << "k = " << k << ", l = " << ell << ", w_size = " << w_size
            << ", step = " << step << "\npigeon, start, score" << std::endl;
 
@@ -551,7 +551,6 @@ void experiments::test_windowed_convergence(unsigned step, unsigned w_size) {
                 std::to_string(w_size));
             scores << pigeon << ", " << start << ", " << windowed[0].cost
                    << std::endl;
-
         }
     }
 }
