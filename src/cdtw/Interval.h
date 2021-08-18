@@ -33,6 +33,14 @@ struct Interval {
     double interpolate(double t) const {
         return min * (1 - t) + max * t;
     }
+
+    Interval intersect(Interval& other) {
+        
+        double left = std::max(min, other.min);
+        double right = std::min(max, other.max);
+
+        return { left, right };
+    }
 };
 
 template<>

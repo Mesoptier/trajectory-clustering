@@ -106,6 +106,7 @@ PiecewisePolynomial<D> find_minimum(
     lines.insert(lines.end(), left_constraints.begin(), left_constraints.end());
     lines.insert(lines.end(), right_constraints.begin(), right_constraints.end());
 
+ 
     std::vector<Polynomial<1>> critical_lines = find_roots_y(h.partial_derivative_x());
     lines.insert(lines.end(), critical_lines.begin(), critical_lines.end());
 
@@ -123,6 +124,11 @@ PiecewisePolynomial<D> find_minimum(
             }
         }
     }
+            
+    // if (approx_equal(h.coefficients[0][0], 0.010494971498024473) && approx_equal(h.coefficients[0][1], -0.12386299165233849)
+    // && approx_equal(h.coefficients[2][0], 0.092203137346358877)) {
+    //     std::cout << "hi\n";
+    // }
 
     bool prev_open = false;
     double left_start;
@@ -193,6 +199,9 @@ PiecewisePolynomial<D> find_minimum(
     for (auto edge : edges) {
         pieces.emplace_back(edge.interval, h.embed_x(edge.polynomial));
     }
+
+    if (pieces.size() == 0)
+        std::cout << "hi\n";
 
     return naive_lower_envelope(pieces);
 }
@@ -321,8 +330,8 @@ public:
     };
 
 private:
-    const Curve& curve1;
-    const Curve& curve2;
+    Curve& curve1;
+    Curve& curve2;
 
     size_t n;
     size_t m;
@@ -347,6 +356,13 @@ private:
         #ifndef NDEBUG
         std::vector<ConstrainedBivariatePolynomial<D>> total_costs;
         #endif
+
+        auto pieces = std::vector<PolynomialPiece<D>>();
+        auto new_it = pieces_it;
+        while (new_it != pieces_end) {
+            pieces.push_back(*new_it);
+            ++new_it;
+        }
 
         PiecewisePolynomial<D> out_cost;
         while (pieces_it != pieces_end) {
@@ -401,7 +417,7 @@ private:
     std::vector<ConstrainedBivariatePolynomial<D>> bottom_to_top_costs(const Cell& cell) const;
 
 public:
-    CDTW(const Curve& curve1, const Curve& curve2);
+    CDTW(Curve& _curve1, Curve& _curve2);
 
     double cost() const {
         const PiecewisePolynomial<D> func = in_functions[in_functions.size() - 2].back().bottom;
@@ -586,8 +602,8 @@ namespace {
 }
 
 template<size_t dimension, Norm image_norm, Norm param_norm>
-CDTW<dimension, image_norm, param_norm>::CDTW(const Curve& curve1, const Curve& curve2) :
-    curve1(curve1), curve2(curve2),
+CDTW<dimension, image_norm, param_norm>::CDTW(Curve& _curve1, Curve& _curve2) :
+    curve1(_curve1), curve2(_curve2),
     n(curve1.size()), m(curve2.size()),
     in_functions(n, std::vector<Entry>(m))
 {
@@ -597,11 +613,84 @@ CDTW<dimension, image_norm, param_norm>::CDTW(const Curve& curve1, const Curve& 
         bool open; // Whether this function is currently in the open_set
     };
 
+    // Curve new_curve1("", curve1.get_points());
+    // Curve new_curve2("", curve2.get_points());
+
+    // if (dimension == 2 && image_norm == Norm::L1 && param_norm == Norm::L1) {
+
+        int new_n;
+        int new_m;
+
+        std::vector<CPoint> new_c_points_1 = std::vector<CPoint>();
+        std::vector<CPoint> new_c_points_2 = std::vector<CPoint>();
+
+        for (int i = 0; i < curve1.size(); ++i) {
+            new_c_points_1.push_back(CPoint(i, 0));
+        }
+
+        for (int i = 0; i < curve2.size(); ++i) {
+            new_c_points_2.push_back(CPoint(i, 0));
+        }
+
+
+        for (int i = 0; i < curve1.size()-1; ++i) {
+            auto s1 = curve1[i];
+            auto t1 = curve1[i+1];
+
+            const auto l1 = Line::fromTwoPoints(s1, t1);
+
+            for (int j = 0; j < curve2.size()-1; ++j) {
+
+                auto s2 = curve2[j];
+                auto t2 = curve2[j+1];
+
+                const auto l2 = Line::fromTwoPoints(s2, t2);
+
+                if (!isParallel(l1, l2)) {
+                    const auto p = intersect(l1, l2);
+                    Point mid = p;
+
+                    distance_t c1_dist = s1.dist(mid);
+                    distance_t c2_dist = s2.dist(mid);
+
+                    if ((mid.x - s1.x)*(mid.x - t1.x) < 0
+                    && (mid.x - s2.x)*(mid.x - t2.x) < 0) {
+                        std::cout << c1_dist/(s1.dist(t1)) << std::endl;
+                        std::cout << c2_dist/(s2.dist(t2)) << std::endl;
+                        // std::cout << s1 << std::endl;
+                        // std::cout << t1 << std::endl;
+                        // std::cout << s2 << std::endl;
+                        // std::cout << t2 << std::endl;
+                        // std::cout << mid << std::endl;
+                        new_c_points_1.push_back(CPoint(i, c1_dist/(s1.dist(t1))));
+                        new_c_points_2.push_back(CPoint(j, c2_dist/(s2.dist(t2))));
+                    }
+                }
+            }
+        }
+
+        std::sort(new_c_points_1.begin(), new_c_points_1.end());
+        std::sort(new_c_points_2.begin(), new_c_points_2.end());
+    
+        Points new_points_1 = Points();
+
+        for (auto c: new_c_points_1)
+            new_points_1.push_back(curve1.interpolate_at(c));
+
+        Points new_points_2 = Points();
+
+        for (auto c: new_c_points_2)
+            new_points_2.push_back(curve2.interpolate_at(c));
+
+        Curve new_curve1 = Curve("", new_points_1);
+        Curve new_curve2 = Curve("", new_points_2);
+    // }
+
     std::unordered_map<Coord, Function, typename Coord::hash> functions;
     std::priority_queue<PQNode, std::vector<PQNode>, std::greater<>> open_set;
 
     {
-        const Cell cell(curve1[0], curve2[0], curve1[1], curve2[1]);
+        const Cell cell(new_curve1[0], new_curve2[0], new_curve1[1], new_curve2[1]);
 
         const Function f1{base_bottom(cell), 0, true};
         const Coord c1{0, 0, Side::BOTTOM};
@@ -635,8 +724,8 @@ CDTW<dimension, image_norm, param_norm>::CDTW(const Curve& curve1, const Curve& 
             continue;
         }
 
-        if (coord.i1 == curve1.size() - 1 || coord.i2 == curve2.size() - 1) {
-            if (coord.i1 == curve1.size() - 2 || coord.i2 == curve2.size() - 2) {
+        if (coord.i1 == new_curve1.size() - 1 || coord.i2 == new_curve2.size() - 1) {
+            if (coord.i1 == new_curve1.size() - 2 || coord.i2 == new_curve2.size() - 2) {
                 min_result_cost = std::min(min_result_cost, f.f.right_value());
             }
             ++nodes_skipped;
@@ -646,8 +735,8 @@ CDTW<dimension, image_norm, param_norm>::CDTW(const Curve& curve1, const Curve& 
         ++nodes_handled;
 
         // Cell and transposed cell
-        const Cell cell(curve1[coord.i1], curve2[coord.i2], curve1[coord.i1 + 1], curve2[coord.i2 + 1]);
-        const Cell cell_t(curve2[coord.i2], curve1[coord.i1], curve2[coord.i2 + 1], curve1[coord.i1 + 1]);
+        const Cell cell(new_curve1[coord.i1], new_curve2[coord.i2], new_curve1[coord.i1 + 1], new_curve2[coord.i2 + 1]);
+        const Cell cell_t(new_curve2[coord.i2], new_curve1[coord.i1], new_curve2[coord.i2 + 1], new_curve1[coord.i1 + 1]);
 
         for (size_t i = 0; i < 2; ++i) { // 0 -> right, 1 -> top
             const PiecewisePolynomial<D> out_f = i == 0

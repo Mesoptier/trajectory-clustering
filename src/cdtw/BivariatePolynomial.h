@@ -30,6 +30,18 @@ struct BivariatePolynomial
         return os;
     }
 
+    double operator()(Point p) {
+        
+        double result = 0;
+
+        for (int i = 0; i <= D; ++i)
+            for (int j = 0; j <= D; ++j) {
+                result += coefficients[i][j] * pow(p.x, i) * pow(p.y, j);
+            }
+
+        return result;
+    }
+
     BivariatePolynomial<D - 1> partial_derivative_x() const {
         BivariatePolynomial<D - 1> result;
         for (size_t dx = 0; dx < D; ++dx) {

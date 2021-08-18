@@ -136,6 +136,16 @@ struct Line
         return {p, {0, 1}};
     }
 
+    Point grad_int() {
+        if (direction.x != 0)
+            return {
+                direction.y / direction.x,
+                getY(0)    
+            };
+
+        return {0, 0};
+    }
+
     Point operator()(distance_t t) const {
         return origin + direction * t;
     }
@@ -154,7 +164,7 @@ struct Line
     inline bool isHorizontal() const {
         return approx_zero(direction.y);
     }
-
+    
     /**
      * Get Y coordinate for given X coordinate.
      */
@@ -174,6 +184,7 @@ struct Line
         }
         return (y - origin.y) * direction.x / direction.y + origin.x;
     }
+
 
     Point closest(const Point& point) const;
     int side(const Point& point) const;

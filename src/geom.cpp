@@ -178,6 +178,7 @@ Point Line::closest(const Point& point) const {
 
 int Line::side(const Point& point) const {
     const auto val = perp(point - origin, direction);
+    // std::cout << "val: " << val << std::endl;
     return approx_zero(val) ? 0 : (val > 0 ? 1 : -1);
 }
 
@@ -187,7 +188,8 @@ bool Line::includesPoint(const Point& point) const {
 
 Point intersect(const Line& line1, const Line& line2) {
     const auto t1 = perp(line2.origin - line1.origin, line2.direction) / perp(line1.direction, line2.direction);
-    assert(line1.includesPoint(line1(t1)));
+    if (!line1.includesPoint(line1(t1)))
+        assert(line1.includesPoint(line1(t1)));
     assert(line2.includesPoint(line1(t1)));
     return line1(t1);
 }

@@ -56,6 +56,10 @@ struct ConstrainedBivariatePolynomial
         return { min, max };
     }
 
+    bool constraints_feasible() {
+        
+    }
+
     friend std::ostream& operator<<(std::ostream& os, const ConstrainedBivariatePolynomial& polynomial) {
         os << std::fixed;
         os << "{(" << polynomial.f << "), ";
@@ -68,6 +72,52 @@ struct ConstrainedBivariatePolynomial
         }
         os << "}";
         return os;
+    }
+
+    double operator()(Point p) {
+        return f(p);
+    }
+
+    friend ConstrainedBivariatePolynomial operator+(
+        ConstrainedBivariatePolynomial& l, ConstrainedBivariatePolynomial& r
+    ) {
+        auto polynomial = l.f + r.f;
+        auto y_interval = l.y_interval.intersect(r.y_interval);
+
+        auto left_constraints = std::vector<Polynomial<1>>();
+        auto right_constraints = std::vector<Polynomial<1>>();
+
+        for (auto& poly: l.left_constraints) 
+            left_constraints.push_back(poly);
+
+        for (auto& poly: r.left_constraints) {
+            bool new_constraint = true;
+            for (auto& other: left_constraints)
+                if (other == poly)
+                    new_constraint = false;
+            if (new_constraint)
+                left_constraints.push_back(poly);
+        }
+
+        for (auto& poly: l.right_constraints)
+            right_constraints.push_back(poly);
+
+        for (auto& poly: r.right_constraints) {
+            bool new_constraint = true;
+            for (auto& other: right_constraints)
+                if (other == poly)
+                    new_constraint = false;
+            if (new_constraint)
+                right_constraints.push_back(poly);
+        }
+    
+
+        return ConstrainedBivariatePolynomial{
+            polynomial,
+            y_interval,
+            left_constraints,
+            right_constraints
+        };
     }
 };
 
