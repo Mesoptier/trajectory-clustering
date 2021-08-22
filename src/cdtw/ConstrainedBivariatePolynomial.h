@@ -78,6 +78,58 @@ struct ConstrainedBivariatePolynomial
         return f(p);
     }
 
+    std::vector<Polynomial<1>> remove_redundant_const(
+        std::vector<Polynomial<1>> init_set, std::string side) {
+
+        std::vector<Polynomial<1>> result;
+
+        for (auto c: init_set) {  
+
+            bool undominated = true;
+            double c_max = std::max(c(y_interval.min), c(y_interval.max));
+            double c_min = std::min(c(y_interval.min), c(y_interval.max));
+            
+            for (auto oth_c: init_set) {
+
+                double oth_c_max = std::max(oth_c(y_interval.min), oth_c(y_interval.max));
+                double oth_c_min = std::min(c(y_interval.min), oth_c(y_interval.max));
+
+                if (c != oth_c)
+                    undominated &= side == "right" ? (c_min < oth_c_min ||  c_max < oth_c_max)
+                    : (c_min > oth_c_min ||  c_max > oth_c_max);
+            }
+
+            if (undominated) {
+                if (std::find(result.begin(), result.end(), c) == result.end())
+                    result.push_back(c);
+            }
+        }
+
+        return result;
+    }
+
+    void clean_constraints() {
+        // auto new_left = std::vector<Polynomial<1>>();
+
+        // bool zero_seen = false;
+
+        // for (auto c: left_constraints) 
+        //     if (c.coefficients[0] >= 0 || c.coefficients[1] >= 0) {
+        //         if (c.coefficients[0] == 0 && c.coefficients[1] == 0 && !zero_seen) {
+        //             new_left.push_back(c);
+        //             zero_seen = true;
+        //         } else if (c.coefficients[0] > 0 || c.coefficients[1] > 0)
+        //             new_left.push_back(c);
+        //     }
+
+  
+
+        // left_constraints = new_left;
+
+        left_constraints = remove_redundant_const(left_constraints, "left");
+        right_constraints = remove_redundant_const(right_constraints, "right");
+    }
+
     friend ConstrainedBivariatePolynomial operator+(
         ConstrainedBivariatePolynomial& l, ConstrainedBivariatePolynomial& r
     ) {

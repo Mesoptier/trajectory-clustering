@@ -84,6 +84,10 @@ PiecewisePolynomial<D> find_minimum(
     std::vector<Polynomial<1>> left_constraints,
     std::vector<Polynomial<1>> right_constraints
 ) {
+
+    if (approx_equal(h.coefficients[0][0], 0.0194395422591176) && approx_equal(h.coefficients[0][1], 0.042655935483528154)) {
+        std::cout << "hi\n";
+    }
     // Minimum must lie on:
     //  - Derivative (w.r.t. x?) = 0 line (bounded by linear constraints)
     //  - Left/right boundary of the valid area (bounded by linear constraints)
@@ -125,11 +129,10 @@ PiecewisePolynomial<D> find_minimum(
         }
     }
             
-    // if (approx_equal(h.coefficients[0][0], 0.010494971498024473) && approx_equal(h.coefficients[0][1], -0.12386299165233849)
-    // && approx_equal(h.coefficients[2][0], 0.092203137346358877)) {
-    //     std::cout << "hi\n";
-    // }
-
+    if (approx_equal(h.coefficients[0][0], 0.13025030654609074) && approx_equal(h.coefficients[0][1], 0.042655935483528154)) {
+        std::cout << "hi\n";
+    }
+    
     bool prev_open = false;
     double left_start;
     Polynomial<1> left_current;
@@ -200,8 +203,12 @@ PiecewisePolynomial<D> find_minimum(
         pieces.emplace_back(edge.interval, h.embed_x(edge.polynomial));
     }
 
-    if (pieces.size() == 0)
+    if (approx_equal(h.coefficients[0][0], 0.13025030654609074) && approx_equal(h.coefficients[0][1], 0.18967521022380202)) {
         std::cout << "hi\n";
+    }
+
+    // if (pieces.size() == 0)
+    //     std::cout << "hi\n";
 
     return naive_lower_envelope(pieces);
 }
@@ -372,6 +379,10 @@ private:
             // piece_out_cost: cost of optimal path from origin to point on out-boundary
             PiecewisePolynomial<D> piece_out_cost;
 
+            if (approx_equal(cell_costs[0].f.coefficients[0][0], 0.0194395422591176) && approx_equal(cell_costs[0].f.coefficients[0][1], 0.18967521022380202)) {
+                std::cout << "hi\n";        
+            }
+
             // cell_cost: cost of optimal path from point on in-boundary to point on out-boundary
             for (const auto& cell_cost : cell_costs) {
                 // total_cost: cost of optimal path from origin through point on in-boundary to point on out-boundary
@@ -397,7 +408,7 @@ private:
         const auto result = naive_lower_envelope(min_pieces);
 
         #ifndef NDEBUG
-        verify_minimum(result, total_costs);
+        // verify_minimum(result, total_costs);
         #endif
 
         return result;

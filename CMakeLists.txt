@@ -30,7 +30,7 @@ if(NOT MSVC AND (ASAN OR UBSAN))
 endif()
 
 add_subdirectory(src)
-add_subdirectory(Google_tests)
+#add_subdirectory(Google_tests)
 
 # Main executable
 add_executable(TrajectoryClustering_run main.cpp)

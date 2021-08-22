@@ -103,8 +103,10 @@ struct PiecewisePolynomial
             const PolynomialPiece<D>& p1 = pieces[i - 1];
             const PolynomialPiece<D>& p2 = pieces[i];
             // Verify that piece intervals line up
-            if (!approx_equal(p1.interval.max, p2.interval.min)) 
+            if (!approx_equal(p1.interval.max, p2.interval.min)) { 
+                std::cout << "that is very not good\n";
                 assert(approx_equal(p1.interval.max, p2.interval.min));
+            }
             // Verify that pieces connect
 
             // double diff = fabs(p1.polynomial(p1.interval.max) -  p2.polynomial(p2.interval.min));

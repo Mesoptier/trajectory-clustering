@@ -322,7 +322,7 @@ bool is_positive(ConstrainedBivariatePolynomial<2>& poly) {
     for (auto p: points) {
         auto val = poly(p);
         if (valid_point(poly, p) && poly(p) < 0 && !approx_zero(poly(p))) {
-            if (approx_equal(poly.f.coefficients[0][0], -0.00028213954094131923) && approx_equal(poly.f.coefficients[0][1], 0.00014437300201993776))
+            if (approx_equal(poly.f.coefficients[0][0], -0.001356284712799239) && approx_equal(poly.f.coefficients[0][1], 0.021595794862823228))
                 std::cout << "hi\n";
             return false;
         }
@@ -344,6 +344,9 @@ BivariatePolynomial<1> integrand, double t_coeff,
 Interval y_range, std::vector<Polynomial<1>> left_constraints, std::vector<Polynomial<1>> right_constraints) {
     auto output = std::vector<ConstrainedBivariatePolynomial<2>>();
 
+        if (approx_equal(y_range.max, 0.18449462693244933)) {
+            std::cout << "hi\n";
+        }
         
         /**
          * Impose low_lim <= hi_lim constraints
@@ -433,7 +436,7 @@ Interval y_range, std::vector<Polynomial<1>> left_constraints, std::vector<Polyn
             }));
         } else if (approx_equal(p3x, a*p1x)) {
             if (a*p1y > p3y)
-                y_upper_bound = std::min(y_upper_bound, (p3c-a*p1c) / a*(p1y-p3y));
+                y_upper_bound = std::min(y_upper_bound, (p3c-a*p1c) / (a*p1y-p3y));
             else if (a*p1y < p3y)
                 y_lower_bound = std::max(y_lower_bound, (p3c-a*p1c) / (a*p1y-p3y));
             else if (approx_equal(a*p1y, p3y)) {
@@ -477,9 +480,9 @@ Interval y_range, std::vector<Polynomial<1>> left_constraints, std::vector<Polyn
             }));
         } else if (approx_equal(p3x, a*p2x)) {
             if (a*p2y > p3y)
-                y_lower_bound = std::max(y_lower_bound, (a*p2c-p3y) / (p3y-a*p2y));
+                y_lower_bound = std::max(y_lower_bound, (a*p2c-p3c) / (p3y-a*p2y));
             else if (a*p2y < p3y)
-                y_upper_bound = std::min(y_upper_bound, (a*p2c-p3y) / (p3y-a*p2y));
+                y_upper_bound = std::min(y_upper_bound, (a*p2c-p3c) / (p3y-a*p2y));
             else if (approx_equal(a*p2y, p3y)) {
                 if (!(p3c-a*p2c <= 0)) {
                     y_upper_bound = -1;
@@ -645,14 +648,16 @@ Interval y_range, std::vector<Polynomial<1>> left_constraints, std::vector<Polyn
         output.push_back(ConstrainedBivariatePolynomial<2>{
             case_3b_poly,
             {y_lower_bound, y_upper_bound},
-            case_3b_right_constraints,
-            case_3b_left_constraints
+            case_3b_left_constraints,
+            case_3b_right_constraints
         });
 
     auto final_output = std::vector<ConstrainedBivariatePolynomial<2>>();
 
-        // if (approx_equal(t_coeff, cos(2.237369836603416)))
-        //     std::cout << "hi\n";
+        if (approx_equal(y_range.max, 0.18449462693244933)) {
+            std::cout << "hi\n";
+        }
+        
 
     for (auto& poly: output)
         if (valid_constraints(poly)) {
@@ -661,8 +666,11 @@ Interval y_range, std::vector<Polynomial<1>> left_constraints, std::vector<Polyn
                 auto res = is_positive(poly);
                 valid_constraints(poly);
             } 
+            poly.clean_constraints();
             final_output.push_back(poly);
         }
+
+    
     return final_output;
 }
 
@@ -1171,8 +1179,10 @@ combine_steps(size_t step_count, std::vector<std::vector<ConstrainedBivariatePol
     auto valid_results = std::vector<ConstrainedBivariatePolynomial<2>>();
 
     for (auto f: results)
-        if (valid_constraints(f))
+        if (valid_constraints(f)) {
+            f.clean_constraints();
             valid_results.push_back(f);
+        }
 
     return valid_results;
 }
@@ -1419,7 +1429,9 @@ bottom_to_right_costs_2D(const Cell& cell) {
     // BivariatePolynomial<1> integrand, double t_coeff,
     // Interval y_range, std::vector<Polynomial<1>> left_constraints, std::vector<Polynomial<1>> right_constraints)
 
-
+    if (approx_equal(cell.len1, 0.13726828480384534) && approx_equal(cell.len2, 0.18449462693244933)) {
+        std::cout << "hi\n";
+    }
         // up and across
 
         auto ua_up_terms = vertical_int(
@@ -1473,237 +1485,65 @@ bottom_to_right_costs_2D(const Cell& cell) {
     }
 
 
-    // if (costs.size() == 0) {
+    if (costs.size() == 0) {
         // int ax_count = axes.size();
         std::cout << "polynomial count: " << costs.size() << std::endl;
-    // }
+    }
     return costs;
 }
 
 
+std::vector<ConstrainedBivariatePolynomial<2>>
+bottom_top_axis_integrals(Line axis, const Cell& cell) {
+
+}
+
 
 std::vector<ConstrainedBivariatePolynomial<2>>
 bottom_to_top_costs_2D(const Cell& cell) {
-    // Coordinates of the cell in a system where cell.mid lies on (0, 0).
-    // This makes it much easier to formulate the bivariate polynomials and constraints, but does require us to
-    // translate the cell back such that (s.x, s.y) = (0, 0) using .translate_xy(-sx, -sy).
-    double sx = cell.s.x - cell.mid.x;
-    double sy = cell.s.y - cell.mid.y;
-    double tx = cell.t.x - cell.mid.x;
-    double ty = cell.t.y - cell.mid.y;
+    double sx = cell.s.x; //- cell.mid.x;
+    double sy = cell.s.y; //- cell.mid.y;
+    double tx = cell.t.x; //- cell.mid.x;
+    double ty = cell.t.y; //- cell.mid.y;
 
-    std::vector<ConstrainedBivariatePolynomial<2>> costs;
+    // std::cout << "b2r\n";
 
-    bool same_direction = (cell.s1.x <= cell.t1.x) == (cell.s2.x <= cell.t2.x);
+    std::vector<ConstrainedBivariatePolynomial<2>> costs = std::vector<ConstrainedBivariatePolynomial<2>>();
 
-    if (!same_direction) { // Downwards valley
-        costs.reserve(3);
+    auto axes = get_axes(cell);
 
-        // 1.
-        // A below valley
-        // Corner below valley
-        // B below valley
-        costs.push_back(ConstrainedBivariatePolynomial<2>{
-            BivariatePolynomial<2>({{
-                {{(sy*sy - ty*ty) / 2 + (sy-ty) * sx, -sx-ty, -1./2}},
-                {{sx + sy, 0, 0}},
-                {{1./2, 0, 0}},
-            }}),
-            // B in cell + B below valley
-            Interval{0, std::clamp(-ty-sx, 0., tx-sx)},
-            {{
-                Polynomial<1>({0, 0}), // A in cell
-            }},
-            {{
-                 Polynomial<1>({tx-sx, 0}), // A in cell
-                 Polynomial<1>({-sy-sx, 0}), // A below valley
-                 Polynomial<1>({0, 1}), // A <= B
-            }},
-        });
+    double alpha = angle(cell.s1, cell.t1);
+    double beta = angle(cell.s2, cell.t2);
 
-        // 2.
-        // A below valley
-        // Corner below/above valley
-        // B above valley
-        costs.push_back(ConstrainedBivariatePolynomial<2>{
-            BivariatePolynomial<2>({{
-                {{(sy*sy + ty*ty) / 2 + (sx + sy + ty) * sx, sx + ty, 1./2}},
-                {{sx + sy, 0, 0}},
-                {{1./2, 0, 0}},
-            }}),
-            // B in cell + B above valley
-            Interval{std::clamp(-ty-sx, 0., tx-sx), tx-sx},
-            {{
-                Polynomial<1>({0, 0}), // A in cell
-            }},
-            {{
-                 Polynomial<1>({tx-sx, 0}), // A in cell
-                 Polynomial<1>({-sy-sx, 0}), // A below valley
-                 Polynomial<1>({0, 1}), // A <= B
-            }},
-        });
+    Point s1 = cell.s1;
+    Point t1 = cell.t1;
+    Point s2 = cell.s2;
+    Point t2 = cell.t2;
 
-        // 3.
-        // A above valley
-        // Corner above valley
-        // B above valley
-        costs.push_back(ConstrainedBivariatePolynomial<2>{
-            BivariatePolynomial<2>({{
-                {{(ty*ty - sy*sy) / 2 + (ty - sy) * sx, sx+ty, 1./2}},
-                {{-sx-sy, 0, 0}},
-                {{-1./2, 0, 0}},
-            }}),
-            // B in cell + B above valley
-            Interval{std::clamp(-ty-sx, 0., tx-sx), tx-sx},
-            {{
-                Polynomial<1>({0, 0}), // A in cell
-                Polynomial<1>({-sy-sx, 0}), // A above valley
-            }},
-            {{
-                 Polynomial<1>({tx-sx, 0}), // A in cell
-                 Polynomial<1>({0, 1}), // A <= B
-            }},
-        });
+    // up and across
 
-        return costs;
+    auto ua_up_terms = vertical_int(
+            BivariatePolynomial<1>({{{{0, 0}},{{1, 0}}}}),
+            BivariatePolynomial<1>({{{{0, 1}},{{0, 0}}}}),
+            cell, tx, false
+        );
+
+    //across and up
+
+
+    if (axes.size() == 1) {
+        Line axis = axes[0];
+        auto axis_costs = bottom_top_axis_integrals(axis, cell);
+        for (auto poly: axis_costs)
+            costs.push_back(poly);
     }
 
-    // Upwards valley
-
-    costs.reserve(5);
-
-    // 1.
-    // Not via valley
-    // A above valley
-    // B above valley
-    costs.push_back(ConstrainedBivariatePolynomial<2>{
-        BivariatePolynomial<2>({{
-            {{(ty * ty) / 2 - (sy * sy) / 2, 2 * sy - ty, -1./2}},
-            {{-sy, 0, 0}},
-            {{1./2, 0, 0}},
-        }}),
-        // B in cell + B above valley + Not via valley
-        {sx, std::clamp(sy, sx, tx)},
-        {{
-             Polynomial<1>({sx, 0}), // A in cell
-        }},
-        {{
-             Polynomial<1>({tx, 0}), // A in cell
-             Polynomial<1>({0, 1}), // A <= B
-             Polynomial<1>({sy, 0}), // A above valley
-        }}
-    }.translate_xy(-sx, -sx));
-
-    // 2.
-    // Via valley
-    // A above valley
-    // B above valley
-    costs.push_back(ConstrainedBivariatePolynomial<2>{
-        BivariatePolynomial<2>({{
-            {{(sy * sy) / 2 + (ty * ty) / 2, -ty, 1./2}},
-            {{-sy, 0, 0}},
-            {{1./2, 0, 0}},
-        }}),
-        // B in cell + B above valley + Via valley
-        {std::clamp(sy, sx, tx), std::clamp(ty, sx, tx)},
-        {{
-             Polynomial<1>({sx, 0}), // A in cell
-         }},
-        {{
-             Polynomial<1>({tx, 0}), // A in cell
-             Polynomial<1>({0, 1}), // A <= B
-             Polynomial<1>({sy, 0}), // A above valley
-         }}
-    }.translate_xy(-sx, -sx));
-
-    // 3.
-    // Via valley
-    // A below valley
-    // B above valley
-    costs.push_back(ConstrainedBivariatePolynomial<2>{
-        BivariatePolynomial<2>({{
-            {{(sy * sy) / 2 + (ty * ty) / 2, -ty, 1./2}},
-            {{-sy, 0, 0}},
-            {{1./2, 0, 0}},
-        }}),
-        // B in cell + B above valley
-        {std::clamp(sy, sx, tx), std::clamp(ty, sx, tx)},
-        {{
-             Polynomial<1>({sx, 0}), // A in cell
-             Polynomial<1>({sy, 0}), // A below valley
-         }},
-        {{
-             Polynomial<1>({tx, 0}), // A in cell
-             Polynomial<1>({0, 1}), // A <= B
-         }}
-    }.translate_xy(-sx, -sx));
-
-    // 4.
-    // Via valley
-    // A above valley
-    // B below valley
-    costs.push_back(ConstrainedBivariatePolynomial<2>{
-        BivariatePolynomial<2>({{
-            {{(sy * sy) / 2 + (ty * ty) / 2, -ty, 1./2}},
-            {{-sy, 0, 0}},
-            {{1./2, 0, 0}},
-        }}),
-        // B in cell + B below valley
-        {std::clamp(ty, sx, tx), tx},
-        {{
-             Polynomial<1>({sx, 0}), // A in cell
-         }},
-        {{
-             Polynomial<1>({tx, 0}), // A in cell
-             Polynomial<1>({0, 1}), // A <= B
-             Polynomial<1>({sy, 0}), // A above valley
-         }}
-    }.translate_xy(-sx, -sx));
-
-    // 5.
-    // Via valley
-    // A below valley
-    // B below valley
-    costs.push_back(ConstrainedBivariatePolynomial<2>{
-        BivariatePolynomial<2>({{
-            {{(sy * sy) / 2 + (ty * ty) / 2, -ty, 1./2}},
-            {{-sy, 0, 0}},
-            {{1./2, 0, 0}},
-        }}),
-        // B in cell + B below valley
-        {std::clamp(ty, sx, tx), tx},
-        {{
-             Polynomial<1>({sx, 0}), // A in cell
-             Polynomial<1>({sy, 0}), // A below valley
-         }},
-        {{
-             Polynomial<1>({tx, 0}), // A in cell
-             Polynomial<1>({0, 1}), // A <= B
-             Polynomial<1>({ty, 0}), // Via valley
-         }}
-    }.translate_xy(-sx, -sx));
-
-    // 6.
-    // Not via valley
-    // A below valley
-    // B below valley
-    costs.push_back(ConstrainedBivariatePolynomial<2>{
-        BivariatePolynomial<2>({{
-            {{(sy * sy) / 2 - (ty * ty) / 2, -ty, 1./2}},
-            {{-sy + 2 * ty, 0, 0}},
-            {{-1./2, 0, 0}},
-        }}),
-        // B in cell + B below valley
-        {std::clamp(ty, sx, tx), tx},
-        {{
-             Polynomial<1>({sx, 0}), // A in cell
-             Polynomial<1>({ty, 0}), // A below valley + Not via valley
-         }},
-        {{
-             Polynomial<1>({tx, 0}), // A in cell
-             Polynomial<1>({0, 1}), // A <= B
-         }}
-    }.translate_xy(-sx, -sx));
+    if (axes.size() == 2) {
+        Line axis = axes[1];
+        auto axis_costs = bottom_top_axis_integrals(axis, cell);
+        for (auto poly: axis_costs)
+            costs.push_back(poly);
+    }
 
     return costs;
 }

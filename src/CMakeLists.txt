@@ -1,5 +1,6 @@
 file(GLOB_RECURSE HEADER_FILES *.h)
 
+set(Eigen3_DIR "/usr/include/eigen-3.4-rc1/build")
 find_package(Eigen3 3.3 REQUIRED NO_MODULE)
 
 set(SOURCE_FILES

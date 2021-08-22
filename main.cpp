@@ -276,8 +276,8 @@ int main() {
     // TODO: Compare Heuristic CDTW vs Exact CDTW (timing and result)
     // TODO: Upgrade to 2D + L2^2
     // TODO: How to Dijkstra in Exact CDTW?
-    auto curve1 = io::read_curve("data/characters/data/a0015.txt");
-    auto curve2 = io::read_curve("data/characters/data/b0131.txt");
+    auto curve1 = io::read_curve("data/characters/data/z1410.txt");
+    auto curve2 = io::read_curve("data/characters/data/z2796.txt");
 
     Point p1(0, 0);
     Point p2(1, 1);
@@ -288,20 +288,20 @@ int main() {
     Point p7(6, 0);
     Point p8(7, 1);
 
-    Point p9(0, 0.7);
-    Point p10(5, 0.5);
-    // Point p11(2, 1);
-    // Point p12(3, 0);
-    // Point p13(4, 1);
-    // Point p14(5, 0);
+    Point p9(0, 0.01);
+    Point p10(1, 1.010001);
+    Point p11(2, 0.01);
+    Point p12(3, 1.010001);
+    Point p13(4, 0.01);
+    Point p14(5, 1.010001);
     // Point p15(6, 1);
     // Point p16(7, 0);
 
 
     Curve c1("", {p1, p2, p3, p4, p5, p6, p7, p8});
-    Curve c2("", {p9, p10/*, p11, p12, p13, p14, p15, p16*/});
+    Curve c2("", {p9, p10, p11, p12, p13, p14/*, p15, p16*/});
     
-    using _CDTW = CDTW<2, Norm::L1, Norm::L1>;
+    using _CDTW = CDTW<1, Norm::L1, Norm::L1>;
     auto cdtw = _CDTW(curve1, curve2);
     // auto cdtw = _CDTW(c1, c2);
 
