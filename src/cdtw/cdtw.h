@@ -50,10 +50,10 @@ void verify_minimum(const PiecewisePolynomial<D>& f, const std::vector<Constrain
 
         ss_m << "{" << y << ", " << real_minimum << "},";
 
-        if (!std::isinf(real_minimum) && !approx_equal(supposed_minimum, real_minimum)) {
-            brk = true;
-        }
-//        assert(approx_equal(supposed_minimum, real_minimum));
+    //     if (!std::isinf(real_minimum) && !approx_equal(supposed_minimum, real_minimum)) {
+    //         brk = true;
+    //     }
+    //    assert(approx_equal(supposed_minimum, real_minimum));
     }
 
     ss_m << "}";
@@ -113,6 +113,11 @@ PiecewisePolynomial<D> find_minimum(
  
     std::vector<Polynomial<1>> critical_lines = find_roots_y(h.partial_derivative_x());
     lines.insert(lines.end(), critical_lines.begin(), critical_lines.end());
+
+    for (auto line: critical_lines) {
+        double slope = line.coefficients[1];
+        // std::cout << slope << std::endl;
+    }
 
     std::set<double> events;
     events.insert(interval_y.min);
@@ -343,6 +348,8 @@ private:
     size_t n;
     size_t m;
 
+    double cdtw_cost;
+
     // Dynamic program
     std::vector<std::vector<Entry>> in_functions;
 
@@ -370,22 +377,24 @@ private:
             pieces.push_back(*new_it);
             ++new_it;
         }
-
+        int counter = 0;
         PiecewisePolynomial<D> out_cost;
         while (pieces_it != pieces_end) {
             // piece_in_cost: cost of optimal path from origin to point on in-boundary
             const PolynomialPiece<D>& piece_in_cost = *pieces_it;
-
+            counter++;
             // piece_out_cost: cost of optimal path from origin to point on out-boundary
             PiecewisePolynomial<D> piece_out_cost;
 
-            if (approx_equal(cell_costs[0].f.coefficients[0][0], 0.0194395422591176) && approx_equal(cell_costs[0].f.coefficients[0][1], 0.18967521022380202)) {
-                std::cout << "hi\n";        
-            }
+            // if (approx_equal(cell_costs[0].f.coefficients[0][0], 0.0194395422591176) && approx_equal(cell_costs[0].f.coefficients[0][1], 0.18967521022380202)) {
+            //     std::cout << "hi\n";        
+            // }
 
             // cell_cost: cost of optimal path from point on in-boundary to point on out-boundary
             for (const auto& cell_cost : cell_costs) {
                 // total_cost: cost of optimal path from origin through point on in-boundary to point on out-boundary
+                
+                
                 const auto total_cost = cell_cost.add_x(piece_in_cost);
 
                 #ifndef NDEBUG
@@ -399,16 +408,34 @@ private:
                     total_cost.right_constraints
                 );
 
+                auto single_variable = total_cost.slice_at_y(1.4142630607139537);
+
+                auto single_variable_cell_cost = cell_cost.slice_at_y(1.4142630607139537);
+
+                if (min_total_cost.pieces.size() > 0) {
+                    auto poly = min_total_cost.pieces.back();
+                    if (approx_equal(poly.polynomial(poly.interval.max) / 100000, 8.21263 / 100000))
+                        std::cout << "hello\n";
+                    else
+                        std::cout << "value: " << poly.polynomial(poly.interval.max) << " const: " << poly.polynomial.coefficients[0] << std::endl;
+                }
+
+                
+
                 min_pieces.insert(min_pieces.end(), min_total_cost.pieces.begin(), min_total_cost.pieces.end());
             }
 
             ++pieces_it;
         }
-
+        // std::cout << "count: " << counter << std::endl;
         const auto result = naive_lower_envelope(min_pieces);
 
+
+        // if (approx_equal(cell_cost.f.coefficients[0][0], 1.4141994337255621) 
+        //         && approx_equal(cell_cost.f.coefficients[2][0], 7.0710501343442271e-06))
+        //             std::cout << "hi\n";
         #ifndef NDEBUG
-        // verify_minimum(result, total_costs);
+        verify_minimum(result, total_costs);
         #endif
 
         return result;
@@ -422,6 +449,64 @@ private:
         return propagate(bottom_to_top_costs(cell), in.pieces.begin(), in.pieces.cend());
     }
 
+    void process_cell(int i, int j, Curve& curve1, Curve& curve2) {
+        
+        auto cell_t = Cell(curve1[i], curve2[j], curve1[i+1], curve2[j+1]);
+        const Cell cell(curve2[j], curve1[i], curve2[j+1], curve1[i+1]);
+        
+        if (i == 0 && j == 0) {
+            auto bottom_poly = base_bottom(cell);
+            auto left_poly = base_bottom(cell_t);
+
+            in_functions[0][0].bottom = bottom_poly;
+            in_functions[0][0].left = left_poly;
+        
+        } 
+
+        auto right_out_functions = std::vector<PolynomialPiece<D>>();
+        auto top_out_functions = std::vector<PolynomialPiece<D>>();
+
+        if (i > 0 || j == 0) {
+            // std::cout << in_functions[i][j].bottom.pieces.size();
+
+            auto b2r = bottom_to_right(in_functions[i][j].bottom, cell);
+            for (auto piece: b2r.pieces)
+                right_out_functions.push_back(piece);
+
+            auto b2t = bottom_to_top(in_functions[i][j].bottom, cell);
+            for (auto piece: b2t.pieces)
+                top_out_functions.push_back(piece);
+
+            if (i == 0 && j == 1)
+                std::cout << "hi\n";
+        }
+
+        if (j > 0 || i == 0) {
+            // std::cout << in_functions[i][j].left.pieces.size();
+            if (i == 0 && j == 1)
+                std::cout << "hi\n";
+            auto l2r = bottom_to_top(in_functions[i][j].left, cell_t);
+            for (auto piece: l2r.pieces)
+                right_out_functions.push_back(piece);
+
+
+            auto l2t = bottom_to_right(in_functions[i][j].left, cell_t);
+            for (auto piece: l2t.pieces)
+                top_out_functions.push_back(piece);
+
+            if (i == 0 && j == 1)
+                std::cout << "hi\n";
+        }
+
+
+        if (j < in_functions[i].size()-1)
+            in_functions[i][j+1].left = naive_lower_envelope(right_out_functions);
+        if (i < in_functions.size()-1)
+            in_functions[i+1][j].bottom = naive_lower_envelope(top_out_functions);
+
+        std::cout << "cell processed...\n";
+    }
+
     // Internal methods specific to each case
     PiecewisePolynomial<D> base_bottom(const Cell& cell) const;
     std::vector<ConstrainedBivariatePolynomial<D>> bottom_to_right_costs(const Cell& cell) const;
@@ -431,7 +516,10 @@ public:
     CDTW(Curve& _curve1, Curve& _curve2);
 
     double cost() const {
-        const PiecewisePolynomial<D> func = in_functions[in_functions.size() - 2].back().bottom;
+        // return cdtw_cost;
+        const PiecewisePolynomial<D> func = in_functions[in_functions.size() - 2].back().left;
+        if (func.pieces.back().polynomial(func.interval().max) < 0)
+            std::cout << "hi\n";
         return func.pieces.back().polynomial(func.interval().max);
         return 0;
     }
@@ -495,6 +583,36 @@ public:
 
     const std::vector<std::vector<Entry>>& get_functions() const {
         return in_functions;
+    }
+
+    void check_table() {
+        for (int i = 1; i < in_functions.size(); ++i) {
+            for (int j = 1; j < in_functions[0].size(); ++j) {
+                std::cout << i << ", " << j << std::endl;
+                auto in_left = in_functions[i][j].left.pieces;
+                auto in_bottom = in_functions[i][j].bottom.pieces;
+
+                std::cout << "bottom left corner: \n" <<
+                "left: " << in_left[0].polynomial(0) << std::endl <<
+                "bottom: " << in_bottom[0].polynomial(0) << std::endl;
+
+                if (i > 0 || (i == 1 && j == 0)) {
+                    std::cout << "lower cell, left top: " << in_functions[i-1][j].left.pieces.back().polynomial(
+                        in_functions[i-1][j].left.pieces.back().interval.max
+                    ) << std::endl;
+                }
+
+                if (j > 1 || (j == 1 && i == 0)) {
+                    std::cout << "left cell, bottom right: " << in_functions[i][j-1].bottom.pieces.back().polynomial(
+                        in_functions[i][j-1].bottom.pieces.back().interval.max
+                    ) << std::endl;
+                }
+
+                // if(!approx_equal(in_left[0].polynomial(0)/100, in_bottom[0].polynomial(0)/100))
+                //     assert(false);
+            }
+        }
+
     }
 };
 
@@ -618,176 +736,266 @@ CDTW<dimension, image_norm, param_norm>::CDTW(Curve& _curve1, Curve& _curve2) :
     n(curve1.size()), m(curve2.size()),
     in_functions(n, std::vector<Entry>(m))
 {
-    struct Function {
-        PiecewisePolynomial<D> f;
-        distance_t min_cost;
-        bool open; // Whether this function is currently in the open_set
-    };
+    int new_n;
+    int new_m;
 
-    // Curve new_curve1("", curve1.get_points());
-    // Curve new_curve2("", curve2.get_points());
+    std::vector<CPoint> new_c_points_1 = std::vector<CPoint>();
+    std::vector<CPoint> new_c_points_2 = std::vector<CPoint>();
 
-    // if (dimension == 2 && image_norm == Norm::L1 && param_norm == Norm::L1) {
-
-        int new_n;
-        int new_m;
-
-        std::vector<CPoint> new_c_points_1 = std::vector<CPoint>();
-        std::vector<CPoint> new_c_points_2 = std::vector<CPoint>();
-
-        for (int i = 0; i < curve1.size(); ++i) {
-            new_c_points_1.push_back(CPoint(i, 0));
-        }
-
-        for (int i = 0; i < curve2.size(); ++i) {
-            new_c_points_2.push_back(CPoint(i, 0));
-        }
-
-
-        for (int i = 0; i < curve1.size()-1; ++i) {
-            auto s1 = curve1[i];
-            auto t1 = curve1[i+1];
-
-            const auto l1 = Line::fromTwoPoints(s1, t1);
-
-            for (int j = 0; j < curve2.size()-1; ++j) {
-
-                auto s2 = curve2[j];
-                auto t2 = curve2[j+1];
-
-                const auto l2 = Line::fromTwoPoints(s2, t2);
-
-                if (!isParallel(l1, l2)) {
-                    const auto p = intersect(l1, l2);
-                    Point mid = p;
-
-                    distance_t c1_dist = s1.dist(mid);
-                    distance_t c2_dist = s2.dist(mid);
-
-                    if ((mid.x - s1.x)*(mid.x - t1.x) < 0
-                    && (mid.x - s2.x)*(mid.x - t2.x) < 0) {
-                        std::cout << c1_dist/(s1.dist(t1)) << std::endl;
-                        std::cout << c2_dist/(s2.dist(t2)) << std::endl;
-                        // std::cout << s1 << std::endl;
-                        // std::cout << t1 << std::endl;
-                        // std::cout << s2 << std::endl;
-                        // std::cout << t2 << std::endl;
-                        // std::cout << mid << std::endl;
-                        new_c_points_1.push_back(CPoint(i, c1_dist/(s1.dist(t1))));
-                        new_c_points_2.push_back(CPoint(j, c2_dist/(s2.dist(t2))));
-                    }
-                }
-            }
-        }
-
-        std::sort(new_c_points_1.begin(), new_c_points_1.end());
-        std::sort(new_c_points_2.begin(), new_c_points_2.end());
-    
-        Points new_points_1 = Points();
-
-        for (auto c: new_c_points_1)
-            new_points_1.push_back(curve1.interpolate_at(c));
-
-        Points new_points_2 = Points();
-
-        for (auto c: new_c_points_2)
-            new_points_2.push_back(curve2.interpolate_at(c));
-
-        Curve new_curve1 = Curve("", new_points_1);
-        Curve new_curve2 = Curve("", new_points_2);
-    // }
-
-    std::unordered_map<Coord, Function, typename Coord::hash> functions;
-    std::priority_queue<PQNode, std::vector<PQNode>, std::greater<>> open_set;
-
-    {
-        const Cell cell(new_curve1[0], new_curve2[0], new_curve1[1], new_curve2[1]);
-
-        const Function f1{base_bottom(cell), 0, true};
-        const Coord c1{0, 0, Side::BOTTOM};
-        functions.insert_or_assign(c1, f1);
-        open_set.push({f1.f.min_value(), c1});
+    for (int i = 0; i < curve1.size(); ++i) {
+        new_c_points_1.push_back(CPoint(i, 0));
     }
 
-    distance_t min_result_cost = std::numeric_limits<distance_t>::infinity();
+    for (int i = 0; i < curve2.size(); ++i) {
+        new_c_points_2.push_back(CPoint(i, 0));
+    }
 
-    size_t nodes_handled = 0;
-    size_t nodes_skipped = 0;
-    size_t nodes_opened = open_set.size();
-    size_t nodes_reopened = 0;
 
-    while (!open_set.empty()) {
-        const PQNode node = open_set.top();
-        open_set.pop();
+    for (int i = 0; i < curve1.size()-1; ++i) {
+        auto s1 = curve1[i];
+        auto t1 = curve1[i+1];
 
-//        std::cout << min_result_cost << " " << node << '\n';
-        const Coord coord = node.coord;
-        Function& f = functions.at(coord);
-        f.open = false;
+        const auto l1 = Line::fromTwoPoints(s1, t1);
 
-        // We can no longer find a lower min_result_cost, so the search is finished
-        if (node.min_cost >= min_result_cost) {
-            break;
-        }
+        for (int j = 0; j < curve2.size()-1; ++j) {
 
-        if (node.min_cost > f.min_cost) {
-            ++nodes_skipped;
-            continue;
-        }
+            auto s2 = curve2[j];
+            auto t2 = curve2[j+1];
 
-        if (coord.i1 == new_curve1.size() - 1 || coord.i2 == new_curve2.size() - 1) {
-            if (coord.i1 == new_curve1.size() - 2 || coord.i2 == new_curve2.size() - 2) {
-                min_result_cost = std::min(min_result_cost, f.f.right_value());
-            }
-            ++nodes_skipped;
-            continue;
-        }
+            const auto l2 = Line::fromTwoPoints(s2, t2);
 
-        ++nodes_handled;
+            if (!isParallel(l1, l2)) {
+                const auto p = intersect(l1, l2);
+                Point mid = p;
 
-        // Cell and transposed cell
-        const Cell cell(new_curve1[coord.i1], new_curve2[coord.i2], new_curve1[coord.i1 + 1], new_curve2[coord.i2 + 1]);
-        const Cell cell_t(new_curve2[coord.i2], new_curve1[coord.i1], new_curve2[coord.i2 + 1], new_curve1[coord.i1 + 1]);
+                distance_t c1_dist = s1.dist(mid);
+                distance_t c2_dist = s2.dist(mid);
 
-        for (size_t i = 0; i < 2; ++i) { // 0 -> right, 1 -> top
-            const PiecewisePolynomial<D> out_f = i == 0
-                ? (coord.side == Side::BOTTOM ? bottom_to_right(f.f, cell) : bottom_to_top(f.f, cell_t))
-                : (coord.side == Side::BOTTOM ? bottom_to_top(f.f, cell) : bottom_to_right(f.f, cell_t));
-            const Coord out_coord = i == 0
-                ? coord.right()
-                : coord.top();
-
-            distance_t min_cost = out_f.min_value();
-
-            auto it = functions.find(out_coord);
-            if (it == functions.end()) {
-                functions.emplace(out_coord, Function{out_f, min_cost, true});
-                open_set.push({min_cost, out_coord});
-                ++nodes_opened;
-            } else {
-                Function& prev_out = it->second;
-                // TODO: Only re-open function if lower_envelope has changed
-                fast_lower_envelope(prev_out.f, out_f);
-
-                if (min_cost < prev_out.min_cost) {
-                    prev_out.open = true;
-                    open_set.push({min_cost, out_coord});
-                    ++nodes_reopened;
-                } else { // min_cost == prev_out.min_cost
-                    if (!prev_out.open) {
-                        prev_out.open = true;
-                        open_set.push({min_cost, out_coord});
-                        ++nodes_reopened;
-                    }
+                if ((mid.x - s1.x)*(mid.x - t1.x) < 0
+                && (mid.x - s2.x)*(mid.x - t2.x) < 0) {
+                    std::cout << c1_dist/(s1.dist(t1)) << std::endl;
+                    std::cout << c2_dist/(s2.dist(t2)) << std::endl;
+                    // std::cout << s1 << std::endl;
+                    // std::cout << t1 << std::endl;
+                    // std::cout << s2 << std::endl;
+                    // std::cout << t2 << std::endl;
+                    // std::cout << mid << std::endl;
+                    new_c_points_1.push_back(CPoint(i, c1_dist/(s1.dist(t1))));
+                    new_c_points_2.push_back(CPoint(j, c2_dist/(s2.dist(t2))));
                 }
             }
         }
     }
 
-    std::cout << min_result_cost << "\n";
-    std::cout << "nodes_handled: " << nodes_handled << "\n";
-    std::cout << "nodes_skipped: " << nodes_skipped << "\n";
-    std::cout << "nodes_opened: " << nodes_opened << "\n";
-    std::cout << "nodes_reopened: " << nodes_reopened << "\n";
-    std::cout << "nodes remaining: " << open_set.size() << "\n";
+    std::sort(new_c_points_1.begin(), new_c_points_1.end());
+    std::sort(new_c_points_2.begin(), new_c_points_2.end());
+
+    Points new_points_1 = Points();
+
+    for (auto c: new_c_points_1)
+        new_points_1.push_back(curve1.interpolate_at(c));
+
+    Points new_points_2 = Points();
+
+    for (auto c: new_c_points_2)
+        new_points_2.push_back(curve2.interpolate_at(c));
+
+    Curve new_curve1 = Curve("", new_points_1);
+    Curve new_curve2 = Curve("", new_points_2);
+
+
+    for (int i = 0; i < n; ++i)
+        for (int j = 0; j < m; ++j) {
+            if (i == 0 && j == 2)
+                std::cout << "hello\n";
+            process_cell(i, j, new_curve1, new_curve2);
+        }
+    std::cout << "computed cdtw...\n";
+
 }
+
+// template<size_t dimension, Norm image_norm, Norm param_norm>
+// CDTW<dimension, image_norm, param_norm>::CDTW(Curve& _curve1, Curve& _curve2) :
+//     curve1(_curve1), curve2(_curve2),
+//     n(curve1.size()), m(curve2.size()),
+//     in_functions(n, std::vector<Entry>(m))
+// {
+//     struct Function {
+//         PiecewisePolynomial<D> f;
+//         distance_t min_cost;
+//         bool open; // Whether this function is currently in the open_set
+//     };
+
+//     // Curve new_curve1("", curve1.get_points());
+//     // Curve new_curve2("", curve2.get_points());
+
+//     // if (dimension == 2 && image_norm == Norm::L1 && param_norm == Norm::L1) {
+
+//         int new_n;
+//         int new_m;
+
+//         std::vector<CPoint> new_c_points_1 = std::vector<CPoint>();
+//         std::vector<CPoint> new_c_points_2 = std::vector<CPoint>();
+
+//         for (int i = 0; i < curve1.size(); ++i) {
+//             new_c_points_1.push_back(CPoint(i, 0));
+//         }
+
+//         for (int i = 0; i < curve2.size(); ++i) {
+//             new_c_points_2.push_back(CPoint(i, 0));
+//         }
+
+
+//         for (int i = 0; i < curve1.size()-1; ++i) {
+//             auto s1 = curve1[i];
+//             auto t1 = curve1[i+1];
+
+//             const auto l1 = Line::fromTwoPoints(s1, t1);
+
+//             for (int j = 0; j < curve2.size()-1; ++j) {
+
+//                 auto s2 = curve2[j];
+//                 auto t2 = curve2[j+1];
+
+//                 const auto l2 = Line::fromTwoPoints(s2, t2);
+
+//                 if (!isParallel(l1, l2)) {
+//                     const auto p = intersect(l1, l2);
+//                     Point mid = p;
+
+//                     distance_t c1_dist = s1.dist(mid);
+//                     distance_t c2_dist = s2.dist(mid);
+
+//                     if ((mid.x - s1.x)*(mid.x - t1.x) < 0
+//                     && (mid.x - s2.x)*(mid.x - t2.x) < 0) {
+//                         std::cout << c1_dist/(s1.dist(t1)) << std::endl;
+//                         std::cout << c2_dist/(s2.dist(t2)) << std::endl;
+//                         // std::cout << s1 << std::endl;
+//                         // std::cout << t1 << std::endl;
+//                         // std::cout << s2 << std::endl;
+//                         // std::cout << t2 << std::endl;
+//                         // std::cout << mid << std::endl;
+//                         new_c_points_1.push_back(CPoint(i, c1_dist/(s1.dist(t1))));
+//                         new_c_points_2.push_back(CPoint(j, c2_dist/(s2.dist(t2))));
+//                     }
+//                 }
+//             }
+//         }
+
+//         std::sort(new_c_points_1.begin(), new_c_points_1.end());
+//         std::sort(new_c_points_2.begin(), new_c_points_2.end());
+    
+//         Points new_points_1 = Points();
+
+//         for (auto c: new_c_points_1)
+//             new_points_1.push_back(curve1.interpolate_at(c));
+
+//         Points new_points_2 = Points();
+
+//         for (auto c: new_c_points_2)
+//             new_points_2.push_back(curve2.interpolate_at(c));
+
+//         Curve new_curve1 = Curve("", new_points_1);
+//         Curve new_curve2 = Curve("", new_points_2);
+//     // }
+
+//     std::unordered_map<Coord, Function, typename Coord::hash> functions;
+//     std::priority_queue<PQNode, std::vector<PQNode>, std::greater<>> open_set;
+
+//     {
+//         const Cell cell(new_curve1[0], new_curve2[0], new_curve1[1], new_curve2[1]);
+
+//         const Function f1{base_bottom(cell), 0, true};
+//         const Coord c1{0, 0, Side::BOTTOM};
+//         functions.insert_or_assign(c1, f1);
+//         open_set.push({f1.f.min_value(), c1});
+//     }
+
+//     distance_t min_result_cost = std::numeric_limits<distance_t>::infinity();
+
+//     size_t nodes_handled = 0;
+//     size_t nodes_skipped = 0;
+//     size_t nodes_opened = open_set.size();
+//     size_t nodes_reopened = 0;
+
+//     while (!open_set.empty()) {
+//         const PQNode node = open_set.top();
+//         open_set.pop();
+
+//         std::cout << node.coord << std::endl;
+
+// //        std::cout << min_result_cost << " " << node << '\n';
+//         const Coord coord = node.coord;
+//         Function& f = functions.at(coord);
+//         f.open = false;
+
+//         // We can no longer find a lower min_result_cost, so the search is finished
+//         if (node.min_cost >= min_result_cost) {
+//             break;
+//         }
+
+//         if (node.min_cost > f.min_cost) {
+//             ++nodes_skipped;
+//             continue;
+//         }
+
+//         if (coord.i1 == new_curve1.size() - 1 || coord.i2 == new_curve2.size() - 1) {
+//             if (coord.i1 == new_curve1.size() - 2 || coord.i2 == new_curve2.size() - 2) {
+//                 min_result_cost = std::min(min_result_cost, f.f.right_value());
+//             }
+//             ++nodes_skipped;
+//             continue;
+//         }
+
+//         ++nodes_handled;
+
+//         // Cell and transposed cell
+//         const Cell cell(new_curve1[coord.i1], new_curve2[coord.i2], new_curve1[coord.i1 + 1], new_curve2[coord.i2 + 1]);
+//         const Cell cell_t(new_curve2[coord.i2], new_curve1[coord.i1], new_curve2[coord.i2 + 1], new_curve1[coord.i1 + 1]);
+
+//         for (size_t i = 0; i < 2; ++i) { // 0 -> right, 1 -> top
+//             const PiecewisePolynomial<D> out_f = i == 0
+//                 ? (coord.side == Side::BOTTOM ? bottom_to_right(f.f, cell) : bottom_to_top(f.f, cell_t))
+//                 : (coord.side == Side::BOTTOM ? bottom_to_top(f.f, cell) : bottom_to_right(f.f, cell_t));
+//             const Coord out_coord = i == 0
+//                 ? coord.right()
+//                 : coord.top();
+
+            
+
+//             distance_t min_cost = out_f.min_value();
+
+//             auto it = functions.find(out_coord);
+//             if (it == functions.end()) {
+//                 functions.emplace(out_coord, Function{out_f, min_cost, true});
+//                 open_set.push({min_cost, out_coord});
+//                 ++nodes_opened;
+//             } else {
+//                 Function& prev_out = it->second;
+//                 // TODO: Only re-open function if lower_envelope has changed
+//                 fast_lower_envelope(prev_out.f, out_f);
+
+//                 if (min_cost < prev_out.min_cost) {
+//                     prev_out.open = true;
+//                     open_set.push({min_cost, out_coord});
+//                     ++nodes_reopened;
+//                 } else { // min_cost == prev_out.min_cost
+//                     if (!prev_out.open) {
+//                         prev_out.open = true;
+//                         open_set.push({min_cost, out_coord});
+//                         ++nodes_reopened;
+//                     }
+//                 }
+//             }
+//         }
+//     }
+
+
+//     cdtw_cost = min_result_cost;
+//     std::cout << min_result_cost << "\n";
+//     std::cout << "nodes_handled: " << nodes_handled << "\n";
+//     std::cout << "nodes_skipped: " << nodes_skipped << "\n";
+//     std::cout << "nodes_opened: " << nodes_opened << "\n";
+//     std::cout << "nodes_reopened: " << nodes_reopened << "\n";
+//     std::cout << "nodes remaining: " << open_set.size() << "\n";
+// }

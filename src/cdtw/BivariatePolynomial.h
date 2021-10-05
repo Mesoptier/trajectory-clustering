@@ -111,10 +111,22 @@ struct BivariatePolynomial
         }
         return *this;
     }
+
+    BivariatePolynomial<D>& operator*=(double a) {
+        for (size_t dx = 0; dx <= D; ++dx) {
+            for (size_t dy = 0; dy <= D; ++dy) {
+                coefficients[dx][dy] *= a;
+            }
+        }
+        return *this;
+    } 
+
     friend BivariatePolynomial<D> operator+(BivariatePolynomial<D> lhs, const BivariatePolynomial<D>& rhs) {
         lhs += rhs;
         return lhs;
     }
+
+
 };
 
 /**

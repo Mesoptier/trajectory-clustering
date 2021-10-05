@@ -272,6 +272,54 @@ void experiment_compare_heuristic_vs_extact_cdtw() {
 }
 }
 
+void exact_2dl1l1_heuristic_comp() {
+
+    using _CDTW = CDTW<2, Norm::L1, Norm::L1>;
+
+    auto characters = io::read_curves("data/characters/data");
+    auto test_curves = std::vector<Curve>();
+
+    for (int i = 0; i < 20; ++i) {
+        test_curves.push_back(characters[10*i].slice(1, 20));
+    }
+
+
+    double max = -1;
+    double min = 10000000;
+    double sum = 0;
+    
+    for (int i = 0; i < test_curves.size(); ++i) 
+        for (int j = i+1; j < test_curves.size(); ++j) {
+            if (j == 6 && i == 0)
+                std::cout << "ahh\n";
+                
+            auto cdtw = _CDTW(test_curves[i], test_curves[j]);
+            IntegralFrechet heuristic_alg(test_curves[i], test_curves[j], ParamMetric::L1, .1);
+            const auto heuristic_res = heuristic_alg.compute_matching();
+
+            std::cout << "exact: " << cdtw.cost() << std::endl;
+            std::cout << "heur: " << heuristic_res.cost << std::endl;
+            std::cout << i << std::endl;
+            std::cout << j << std::endl;
+
+            double ratio = cdtw.cost() / heuristic_res.cost;
+            std::cout << ratio << std::endl;
+            max = std::max(max, ratio);
+            min = std::min(min, ratio);
+            sum += ratio;
+
+        };
+
+        double average_ratio = sum / (test_curves.size()*(test_curves.size()-1) / 2);
+
+        std::cout << "average ratio: " << average_ratio << std::endl;
+        std::cout << "max ratio: " << max << std::endl;
+        std::cout << "min ratio: " << min << std::endl;
+    
+
+
+}
+
 int main() {
     // TODO: Compare Heuristic CDTW vs Exact CDTW (timing and result)
     // TODO: Upgrade to 2D + L2^2
@@ -297,12 +345,38 @@ int main() {
     // Point p15(6, 1);
     // Point p16(7, 0);
 
+    // exact_2dl1l1_heuristic_comp();
 
-    Curve c1("", {p1, p2, p3, p4, p5, p6, p7, p8});
-    Curve c2("", {p9, p10, p11, p12, p13, p14/*, p15, p16*/});
+
+    Curve c1("", {{0, 1}, {3, 2.01}, {2, 1.02}/*, {4, 2.03}*/});
+    Curve c2("", {{0, 0}, {3, 1.0001}, {2, 0.00003}/*, {4, 1.00004}*/});
     
-    using _CDTW = CDTW<1, Norm::L1, Norm::L1>;
-    auto cdtw = _CDTW(curve1, curve2);
+    // Curve c1("", {{0, 1}, {3, 1.01}, {2, 1.02}/*, {4, 2.03}*/});
+    // Curve c2("", {{0, 0}, {3, 0.0001}});
+
+
+    using _CDTW = CDTW<2, Norm::L1, Norm::L1>;
+    auto cdtw = _CDTW(c1, c2);
+    cdtw.check_table();
+    std::cout << cdtw.cost() << std::endl;
+
+    IntegralFrechet heuristic_alg(c1, c2, ParamMetric::L1, .1);
+        const auto heuristic_res = heuristic_alg.compute_matching();
+        std::cout << heuristic_res.cost << std::endl;
+
+    // Curve c1("", {p1, p2, p3, p4, p5, p6, p7, p8});
+    // Curve c2("", {p9, p10, p11, p12, p13, p14/*, p15, p16*/});
+
+    // auto curve1_ = curve1.slice(1, 30);
+    // auto curve2_ = curve2.slice(1, 30);
+    
+    // using _CDTW = CDTW<2, Norm::L1, Norm::L1>;
+    // auto cdtw = _CDTW(curve1_, curve2_);
+
+    // IntegralFrechet heuristic_alg(curve1_, curve2_, ParamMetric::L1, .1);
+    //     const auto heuristic_res = heuristic_alg.compute_matching();
+
+    // std::cout << heuristic_res.cost << std::endl;
     // auto cdtw = _CDTW(c1, c2);
 
     // experiment_compare_heuristic_vs_extact_cdtw();

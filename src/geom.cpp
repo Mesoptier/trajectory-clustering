@@ -208,3 +208,7 @@ std::ostream& operator<<(std::ostream& out, const CPosition& pos) {
     out << "(" << pos[0] << ", " << pos[1] << ")";
     return out;
 }
+
+distance_t _l1_dist(Point a, Point b) {
+    return fabs(a.x-b.x) + fabs(a.y-b.y); 
+}

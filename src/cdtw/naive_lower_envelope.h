@@ -111,7 +111,11 @@ PiecewisePolynomial<D> naive_lower_envelope(const std::vector<PolynomialPiece<D>
     while (!events.empty()) {
         const auto event = events.top();
         events.pop();
-
+        // double x = event.x;
+        // double height = pieces[event.id](x);
+        
+        // std::cout << event.x << ", " <<  pieces[event.id] << std::endl;
+        
         ComparePieceID compare_pieces(pieces, event.x);
 
         if (event.type == EventType::OPEN) {

@@ -59,6 +59,8 @@ bool approx_equal<Point>(const Point& a, const Point& b, double tol);
 distance_t perp(const Point& a, const Point& b);
 distance_t dot(const Point& a, const Point& b);
 
+distance_t _l1_dist(Point a, Point b);
+
 distance_t norm(const Point& point, Norm p = Norm::L2);
 Point normalise(const Point& point, Norm p = Norm::L2);
 
@@ -96,6 +98,7 @@ struct MonotoneComparator {
     explicit MonotoneComparator(BFDirection dir): direction(dir) {}
     bool operator()(const Point& a, const Point& b);
 };
+
 
 struct Line
 {

@@ -235,6 +235,9 @@ bool valid_triple(Constraint a, Constraint b, Constraint c) {
 bool valid_constraints(ConstrainedBivariatePolynomial<2>& poly) {
     auto constraints = std::vector<Constraint>();
 
+    if (poly.y_interval.min >= poly.y_interval.max)
+        return false;
+
     constraints.push_back(
         Constraint(true, true, poly.y_interval.min, Polynomial<1>({0, 0}))
     );
@@ -296,6 +299,9 @@ std::vector<Point> sample_domain(ConstrainedBivariatePolynomial<2>& poly) {
         }
     }
 
+    if (poly.right_constraints.size() == 0)
+        std::cout << "...\n";
+
     return output;
 }
 
@@ -317,13 +323,14 @@ bool valid_point(ConstrainedBivariatePolynomial<2>& poly, Point p) {
     }
 
 bool is_positive(ConstrainedBivariatePolynomial<2>& poly) {
+    return true;
     auto points = sample_domain(poly);
 
     for (auto p: points) {
         auto val = poly(p);
         if (valid_point(poly, p) && poly(p) < 0 && !approx_zero(poly(p))) {
-            if (approx_equal(poly.f.coefficients[0][0], -0.001356284712799239) && approx_equal(poly.f.coefficients[0][1], 0.021595794862823228))
-                std::cout << "hi\n";
+            // if (approx_equal(poly.f.coefficients[0][0], -0.001356284712799239) && approx_equal(poly.f.coefficients[0][1], 0.021595794862823228))
+            //     std::cout << "hi\n";
             return false;
         }
     }
@@ -344,9 +351,9 @@ BivariatePolynomial<1> integrand, double t_coeff,
 Interval y_range, std::vector<Polynomial<1>> left_constraints, std::vector<Polynomial<1>> right_constraints) {
     auto output = std::vector<ConstrainedBivariatePolynomial<2>>();
 
-        if (approx_equal(y_range.max, 0.18449462693244933)) {
-            std::cout << "hi\n";
-        }
+        // if (approx_equal(y_range.max, 0.18449462693244933)) {
+        //     std::cout << "hi\n";
+        // }
         
         /**
          * Impose low_lim <= hi_lim constraints
@@ -654,9 +661,9 @@ Interval y_range, std::vector<Polynomial<1>> left_constraints, std::vector<Polyn
 
     auto final_output = std::vector<ConstrainedBivariatePolynomial<2>>();
 
-        if (approx_equal(y_range.max, 0.18449462693244933)) {
-            std::cout << "hi\n";
-        }
+        // if (approx_equal(y_range.max, 0.18449462693244933)) {
+        //     std::cout << "hi\n";
+        // }
         
 
     for (auto& poly: output)
@@ -736,8 +743,8 @@ get_subdivision(const Cell& cell) {
 double param_space_coord(const Point& s, const Point& t, Point a) {
     Line l = Line::fromTwoPoints(s, t);
 
-    // if (!l.includesPoint(a))
-    //     assert(l.includesPoint(a));
+    if (!l.includesPoint(a))
+        assert(l.includesPoint(a));
 
     double distance = s.dist(a);
 
@@ -954,8 +961,7 @@ get_axes(const Cell& cell) {
 
 std::vector<ConstrainedBivariatePolynomial<2>>
 horizontal_int(BivariatePolynomial<1> low_lim, BivariatePolynomial<1> hi_lim,
-const Cell& cell, double y_coef, bool y_const
-) {
+const Cell& cell, double y_coef, bool y_const) {
     std::vector<ConstrainedBivariatePolynomial<2>> xterms;
     std::vector<ConstrainedBivariatePolynomial<2>> yterms;
 
@@ -1051,7 +1057,7 @@ const Cell& cell, double x_coef, bool x_const
     double alpha = angle(s1, t1);
     double beta = angle(s2, t2);
 
-
+    
     if (x_const) {
         auto terms_x = solve_integral(low_lim, hi_lim,
             BivariatePolynomial<1>({{{{x_coef*cos(alpha) + s1.x-s2.x, 0}},{{0, 0}}}}),
@@ -1129,16 +1135,20 @@ Interval y_range) {
     double m = gi.x;
     double b = gi.y;
 
+    /*
+    * int_{l0}^{l1} | h(t, mt+b) |dt = int | t*cos(alpha) - (mt+b)*cos(beta) | + |t*sin(alpha) - (mt+b)*sin(alpha)|dt
+    */
+
     auto xterms = solve_integral(
         low_lim, hi_lim,
-        BivariatePolynomial<1>({{{{s1.x-s2.x - b*cos(alpha), 0}},{{0, 0}}}}),
+        BivariatePolynomial<1>({{{{s1.x-s2.x - b*cos(beta), 0}},{{0, 0}}}}),
         m*cos(beta) - cos(alpha), y_range,
         left_constraints, right_constraints
     );
 
     auto yterms = solve_integral(
         low_lim, hi_lim,
-        BivariatePolynomial<1>({{{{s1.y-s2.y - b*sin(alpha), 0}},{{0, 0}}}}),
+        BivariatePolynomial<1>({{{{s1.y-s2.y - b*sin(beta), 0}},{{0, 0}}}}),
         m*sin(beta) - sin(alpha), y_range,
         left_constraints, right_constraints
     );
@@ -1152,8 +1162,11 @@ Interval y_range) {
     auto valid_results = std::vector<ConstrainedBivariatePolynomial<2>>();
 
     for (auto f: results)
-        if (valid_constraints(f))
-            valid_results.push_back(f);
+        if (valid_constraints(f)) {
+            if (!is_positive(f))
+                std::cout << "why\n";
+            valid_results.push_back(f.multiply(fabs(1+m)));
+        }
 
     return valid_results;
 }
@@ -1290,17 +1303,30 @@ bottom_right_axis_integrals(Line axis, const Cell& cell) {
 
     // up, axis, across
 
+    // vertical(
+    //  hi_lim, low_lim, cell,
+    //  x_coeff, is_x_const
+    // )
+
     auto uaa_up_terms = vertical_int(
         BivariatePolynomial<1>({{{{sy, 0}},{{0, 0}}}}),
-        BivariatePolynomial<1>({{{{b, 0}},{{1, 0}}}}),
+        BivariatePolynomial<1>({{{{b, 0}},{{m, 0}}}}),
         cell, 1, false
     );
 
     double x_int = axis.getX(sy);
     double y_int = axis.getY(tx);
 
+    // X, Y
+
+    // lo = X
+    // hi = 
+    // Y = m*hi+b
+    // y=mx+b
+    // Y = mx+b
+
     auto uaa_axis_terms = axis_int(
-        BivariatePolynomial<1>({{{{b, 0}},{{1, 0}}}}),
+        BivariatePolynomial<1>({{{{0, 0}},{{1, 0}}}}),
         BivariatePolynomial<1>({{{{-b/m, 1/m}},{{0, 0}}}}),
         cell, axis,
         {Polynomial<1>({sx, 0})}, 
@@ -1313,6 +1339,7 @@ bottom_right_axis_integrals(Line axis, const Cell& cell) {
         BivariatePolynomial<1>({{{{tx, 0}},{{0, 0}}}}),
         cell, 1, false
     );
+
 
     auto up_axis_across = combine_steps(3, {uaa_up_terms, uaa_axis_terms, uaa_across_terms});
     for (auto poly: up_axis_across)
@@ -1336,9 +1363,8 @@ bottom_right_axis_integrals(Line axis, const Cell& cell) {
 
     auto aau_up_terms = vertical_int(
         BivariatePolynomial<1>({{{{m*tx+b, 0}},{{0, 0}}}}),
-        BivariatePolynomial<1>({{{{0, 0}},{{1, 0}}}}),
-        cell, 1, false
-    );
+        BivariatePolynomial<1>({{{{0, 1}},{{0, 0}}}}),
+        cell, tx, true);
 
     auto across_axis_up = combine_steps(3, {aau_up_terms, aau_axis_terms, aau_across_terms});
     for (auto poly: across_axis_up)
@@ -1379,7 +1405,7 @@ bottom_right_axis_integrals(Line axis, const Cell& cell) {
     );
 
     auto aaa_axis_terms = axis_int(
-        BivariatePolynomial<1>({{{{b, 0}},{{1, 0}}}}),
+        BivariatePolynomial<1>({{{{(sy-b)/m, 0}},{{0, 0}}}}),
         BivariatePolynomial<1>({{{{-b/m, 1/m}},{{0, 0}}}}),
         cell, axis,
         {Polynomial<1>({sx, 0})}, 
@@ -1396,6 +1422,13 @@ bottom_right_axis_integrals(Line axis, const Cell& cell) {
     auto across_axis_across = combine_steps(3, {aaa_across_terms_1, aaa_axis_terms, aaa_across_terms_2});
     for (auto poly: across_axis_across)
         costs.push_back(poly);
+
+    for (auto cost: costs) {
+        if (valid_point(cost, {tx, 0}) && !approx_zero(cost.f({tx, 0})))
+            assert(false);
+        else if (valid_point(cost, {tx, 0}))
+            std::cout << "cost: " << cost.f({tx, 0}) << std::endl;
+    }
 
     return costs;
 }
@@ -1429,9 +1462,9 @@ bottom_to_right_costs_2D(const Cell& cell) {
     // BivariatePolynomial<1> integrand, double t_coeff,
     // Interval y_range, std::vector<Polynomial<1>> left_constraints, std::vector<Polynomial<1>> right_constraints)
 
-    if (approx_equal(cell.len1, 0.13726828480384534) && approx_equal(cell.len2, 0.18449462693244933)) {
-        std::cout << "hi\n";
-    }
+    // if (approx_equal(cell.len1, 0.13726828480384534) && approx_equal(cell.len2, 0.18449462693244933)) {
+    //     std::cout << "hi\n";
+    // }
         // up and across
 
         auto ua_up_terms = vertical_int(
@@ -1470,7 +1503,7 @@ bottom_to_right_costs_2D(const Cell& cell) {
         for (auto poly: across_up)
             costs.push_back(poly);
 
-    if (axes.size() == 1) {
+    if (axes.size() >= 1) {
         Line axis = axes[0];
         auto axis_costs = bottom_right_axis_integrals(axis, cell);
         for (auto poly: axis_costs)
@@ -1484,29 +1517,335 @@ bottom_to_right_costs_2D(const Cell& cell) {
             costs.push_back(poly);
     }
 
+    auto sus_polynomials = std::vector<ConstrainedBivariatePolynomial<2>>();
 
-    if (costs.size() == 0) {
-        // int ax_count = axes.size();
-        std::cout << "polynomial count: " << costs.size() << std::endl;
-    }
+    
+    for (auto cost: costs)
+        if (approx_equal(cost.y_interval.max, ty))
+            sus_polynomials.push_back(cost);
+
     return costs;
 }
 
+std::vector<ConstrainedBivariatePolynomial<2>>
+vertical_int_b2t(BivariatePolynomial<1> low_lim, BivariatePolynomial<1> hi_lim,
+const Cell& cell, std::string fixed_var) {
+
+    auto sx = 0.;
+    auto tx = cell.len1;
+    auto sy = 0.;
+    auto ty = cell.len1;
+
+    double alpha = angle(cell.s1, cell.t1);
+    double beta = angle(cell.s2, cell.t2);
+
+    Point s1 = cell.s1;
+    Point t1 = cell.t1;
+    Point s2 = cell.s2;
+    Point t2 = cell.t2;
+
+    auto results = std::vector<ConstrainedBivariatePolynomial<2>>();
+    std::vector<ConstrainedBivariatePolynomial<2>> x_terms;
+    std::vector<ConstrainedBivariatePolynomial<2>> y_terms;
+
+    if (fixed_var == "y") {
+
+        x_terms = solve_integral(low_lim, hi_lim,
+            BivariatePolynomial<1>({{{{s1.x-s2.x, cos(alpha)}},{{0, 0}}}}),
+            cos(beta), {sy, ty},
+            {Polynomial<1>({sx, 0})}, {Polynomial<1>({tx, 0})} 
+        );
+
+        y_terms = solve_integral(low_lim, hi_lim,
+            BivariatePolynomial<1>({{{{s1.y-s2.y, sin(alpha)}},{{0, 0}}}}),
+            sin(beta), {sy, ty},
+            {Polynomial<1>({sx, 0})}, {Polynomial<1>({tx, 0})} 
+        );
+
+    } else if (fixed_var == "x") {
+
+        x_terms = solve_integral(low_lim, hi_lim,
+            BivariatePolynomial<1>({{{{s1.x-s2.x, 0}},{{cos(alpha), 0}}}}),
+            cos(beta), {sy, ty},
+            {Polynomial<1>({sx, 0})}, {Polynomial<1>({tx, 0})} 
+        );
+
+        y_terms = solve_integral(low_lim, hi_lim,
+            BivariatePolynomial<1>({{{{s1.y-s2.y, 0}},{{sin(alpha), 0}}}}),
+            sin(beta), {sy, ty},
+            {Polynomial<1>({sx, 0})}, {Polynomial<1>({tx, 0})} 
+        );
+
+    }
+
+
+    for (auto xterm: x_terms)
+        for (auto yterm: y_terms)
+            results.push_back(xterm + yterm);
+
+    auto valid_results = std::vector<ConstrainedBivariatePolynomial<2>>();
+
+    for (auto f: results)
+        if (valid_constraints(f)) {
+            if (!is_positive(f))
+                std::cout << "nope\n";
+            valid_results.push_back(f);
+        }
+
+    return valid_results;
+}
+
+std::vector<ConstrainedBivariatePolynomial<2>>
+horizontal_int_b2t(BivariatePolynomial<1> low_lim, BivariatePolynomial<1> hi_lim,
+const Cell& cell, double height) {
+
+    auto sx = 0.;
+    auto tx = cell.len1;
+    auto sy = 0.;
+    auto ty = cell.len1;
+
+    double alpha = angle(cell.s1, cell.t1);
+    double beta = angle(cell.s2, cell.t2);
+
+    Point s1 = cell.s1;
+    Point t1 = cell.t1;
+    Point s2 = cell.s2;
+    Point t2 = cell.t2;
+
+    auto results = std::vector<ConstrainedBivariatePolynomial<2>>();
+
+    auto x_terms = solve_integral(
+        low_lim, hi_lim,
+        BivariatePolynomial<1>({{{{s2.x-s1.x + height*cos(beta), 0}},{{0, 0}}}}),
+        cos(alpha), {sy, ty},
+        {Polynomial<1>({sx, 0})}, {Polynomial<1>({tx, 0})}
+    );
+
+    auto y_terms = solve_integral(
+        low_lim, hi_lim,
+        BivariatePolynomial<1>({{{{s2.y-s1.y + height*sin(beta), 0}},{{0, 0}}}}),
+        sin(alpha), {sy, ty},
+        {Polynomial<1>({sx, 0})}, {Polynomial<1>({tx, 0})}
+    );
+
+    for (auto xterm: x_terms)
+        for (auto yterm: y_terms)
+            results.push_back(xterm + yterm);
+
+    auto valid_results = std::vector<ConstrainedBivariatePolynomial<2>>();
+
+    for (auto f: results)
+        if (valid_constraints(f)) {
+            if (!is_positive(f))
+                std::cout << "nope\n";
+            valid_results.push_back(f);
+        }
+
+    return valid_results;
+}
+
+std::vector<ConstrainedBivariatePolynomial<2>>
+axis_int_b2t(BivariatePolynomial<1> low_lim, BivariatePolynomial<1> hi_lim, const Cell& cell, Line axis,
+std::vector<Polynomial<1>> left_constraints, std::vector<Polynomial<1>> right_constraints, 
+Interval y_range) {
+    Point s1 = cell.s1;
+    Point s2 = cell.s2;
+    Point t1 = cell.t1;
+    Point t2 = cell.t2;
+
+    double sx = cell.s.x; //- cell.mid.x;
+    double sy = cell.s.x; //- cell.mid.y;
+    double tx = cell.t.x; //- cell.mid.x;
+    double ty = cell.t.x; //- cell.mid.y;
+
+    double alpha = angle(s1, t1);
+    double beta = angle(s2, t2);
+
+    auto gi = axis.grad_int();
+
+    double m = gi.x;
+    double b = gi.y;
+
+    auto xterms = solve_integral(
+        low_lim, hi_lim,
+        BivariatePolynomial<1>({{{{s1.x-s2.x - b*cos(beta), 0}},{{0, 0}}}}),
+        m*cos(beta) - cos(alpha), y_range,
+        left_constraints, right_constraints
+    );
+
+    auto yterms = solve_integral(
+        low_lim, hi_lim,
+        BivariatePolynomial<1>({{{{s1.y-s2.y - b*sin(beta), 0}},{{0, 0}}}}),
+        m*sin(beta) - sin(alpha), y_range,
+        left_constraints, right_constraints
+    );
+
+    std::vector<ConstrainedBivariatePolynomial<2>> results = std::vector<ConstrainedBivariatePolynomial<2>>();
+
+    for (auto xterm: xterms)
+        for (auto yterm: yterms)
+            results.push_back(xterm + yterm);
+
+    auto valid_results = std::vector<ConstrainedBivariatePolynomial<2>>();
+
+    for (auto f: results)
+        if (valid_constraints(f))
+            valid_results.push_back(f);
+
+    return valid_results;
+}
 
 std::vector<ConstrainedBivariatePolynomial<2>>
 bottom_top_axis_integrals(Line axis, const Cell& cell) {
 
+    auto sx = 0.;
+    auto tx = cell.len1;
+    auto sy = 0.;
+    auto ty = cell.len1;
+
+    double alpha = angle(cell.s1, cell.t1);
+    double beta = angle(cell.s2, cell.t2);
+
+    Point s1 = cell.s1;
+    Point t1 = cell.t1;
+    Point s2 = cell.s2;
+    Point t2 = cell.t2;
+
+    double m = axis.grad_int().x;
+    double b = axis.grad_int().y;
+
+    auto results = std::vector<ConstrainedBivariatePolynomial<2>>();
+
+    auto bottom_int = axis.getX(0);
+    auto top_int = axis.getX(cell.len2);
+
+    // up-axis-up
+
+    auto uau_u1_terms = vertical_int_b2t(
+        BivariatePolynomial<1>({{{{0, 0}},{{0, 0}}}}),
+        BivariatePolynomial<1>({{{{b, 0}},{{m, 0}}}}),
+        cell, "x"
+    );
+
+    auto uau_axis_terms = axis_int(
+        BivariatePolynomial<1>({{{{0, 0}},{{1, 0}}}}),
+        BivariatePolynomial<1>({{{{0, 1}},{{0, 0}}}}),
+        cell, axis,
+        {Polynomial<1>({sx, 0}), Polynomial<1>({bottom_int})}, 
+        {Polynomial<1>({tx, 0})},
+        {sy, std::min(ty, top_int)}
+    );
+
+    auto uau_u2_terms = vertical_int_b2t(
+        BivariatePolynomial<1>({{{{b, 0}},{{m, 0}}}}),
+        BivariatePolynomial<1>({{{{cell.len2 , 0}},{{0, 0}}}}),
+        cell, "y"
+    );
+
+    auto up_axis_up = combine_steps(3, {uau_u1_terms, uau_axis_terms, uau_u2_terms});
+    for (auto poly: up_axis_up)
+        results.push_back(poly);
+
+
+    // across-axis-up
+
+    auto aau_across_terms = horizontal_int_b2t(
+        BivariatePolynomial<1>({{{{0, 0}},{{1, 0}}}}),
+        BivariatePolynomial<1>({{{{bottom_int, 0}},{{0, 0}}}}),
+        cell, 0
+    );
+
+    auto aau_axis_terms = axis_int(
+        BivariatePolynomial<1>({{{{bottom_int, 0}},{{0, 0}}}}),
+        BivariatePolynomial<1>({{{{0, 1}},{{0, 0}}}}),
+        cell, axis,
+        {Polynomial<1>({sx, 0})}, 
+        {Polynomial<1>({tx, 0}), Polynomial<1>({bottom_int, 0})},
+        {sy, std::min(ty, top_int)}
+    );
+
+    auto aau_up_terms = vertical_int_b2t(
+        BivariatePolynomial<1>({{{{b, 0}},{{m, 0}}}}),
+        BivariatePolynomial<1>({{{{cell.len2 , 0}},{{0, 0}}}}),
+        cell, "y"
+    );
+
+    auto across_axis_up = combine_steps(3, {aau_across_terms, aau_axis_terms, aau_up_terms});
+    for (auto poly: across_axis_up)
+        results.push_back(poly);
+
+    // up-axis-across
+
+    auto uaa_up_terms = vertical_int_b2t(
+        BivariatePolynomial<1>({{{{0, 0}},{{0, 0}}}}),
+        BivariatePolynomial<1>({{{{b, 0}},{{m, 0}}}}),
+        cell, "x"
+    );
+
+    auto uaa_axis_terms = axis_int(
+        BivariatePolynomial<1>({{{{0, 0}},{{1, 0}}}}),
+        BivariatePolynomial<1>({{{{top_int, 0}},{{0, 0}}}}),
+        cell, axis,
+        {Polynomial<1>({sx, 0})}, 
+        {Polynomial<1>({tx, 0}), Polynomial<1>({bottom_int, 0})},
+        {std::max(sy, top_int), ty}
+    );
+
+    auto uaa_across_terms = horizontal_int_b2t(
+        BivariatePolynomial<1>({{{{top_int, 0}},{{0, 0}}}}),
+        BivariatePolynomial<1>({{{{0, 1}},{{0, 0}}}}),
+        cell, cell.len2
+    );
+
+    auto up_axis_across = combine_steps(3, {uaa_up_terms, uaa_axis_terms, uaa_across_terms});
+    for (auto poly: across_axis_up)
+        results.push_back(poly);
+
+    // across-axis-across
+
+    auto aaa_a1_terms = horizontal_int_b2t(
+        BivariatePolynomial<1>({{{{0, 0}},{{1, 0}}}}),
+        BivariatePolynomial<1>({{{{bottom_int, 0}},{{0, 0}}}}),
+        cell, 0
+    );
+
+    auto aaa_axis_terms = axis_int(
+        BivariatePolynomial<1>({{{{bottom_int, 0}},{{0, 0}}}}),
+        BivariatePolynomial<1>({{{{top_int, 0}},{{0, 0}}}}),
+        cell, axis,
+        {Polynomial<1>({sx, 0})}, 
+        {Polynomial<1>({tx, 0}), Polynomial<1>({bottom_int, 0})},
+        {std::max(sy, top_int), ty}
+    );
+
+    auto aaa_a2_terms = horizontal_int_b2t(
+        BivariatePolynomial<1>({{{{top_int, 0}},{{0, 0}}}}),
+        BivariatePolynomial<1>({{{{0, 1}},{{0, 0}}}}),
+        cell, cell.len2
+    );
+
+    auto across_axis_across = combine_steps(3, {aaa_a1_terms, aaa_axis_terms, aaa_a2_terms});
+    for (auto poly: across_axis_up)
+        results.push_back(poly);
+
+    auto valid_results = std::vector<ConstrainedBivariatePolynomial<2>>();
+
+    for (auto f: results)
+        if (valid_constraints(f))
+            valid_results.push_back(f);
+
+    return valid_results;
 }
 
 
 std::vector<ConstrainedBivariatePolynomial<2>>
 bottom_to_top_costs_2D(const Cell& cell) {
     double sx = cell.s.x; //- cell.mid.x;
-    double sy = cell.s.y; //- cell.mid.y;
+    double sy = cell.s.x; //- cell.mid.y;
     double tx = cell.t.x; //- cell.mid.x;
-    double ty = cell.t.y; //- cell.mid.y;
+    double ty = cell.t.x; //- cell.mid.y;
 
-    // std::cout << "b2r\n";
+    // std::cout << "b2t\n";
 
     std::vector<ConstrainedBivariatePolynomial<2>> costs = std::vector<ConstrainedBivariatePolynomial<2>>();
 
@@ -1522,29 +1861,69 @@ bottom_to_top_costs_2D(const Cell& cell) {
 
     // up and across
 
-    auto ua_up_terms = vertical_int(
-            BivariatePolynomial<1>({{{{0, 0}},{{1, 0}}}}),
-            BivariatePolynomial<1>({{{{0, 1}},{{0, 0}}}}),
-            cell, tx, false
-        );
+    auto ua_up_terms = vertical_int_b2t(
+        BivariatePolynomial<1>({{{{0, 0}},{{0, 0}}}}),
+        BivariatePolynomial<1>({{{{cell.len2, 0}},{{0, 0}}}}),
+        cell, "x"
+    );
+    
+    auto ua_across_terms = horizontal_int_b2t(
+        BivariatePolynomial<1>({{{{0, 0}},{{1, 0}}}}),
+        BivariatePolynomial<1>({{{{0, 1}},{{0, 0}}}}),
+        cell, cell.len2
+    );
+
+    auto up_across = combine_steps(2, {ua_across_terms, ua_up_terms});
+    for (auto poly: up_across) {
+        if (!is_positive(poly))
+                std::cout << "nope\n";
+        costs.push_back(poly);
+    }
 
     //across and up
+
+    auto au_across_terms = horizontal_int_b2t(
+        BivariatePolynomial<1>({{{{0, 0}},{{1, 0}}}}),
+        BivariatePolynomial<1>({{{{0, 1}},{{0, 0}}}}),
+        cell, 0
+    );
+
+    auto au_up_terms = vertical_int_b2t(
+        BivariatePolynomial<1>({{{{0, 0}},{{0, 0}}}}),
+        BivariatePolynomial<1>({{{{cell.len2, 0}},{{0, 0}}}}),
+        cell, "y"
+    );
+
+    auto across_up = combine_steps(2, {au_across_terms, au_up_terms});
+    for (auto poly: across_up) {
+        if (!is_positive(poly))
+                std::cout << "nope\n";
+        costs.push_back(poly);
+    }
 
 
     if (axes.size() == 1) {
         Line axis = axes[0];
         auto axis_costs = bottom_top_axis_integrals(axis, cell);
-        for (auto poly: axis_costs)
+        for (auto poly: axis_costs) {
+            if (!is_positive(poly))
+                std::cout << "nope\n";
             costs.push_back(poly);
+        }
     }
 
     if (axes.size() == 2) {
         Line axis = axes[1];
         auto axis_costs = bottom_top_axis_integrals(axis, cell);
-        for (auto poly: axis_costs)
+        for (auto poly: axis_costs) {
+            if (!is_positive(poly))
+                std::cout << "nope\n";
             costs.push_back(poly);
+        }
     }
 
+    // std::cout << "b2t cost count: " << costs.size() << std::endl;
+    
     return costs;
 }
 
@@ -1559,12 +1938,12 @@ PiecewisePolynomial<2> propagate(
         #ifndef NDEBUG
         std::vector<ConstrainedBivariatePolynomial<2>> total_costs;
         #endif
-
+        int counter = 0;
         PiecewisePolynomial<2> out_cost;
         while (pieces_it != pieces_end) {
             // piece_in_cost: cost of optimal path from origin to point on in-boundary
             const PolynomialPiece<2>& piece_in_cost = *pieces_it;
-
+            counter++;
             // piece_out_cost: cost of optimal path from origin to point on out-boundary
             PiecewisePolynomial<2> piece_out_cost;
 
@@ -1586,7 +1965,7 @@ PiecewisePolynomial<2> propagate(
 
                 min_pieces.insert(min_pieces.end(), min_total_cost.pieces.begin(), min_total_cost.pieces.end());
             }
-
+            std::cout << "incoming pieces: " << counter << std::endl;
             ++pieces_it;
         }
 
@@ -1612,45 +1991,73 @@ PiecewisePolynomial<2> propagate(
 template<>
 PiecewisePolynomial<2> CDTW<2, Norm::L1, Norm::L1>::base_bottom(const Cell& cell) const {
     // TODO: Clean this up; sx, sy, tx, ty are assumed to be coordinates in a space where (0,0) is the ellipse center
-    double sx = cell.s.x - cell.mid.x;
-    double sy = cell.s.y - cell.mid.y;
-    double tx = cell.t.x - cell.mid.x;
+    double sx = cell.s.x; //- cell.mid.x;
+    double sy = cell.s.y; //- cell.mid.y;
+    double tx = cell.t.x; //- cell.mid.x;
+    double ty = cell.t.y;
 
-    bool same_direction = (cell.s1.x <= cell.t1.x) == (cell.s2.x <= cell.t2.x);
+    auto costs = horizontal_int_b2t(
+        BivariatePolynomial<1>({{{{0, 0}},{{0, 0}}}}),
+        BivariatePolynomial<1>({{{{0, 0}},{{1, 0}}}}),
+        cell, 0
+    );
 
-    if (!same_direction) { // Downwards valley
-        if (sx >= -sy) {
-            return PiecewisePolynomial<2>({
-                {{0, tx-sx}, Polynomial<2>({0, sx + sy, 1./2})},
-            });
-        } else if (-sy >= tx) {
-            return PiecewisePolynomial<2>({
-                {{0, tx-sx}, Polynomial<2>({0, -sx-sy, -1./2})},
-            });
-        } else { // sx < -sy < tx
-            return PiecewisePolynomial<2>({
-                {{0, -sy-sx}, Polynomial<2>({0, -sx-sy, -1./2})},
-                {{-sy-sx, tx-sx}, Polynomial<2>({(sx+sy) * (sx+sy), sx+sy, 1./2})},
-            });
-        }
+    auto results = PiecewisePolynomial<2>();
+
+    for (auto cost: costs) {
+        auto poly = cost.f.slice_at_y(0);
+        double max = cell.len1;
+        double min = 0;
+        for (auto rc: cost.right_constraints) 
+            if (rc(0) < max)
+                max = rc(0);
+        
+        for (auto lc: cost.left_constraints)
+            if (lc(0) > min)
+                min = lc(0);
+
+        if (max > min)
+            results.pieces.push_back({{min, max}, poly});
     }
+    
+    auto final_result = naive_lower_envelope(results.pieces);
 
-    // Upwards valley
+    return final_result;
+    // bool same_direction = (cell.s1.x <= cell.t1.x) == (cell.s2.x <= cell.t2.x);
 
-    if (sy <= sx) {
-        return PiecewisePolynomial<2>({
-            {{sx, tx}, Polynomial<2>({-(sx * sx) / 2 + sx * sy, -sy, 1. / 2})}
-        }).translate(-sx);
-    } else if (sy >= tx) {
-        return PiecewisePolynomial<2>({
-            {{sx, tx}, Polynomial<2>({(sx * sx) / 2 - sx * sy, sy, -1. / 2})}
-        }).translate(-sx);
-    } else { // sx < sy < tx
-        return PiecewisePolynomial<2>({
-            {{sx, sy}, Polynomial<2>({(sx * sx) / 2 - sx * sy, sy, -1. / 2})},
-            {{sy, tx}, Polynomial<2>({(sx * sx) / 2 - sx * sy + sy * sy, -sy, 1. / 2})}
-        }).translate(-sx);
-    }
+    // if (!same_direction) { // Downwards valley
+    //     if (sx >= -sy) {
+    //         return PiecewisePolynomial<2>({
+    //             {{0, tx-sx}, Polynomial<2>({0, sx + sy, 1./2})},
+    //         });
+    //     } else if (-sy >= tx) {
+    //         return PiecewisePolynomial<2>({
+    //             {{0, tx-sx}, Polynomial<2>({0, -sx-sy, -1./2})},
+    //         });
+    //     } else { // sx < -sy < tx
+    //         return PiecewisePolynomial<2>({
+    //             {{0, -sy-sx}, Polynomial<2>({0, -sx-sy, -1./2})},
+    //             {{-sy-sx, tx-sx}, Polynomial<2>({(sx+sy) * (sx+sy), sx+sy, 1./2})},
+    //         });
+    //     }
+    // }
+
+    // // Upwards valley
+
+    // if (sy <= sx) {
+    //     return PiecewisePolynomial<2>({
+    //         {{sx, tx}, Polynomial<2>({-(sx * sx) / 2 + sx * sy, -sy, 1. / 2})}
+    //     }).translate(-sx);
+    // } else if (sy >= tx) {
+    //     return PiecewisePolynomial<2>({
+    //         {{sx, tx}, Polynomial<2>({(sx * sx) / 2 - sx * sy, sy, -1. / 2})}
+    //     }).translate(-sx);
+    // } else { // sx < sy < tx
+    //     return PiecewisePolynomial<2>({
+    //         {{sx, sy}, Polynomial<2>({(sx * sx) / 2 - sx * sy, sy, -1. / 2})},
+    //         {{sy, tx}, Polynomial<2>({(sx * sx) / 2 - sx * sy + sy * sy, -sy, 1. / 2})}
+    //     }).translate(-sx);
+    // }
     
     
     return PiecewisePolynomial<2>();
@@ -1682,6 +2089,10 @@ CDTW<2, Norm::L1, Norm::L1>::bottom_to_right_costs(const Cell& cell) const {
 
     auto costs = bottom_to_right_costs_2D(cell);
 
+    // for (auto cost: costs)
+    //     if (!is_positive(cost))
+    //         std::cout << "...\n";
+
     return costs;
 }
 
@@ -1696,6 +2107,12 @@ template<>
 std::vector<ConstrainedBivariatePolynomial<2>>
 CDTW<2, Norm::L1, Norm::L1>::bottom_to_top_costs(const Cell& cell) const {
     auto subdivision = get_subdivision(cell);
+
+    auto result = bottom_to_top_costs_2D(cell);
+
+    for (auto cost: result)
+        if (!is_positive(cost))
+            std::cout << "...\n";
 
     if (subdivision.size() == 0)
         return bottom_to_top_costs_2D(cell);

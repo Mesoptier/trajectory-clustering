@@ -38,6 +38,12 @@ struct ConstrainedBivariatePolynomial
         return result;
     }
 
+    ConstrainedBivariatePolynomial<D> multiply(double a) const {
+        auto result = *this;
+        result.f *= a;
+        return result;
+    }
+
     PolynomialPiece<D> slice_at_y(double c) const {
         return {interval_at_y(c), f.slice_at_y(c)};
     }
@@ -83,6 +89,9 @@ struct ConstrainedBivariatePolynomial
 
         std::vector<Polynomial<1>> result;
 
+        if (approx_equal(init_set[0].coefficients[0], 1.4142135623730951) && approx_equal(init_set[0].coefficients[1], -1.0000049999625003))
+            std::cout << "...\n";
+
         for (auto c: init_set) {  
 
             bool undominated = true;
@@ -92,7 +101,7 @@ struct ConstrainedBivariatePolynomial
             for (auto oth_c: init_set) {
 
                 double oth_c_max = std::max(oth_c(y_interval.min), oth_c(y_interval.max));
-                double oth_c_min = std::min(c(y_interval.min), oth_c(y_interval.max));
+                double oth_c_min = std::min(oth_c(y_interval.min), oth_c(y_interval.max));
 
                 if (c != oth_c)
                     undominated &= side == "right" ? (c_min < oth_c_min ||  c_max < oth_c_max)
@@ -104,6 +113,9 @@ struct ConstrainedBivariatePolynomial
                     result.push_back(c);
             }
         }
+
+        if (result.size() == 0)
+            std::cout << "...\n";
 
         return result;
     }
