@@ -4,7 +4,7 @@
 #include <chrono>
 #include <cmath>
 #include <exception>
-#include <filesystem>
+// #include <filesystem>
 #include <iostream>
 #include <numeric>
 #include <sstream>
@@ -63,10 +63,10 @@ void experiments::evaluate(std::vector<Curve> const& curves,std::size_t ell,
     std::array alg_names {"Greedy  ", "Imai-Iri"};
     std::array alg_brief {"gr", "ii"};
 
-    std::filesystem::path simpl_dir("simpl");
-    simpl_dir /= prefix;
+    // std::filesystem::path simpl_dir("simpl");
+    // simpl_dir /= prefix;
     try {
-        std::filesystem::create_directories(simpl_dir);
+        // std::filesystem::create_directories(simpl_dir);
     } catch (std::exception const& e) {
         std::cerr << e.what();
         return;
@@ -124,12 +124,12 @@ void experiments::evaluate(std::vector<Curve> const& curves,std::size_t ell,
 
             auto r1n = std::string(alg_brief[j]) + "_" + lt_brief[i];
 
-            io::export_points(simpl_dir / ("crv" + std::to_string(worst_index)),
-                wc.get_points());
-            io::export_points(simpl_dir / (r1n + std::to_string(worst_index)),
-                r1.get_points());
-            io::export_points(simpl_dir / ("best" + std::to_string(worst_index)),
-                r2.get_points());
+            // io::export_points(simpl_dir / ("crv" + std::to_string(worst_index)),
+            //     wc.get_points());
+            // io::export_points(simpl_dir / (r1n + std::to_string(worst_index)),
+            //     r1.get_points());
+            // io::export_points(simpl_dir / ("best" + std::to_string(worst_index)),
+            //     r2.get_points());
 
             auto approach = std::string(alg_name) + " + " + lt_name;
             stats << "Cost for curve " << worst_index << ":\n"

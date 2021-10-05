@@ -3,6 +3,7 @@
 #include <fstream>
 #include <stdexcept>
 #include <system_error>
+#include <iostream>
 
 CurveSimpMatrix::CurveSimpMatrix(std::string const& path) {
     read(path);
@@ -19,7 +20,7 @@ CurveSimpMatrix::CurveSimpMatrix(Curves const& curves,
 
     #pragma omp parallel for collapse(2) schedule(dynamic)
     for (szt i = 0; i < curves.size(); ++i) {
-        for (szt j = 0; j < curves.size(); ++j)
+        for (szt j = 0; j < curves.size(); ++j) 
             matrix[i][j] = (i == j) ? 0.0 : dist(curves[i], simplifications[j]);
     }
 }
@@ -44,7 +45,7 @@ void CurveSimpMatrix::write(std::string const& path,
 
 void CurveSimpMatrix::read(std::string const& path) {
     matrix.clear();
-
+    std::cout << "reading matrix...\n";
     std::ifstream file(path);
     if (!file)
         throw std::system_error(errno, std::system_category(),

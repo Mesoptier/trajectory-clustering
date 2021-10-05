@@ -2,10 +2,15 @@
 
 #include <fstream>
 #include <stdexcept>
+#include <iostream>
 
 void io::read_curve(std::string const& filename, Curve& curve,
         std::size_t header_size) {
     std::ifstream file(filename);
+    
+    std::ifstream test_file("clustering_2.txt");
+    if (!file.is_open())
+        std::cout << "interesting...\n";
     if (!file.is_open())
         throw std::runtime_error("Failed to open file " + filename);
 

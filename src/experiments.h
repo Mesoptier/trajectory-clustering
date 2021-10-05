@@ -5,28 +5,17 @@
 #include <string>
 
 namespace experiments {
-    // Synthetic curves.
-    void synthetic_curve_experiment();
 
-    // Initial clustering (with pigeons).
-    void initial_clustering_experiment();
+    void elbow_graph();
 
-    // Movebank.
-    void center_update_experiment_movebank(std::string const& directory,
-        std::size_t k, std::size_t l, bool remove_stops = false);
+    void aic();
 
-    // Characters.
-    void center_update_experiment_characters(std::string const& directory,
-        std::size_t n, std::size_t k, std::size_t l);
+    void characters_param_selection();
 
-    void curve_complexity_experiment_characters();
+    void pigeons_ch_index();
 
-    // Pigeons.
-    void center_update_experiment_pigeons(std::string const& directory,
-        std::size_t k, std::size_t l);
+    void characters_aic();
 
-    void curve_complexity_experiment_pigeons();
-
-    void find_wedge_params_pigeons();
+    void pigeons_aic();
 }
 #endif

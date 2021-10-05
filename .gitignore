@@ -30,4 +30,6 @@ gmon.out
 # and random things
 compile_commands.json
 *.tar.xz
+*.pdf
+*.png
 

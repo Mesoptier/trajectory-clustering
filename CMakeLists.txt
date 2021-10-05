@@ -43,7 +43,7 @@ set(GNU_OPTIONS
     "-Wmissing-declarations" "-Wshadow" "-Wmissing-include-dirs" "-Wnoexcept"
     "-Wold-style-cast" "-Woverloaded-virtual" "-Wredundant-decls" "-Wsign-promo"
     "-Wsign-conversion" "-Wstrict-null-sentinel" "-Wstrict-overflow=2" "-Wundef"
-    "-Wswitch-default")
+    "-Wswitch-default" "-std=c++17")
 
 set(CLANG_OPTIONS
     "-Weverything" "-Wno-c++98-compat" "-Wno-covered-switch-default"
