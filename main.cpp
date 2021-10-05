@@ -12,6 +12,6 @@
 int main() {
 
     experiments::characters_param_selection();
-    experiments::aic();
-    experiments::elbow_graph();
+    // experiments::aic();
+    // experiments::elbow_graph();
 }
