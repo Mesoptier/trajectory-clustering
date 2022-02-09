@@ -1,6 +1,8 @@
+#include <algorithm>
 #include <iomanip>
 #include <iterator>
 #include <iostream>
+#include <random>
 #include "geom.h"
 
 #define PI 3.14159265358979323846264338327950288
@@ -516,7 +518,8 @@ Circle calcMinEnclosingCircle(Points points) {
     if (points.size() == 1)
         return {points.front(), 0.};
 
-    std::random_shuffle(points.begin(), points.end());
+    auto rng = std::default_random_engine {};
+    std::shuffle(points.begin(), points.end(), rng);
 
     auto current_circle = circleFromTwo(points[0], points[1]);
     for (PointID i = 2; i < points.size(); ++i) {
