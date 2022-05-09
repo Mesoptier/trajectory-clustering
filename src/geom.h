@@ -114,7 +114,8 @@ struct Line
      * Create line from two points that lie on the line.
      */
     static Line fromTwoPoints(const Point& a, const Point& b) {
-        assert(!approx_equal(a, b));
+        if (approx_equal(a, b))
+            assert(!approx_equal(a, b));
         return {a, b - a};
     }
 
@@ -145,8 +146,11 @@ struct Line
                 direction.y / direction.x,
                 getY(0)    
             };
-
-        return {0, 0};
+        else
+            return {
+                direction.y / 0.000001,
+                getY(0)
+            };
     }
 
     Point operator()(distance_t t) const {
@@ -172,9 +176,9 @@ struct Line
      * Get Y coordinate for given X coordinate.
      */
     inline distance_t getY(distance_t x) const {
-        if (isVertical()) {
+        if (isVertical()) 
             return NAN;
-        }
+        
         return (x - origin.x) * direction.y / direction.x + origin.y;
     }
 
@@ -182,9 +186,11 @@ struct Line
      * Get X coordinate for given Y coordinate.
      */
     inline distance_t getX(distance_t y) const {
+                
         if (isHorizontal()) {
             return NAN;
         }
+
         return (y - origin.y) * direction.x / direction.y + origin.x;
     }
 

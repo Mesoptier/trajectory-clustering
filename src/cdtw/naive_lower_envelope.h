@@ -218,6 +218,7 @@ PiecewisePolynomial<D> naive_lower_envelope(const std::vector<PolynomialPiece<D>
                         result_pieces.back().interval.max = event.x;
                     } else {
                         result_pieces.emplace_back(Interval{start_x, event.x}, pieces[prev_open_id].polynomial);
+                        result_pieces.back().history = pieces[prev_open_id].history;
                     }
                 }
             }

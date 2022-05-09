@@ -4,11 +4,86 @@
 #include "Interval.h"
 #include "Polynomial.h"
 
+enum PathType { UA, AU, UAA, AAU, AAA, UAU, NONE };
+enum Boundaries { BR, BT, LR, LT };
+
+struct History {
+    PathType path_type;
+    Boundaries boundaries;
+    Line axis;
+    Polynomial<1> x_poly;
+
+    History() {};
+
+    History(PathType _path_type, Boundaries _boundaries,
+    Line _axis, Polynomial<1> _x_poly) : 
+    path_type(_path_type), boundaries(_boundaries), axis(_axis), 
+    x_poly(_x_poly) {};
+
+    void transpose() {
+
+        auto dir = axis.direction;
+        auto p = Point(0, axis.getY(0));
+
+        axis = Line::fromTwoPoints(
+            Point(p.y, p.x), Point(p.y + dir.y, p.x + dir.x)
+        );
+
+        switch (boundaries) {
+            case BR: {
+                boundaries = LT;
+                break;
+            }
+            case BT: {
+                boundaries = LR;
+                break;
+            }
+            case LR: {
+                boundaries = BT;
+                break;
+            }
+            case LT: {
+                boundaries = BR;
+                break;
+            }
+        }
+
+        switch (path_type) {
+            case UA: {
+                path_type = AU;
+                break;
+            }
+            case AU: {
+                path_type = UA;
+                break;
+            }
+            case UAA: {
+                path_type = AAU;
+                break;
+            }
+            case AAU: {
+                path_type = UAA;
+                break;
+            }
+            case AAA: {
+                path_type = UAU;
+                break;
+            }
+            case UAU: {
+                path_type = AAA;
+                break;
+            }
+        }
+    }
+};
+
 template<size_t D>
 struct PolynomialPiece
 {
     Interval interval;
     Polynomial<D> polynomial;
+
+    History history;
 
     PolynomialPiece(const Interval& interval, const Polynomial<D>& polynomial) :
         interval(interval), polynomial(polynomial) {}
@@ -113,6 +188,12 @@ struct PiecewisePolynomial
             // if (!approx_equal(p1.polynomial(p1.interval.max), p2.polynomial(p2.interval.min), 1e-2))
             //     assert(approx_equal(p1.polynomial(p1.interval.max), p2.polynomial(p2.interval.min), 1e-2));
         }
+    }
+
+    PolynomialPiece<D> get_piece(double y) {
+        for (auto piece: pieces)
+            if (piece.interval.contains(y))
+                return piece;
     }
 
     bool empty() const {

@@ -9,7 +9,8 @@ struct Interval {
     double max;
 
     bool contains(double x) const {
-        return min <= x && x <= max;
+        return min <= x && x <= max ||
+        approx_equal(x, max) || approx_equal(x, min);
     }
 
     /**

@@ -177,6 +177,16 @@ Point Line::closest(const Point& point) const {
 }
 
 int Line::side(const Point& point) const {
+
+    if (isVertical()) {
+        if (approx_equal(point.x, origin.x))
+            return 0;
+        if (point.x > origin.x)
+            return 1;
+        if (point.x < origin.x)
+            return -1;
+    }
+
     const auto val = perp(point - origin, direction);
     // std::cout << "val: " << val << std::endl;
     return approx_zero(val) ? 0 : (val > 0 ? 1 : -1);

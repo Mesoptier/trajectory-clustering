@@ -18,6 +18,66 @@ struct ConstrainedBivariatePolynomial
     std::vector<Polynomial<1>> left_constraints;
     std::vector<Polynomial<1>> right_constraints;
 
+    PathType path_type = NONE;
+    Boundaries boundaries;
+    Line axis;
+
+    void transpose() {
+
+        auto dir = axis.direction;
+        auto p = Point(0, axis.getY(0));
+
+        axis = Line::fromTwoPoints(
+            Point(p.y, p.x), Point(p.y + dir.y, p.x + dir.x)
+        );
+
+        switch (boundaries) {
+            case BR: {
+                boundaries = LT;
+                break;
+            }
+            case BT: {
+                boundaries = LR;
+                break;
+            }
+            case LR: {
+                boundaries = BT;
+                break;
+            }
+            case LT: {
+                boundaries = BR;
+                break;
+            }
+        }
+
+        switch (path_type) {
+            case UA: {
+                path_type = AU;
+                break;
+            }
+            case AU: {
+                path_type = UA;
+                break;
+            }
+            case UAA: {
+                path_type = AAU;
+                break;
+            }
+            case AAU: {
+                path_type = UAA;
+                break;
+            }
+            case AAA: {
+                path_type = UAU;
+                break;
+            }
+            case UAU: {
+                path_type = AAA;
+                break;
+            }
+        }
+    }
+    
     /**
      * Sum this function with a function in x.
      * Returns f(x, y) + g(x) with updated constraints.

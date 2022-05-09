@@ -55,3 +55,14 @@ void io::export_points(const std::string& filename, const Points& points) {
 
     file.close();
 }
+
+void io::write_path(const std::string& filename, std::vector<std::vector<double>>& edges, int n, int m) {
+
+    std::ofstream file(filename);
+    
+    for (auto& e: edges) {
+        file << e[0] << " " << e[1] << " " << e[2] << " " << e[3] << std::endl;
+    }
+
+    file.close();
+}

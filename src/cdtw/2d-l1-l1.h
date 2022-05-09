@@ -16,7 +16,7 @@ namespace {
      * the horizontal line through the source
     */
     long double angle(Point s, Point t) {
-        long double PI = 3.141;
+        long double PI = 3.14159265359;
 
         if (approx_equal(s.x, t.x)) {
             if (s.y > t.y)
@@ -41,6 +41,36 @@ namespace {
             else
                 return PI + acute_angle;
         }
+    }
+
+    double _sin(double angle) {
+
+        double PI = 3.14159265359;
+        if (approx_zero(angle))
+            return 0;
+
+        if (approx_equal(angle, PI)) {
+            return 0;
+        }
+
+        if (approx_equal(angle, 2*PI))
+            return 0;
+
+        return sin(angle);
+    }
+
+    double _cos(double angle) {
+
+        double PI = 3.14159265359;
+        if (approx_equal(angle, PI/2))
+            return 0;
+
+        if (approx_equal(angle, 3*PI/2)) {
+            return 0;
+        }
+
+
+        return cos(angle);
     }
 
 enum VARIABLE_TYPE { X, Y, _ };
@@ -113,6 +143,20 @@ struct Constraint {
         return {0, -x_bound.coefficients[0] / x_bound.coefficients[1]};
     }
 
+    bool zero_between(const Constraint& other) {
+        if (!is_y_constraint && !other.is_y_constraint) 
+            if (is_lower_bound && !other.is_lower_bound || !is_lower_bound && other.is_lower_bound) 
+                if (x_bound == other.x_bound)
+                    return true;
+
+        if (is_y_constraint && other.is_y_constraint) 
+            if (is_lower_bound && !other.is_lower_bound || !is_lower_bound && other.is_lower_bound) 
+                if (approx_equal(y_bound, other.y_bound))
+                    return true;
+            
+        return false;
+    }
+
     bool operator==(const Constraint& rhs) {
         return is_y_constraint == rhs.is_y_constraint
         && is_lower_bound == rhs.is_lower_bound
@@ -124,6 +168,59 @@ struct Constraint {
         return !(*this == rhs);
     }
 };
+
+bool domain_covered(std::vector<ConstrainedBivariatePolynomial<2>> costs, const Cell& cell) {
+    std::vector<Constraint> constraints = std::vector<Constraint>();
+
+    double sx = cell.s.x;
+    double sy = cell.s.y;
+    double tx = cell.t.x;
+    double ty = cell.t.y;
+
+    for (auto cost: costs) {
+        for (auto constr: cost.left_constraints) {
+            constraints.push_back(
+                Constraint(false, true, 0, constr)
+            );
+        }
+
+        for (auto constr: cost.right_constraints) {
+            constraints.push_back(
+                Constraint(false, false, 0, constr)
+            );
+        }
+
+        constraints.push_back(Constraint(true, true, cost.y_interval.min, Polynomial<1>()));
+        constraints.push_back(Constraint(true, false, cost.y_interval.max, Polynomial<1>()));
+    }
+
+    // Check to see if each corner of the domin appears in the
+    // feasible region of a cost polynomial
+
+    bool bl = false;
+    bool br = false;
+    bool tl = false;
+    bool tr = false;
+
+    for (auto constr: constraints) {
+        bl = bl || constr.valid_point({sx, sy});
+        br = br || constr.valid_point({tx, sy});
+        tl = tl || constr.valid_point({sx, ty});
+        tr = tr || constr.valid_point({tx, ty});
+    }
+
+    if (!bl)
+        std::cout << "bottom left not covered...\n";
+    if (!br)
+        std::cout << "bottom right not covered...\n";
+    if (!tl)
+        std::cout << "top left not covered...\n";
+    if (!tr)
+        std::cout << "top right not covered...\n";
+
+
+    return bl && br && tl && tr;
+}
 
 
 bool is_parallel(Constraint a, Constraint b) {
@@ -256,7 +353,11 @@ bool valid_constraints(ConstrainedBivariatePolynomial<2>& poly) {
         );
 
     for (size_t i = 0; i < constraints.size(); ++i)
-        for (size_t j = i+1; j < constraints.size(); ++j)
+        for (size_t j = i+1; j < constraints.size(); ++j) {
+            if (constraints[i].zero_between(constraints[j])) {
+                // std::cout << "zero between!\n";
+                return false;
+            }
             for (size_t k = j+1; k < constraints.size(); ++k) {
                 auto a = constraints[i];
                 auto b = constraints[j];        
@@ -274,6 +375,7 @@ bool valid_constraints(ConstrainedBivariatePolynomial<2>& poly) {
                     return false;
                 }
             }
+        }
 
     return true;
 }
@@ -354,6 +456,11 @@ Interval y_range, std::vector<Polynomial<1>> left_constraints, std::vector<Polyn
         // if (approx_equal(y_range.max, 0.18449462693244933)) {
         //     std::cout << "hi\n";
         // }
+
+        // if (approx_equal(hi_lim.coefficients[0][1], sqrt(2)))
+            // std::cout << "hello\n";
+        // else
+            // std::cout << "from axis int: " << hi_lim.coefficients[][];
         
         /**
          * Impose low_lim <= hi_lim constraints
@@ -400,6 +507,7 @@ Interval y_range, std::vector<Polynomial<1>> left_constraints, std::vector<Polyn
         auto p3c = integrand.coefficients[0][0];
 
         auto a = t_coeff;
+
 
         //case 1
         auto case_1_poly = BivariatePolynomial<2>({{{{a*pow(p1c, 2)/2 - a*pow(p2c, 2)/2 - p1c*p3c + p2c*p3c,a*p1c*p1y - a*p2c*p2y - p1c*p3y - p1y*p3c + p2c*p3y + p2y*p3c,a*pow(p1y, 2)/2 - a*pow(p2y, 2)/2 - p1y*p3y + p2y*p3y}},
@@ -588,12 +696,13 @@ Interval y_range, std::vector<Polynomial<1>> left_constraints, std::vector<Polyn
          for (auto constraint: right_constraints) 
             case_3a_right_constraints.push_back(constraint);
 
-        output.push_back(ConstrainedBivariatePolynomial<2>{
-            case_3a_poly,
-            {y_lower_bound, y_upper_bound},
-            case_3a_left_constraints,
-            case_3a_right_constraints
-        });
+        if (!approx_zero(a))
+            output.push_back(ConstrainedBivariatePolynomial<2>{
+                case_3a_poly,
+                {y_lower_bound, y_upper_bound},
+                case_3a_left_constraints,
+                case_3a_right_constraints
+            });
 
         //case 3b
         auto case_3b_poly = BivariatePolynomial<2>({{{{(-pow(a, 2)*pow(p1c, 2) - pow(a, 2)*pow(p2c, 2) + 2*a*p1c*p3c + 2*a*p2c*p3c - 2*pow(p3c, 2))/(2*a),(-pow(a, 2)*p1c*p1y - pow(a, 2)*p2c*p2y + a*p1c*p3y + a*p1y*p3c + a*p2c*p3y + a*p2y*p3c - 2*p3c*p3y)/a,(-pow(a, 2)*pow(p1y, 2) - pow(a, 2)*pow(p2y, 2) + 2*a*p1y*p3y + 2*a*p2y*p3y - 2*pow(p3y, 2))/(2*a)}},
@@ -652,18 +761,15 @@ Interval y_range, std::vector<Polynomial<1>> left_constraints, std::vector<Polyn
          for (auto constraint: right_constraints) 
             case_3b_right_constraints.push_back(constraint);
 
-        output.push_back(ConstrainedBivariatePolynomial<2>{
-            case_3b_poly,
-            {y_lower_bound, y_upper_bound},
-            case_3b_left_constraints,
-            case_3b_right_constraints
-        });
+        if (!approx_zero(a))
+            output.push_back(ConstrainedBivariatePolynomial<2>{
+                case_3b_poly,
+                {y_lower_bound, y_upper_bound},
+                case_3b_left_constraints,
+                case_3b_right_constraints
+            });
 
     auto final_output = std::vector<ConstrainedBivariatePolynomial<2>>();
-
-        // if (approx_equal(y_range.max, 0.18449462693244933)) {
-        //     std::cout << "hi\n";
-        // }
         
 
     for (auto& poly: output)
@@ -677,7 +783,6 @@ Interval y_range, std::vector<Polynomial<1>> left_constraints, std::vector<Polyn
             final_output.push_back(poly);
         }
 
-    
     return final_output;
 }
 
@@ -748,8 +853,11 @@ double param_space_coord(const Point& s, const Point& t, Point a) {
 
     double distance = s.dist(a);
 
-    if ((s.x - t.x) * (s.x - a.x) >= 0)
+    if (dot(t-s, a-s) < 0)
         distance = -distance;
+
+    // if ((s.x - t.x) * (s.x - a.x) >= 0)
+        // distance = -distance;
 
     return distance;
 }
@@ -769,6 +877,8 @@ Point a, Point b) {
  * @return true if axis is monotone, false otherwise
  * */
 bool is_monotone(Line& axis) {
+    if (axis.isHorizontal() || axis.isHorizontal())
+        return true;
     auto gi = axis.grad_int();
     return gi.x > 0;
 }
@@ -869,6 +979,19 @@ bool intersects_cell(const Cell& cell, CellIntersections& intersections) {
     return int_count >= 2;
 }
 
+
+Line axis_from_points(const Cell& cell, 
+Point l1_p1, Point l2_p1, Point l1_p2, Point l2_p2) {
+    Point ax1_p1 = param_space(cell.s1, cell.t1, 
+    cell.s2, cell.t2, l1_p1, l2_p1);
+    Point ax1_p2 = param_space(cell.s1, cell.t1, 
+    cell.s2, cell.t2, l1_p2, l2_p2);
+
+    Line axis = Line::fromTwoPoints(ax1_p1, ax1_p2);
+
+    return axis;
+}
+
 /**
 * Get axes for given cell
 * @param cell
@@ -877,7 +1000,6 @@ bool intersects_cell(const Cell& cell, CellIntersections& intersections) {
 */
 std::vector<Line>
 get_axes(const Cell& cell) {
-    // std::cout << "getting axes...\n";
     double sx = cell.s.x; //- cell.mid.x;
     double sy = cell.s.y; //- cell.mid.y;
     double tx = cell.t.x; //- cell.mid.x;
@@ -888,6 +1010,18 @@ get_axes(const Cell& cell) {
     Line l1 = Line::fromTwoPoints(cell.s1, cell.t1);
     Line l2 = Line::fromTwoPoints(cell.s2, cell.t2);
 
+
+    if (approx_equal(l1.grad_int().x, l2.grad_int().x) 
+    || (l1.isVertical() && l2.isVertical())) {
+        // Point p1 = l1.isVertical() ? Point(l1.origin.x, 0) : Point(0, l1.getY(0));
+        if (dot(l1.direction, l2.direction) > 0) {
+            result.push_back(Line(Point(0, 0), Point(1, 1)));
+        }
+
+        return result;
+    }
+
+
     Point gi_1 = l1.grad_int();
     Point gi_2 = l2.grad_int();
 
@@ -896,10 +1030,136 @@ get_axes(const Cell& cell) {
     double b1 = gi_1.y;
     double b2 = gi_2.y;
 
-    // std::cout << m1 << std::endl;
-    // std::cout << m2 << std::endl;
-    // std::cout << b1 << std::endl;
-    // std::cout << b2 << std::endl;
+    if (l1.isVertical()) {
+        
+        Point int_p = intersect(l1, l2);
+
+        double ax1_x = int_p.x;
+
+        double ax1_l1_y1 = int_p.y + 1;
+        double ax1_l1_y2 = int_p.y - 1;
+
+        double ax1_l2_y = int_p.y;
+
+        Line axis_1 = axis_from_points(cell, {ax1_x, ax1_l1_y1}, {ax1_x, ax1_l2_y},
+        {ax1_x, ax1_l1_y2}, {ax1_x, ax1_l2_y});
+
+        auto axis_1_intersections = get_intersections(cell, axis_1);
+
+        if (intersects_cell(cell, axis_1_intersections) && is_monotone(axis_1)) {
+            // auto translated_axis_1 = Line::fromTwoPoints(ax1_p1 - cell.mid , ax1_p2 - cell.mid);
+            // result.push_back(translated_axis_1);
+            result.push_back(axis_1);
+        }
+
+        if (l2.isHorizontal()) {
+            double ax2_y = int_p.y;
+
+            double ax2_l2_x1 = int_p.x - 1;
+            double ax2_l2_x2 = int_p.x+1;
+
+            double ax2_l1_x = int_p.x;
+
+            Line axis_2 = axis_from_points(cell, {ax2_l1_x, ax2_y}, {ax2_l2_x1, ax2_y},
+            {ax2_l1_x, ax2_y}, {ax2_l2_x2, ax2_y});
+
+            auto axis_2_intersections = get_intersections(cell, axis_2);
+
+            if (intersects_cell(cell, axis_2_intersections) && is_monotone(axis_2)) {
+                // auto translated_axis_1 = Line::fromTwoPoints(ax1_p1 - cell.mid , ax1_p2 - cell.mid);
+                // result.push_back(translated_axis_1);
+                result.push_back(axis_2);
+            }
+        } else {
+            double ax2_y1 = m2*(int_p.x - 1) + b2;
+            double ax2_y2 = m2*(int_p.x + 1) + b2;
+
+            double ax2_l2_x1 = int_p.x - 1;
+            double ax2_l2_x2 = int_p.x + 1;
+
+            double ax2_l1_x1 = int_p.x;
+            double ax2_l1_x2 = int_p.x;
+
+            Line axis_2 = axis_from_points(cell, {ax2_l1_x1, ax2_y1}, {ax2_l2_x1, ax2_y1},
+            {ax2_l1_x2, ax2_y2}, {ax2_l2_x2, ax2_y2});
+
+            auto axis_2_intersections = get_intersections(cell, axis_2);
+
+            if (intersects_cell(cell, axis_2_intersections) && is_monotone(axis_2)) {
+                // auto translated_axis_1 = Line::fromTwoPoints(ax1_p1 - cell.mid , ax1_p2 - cell.mid);
+                // result.push_back(translated_axis_1);
+                result.push_back(axis_2);
+            }
+        }
+
+        return result;
+    
+    } else if (l2.isVertical()) {
+
+        Point int_p = intersect(l1, l2);
+
+        double ax1_x = int_p.x;
+
+        double ax1_l2_y1 = int_p.y + 1;
+        double ax1_l2_y2 = int_p.y - 1;
+
+        double ax1_l1_y = int_p.y;
+
+        Line axis_1 = axis_from_points(cell, {ax1_x, ax1_l1_y}, {ax1_x, ax1_l2_y1},
+        {ax1_x, ax1_l1_y}, {ax1_x, ax1_l2_y2});
+
+        auto axis_1_intersections = get_intersections(cell, axis_1);
+
+        if (intersects_cell(cell, axis_1_intersections) && is_monotone(axis_1)) {
+            // auto translated_axis_1 = Line::fromTwoPoints(ax1_p1 - cell.mid , ax1_p2 - cell.mid);
+            // result.push_back(translated_axis_1);
+            result.push_back(axis_1);
+        }
+
+        if (l2.isHorizontal()) {
+            double ax2_y = int_p.y;
+
+            double ax2_l1_x1 = int_p.x - 1;
+            double ax2_l1_x2 = int_p.x+1;
+
+            double ax2_l2_x = int_p.x;
+
+            Line axis_2 = axis_from_points(cell, {ax2_l1_x1, ax2_y}, {ax2_l2_x, ax2_y},
+            {ax2_l1_x2, ax2_y}, {ax2_l2_x, ax2_y});
+
+            auto axis_2_intersections = get_intersections(cell, axis_2);
+
+            if (intersects_cell(cell, axis_2_intersections) && is_monotone(axis_2)) {
+                // auto translated_axis_1 = Line::fromTwoPoints(ax1_p1 - cell.mid , ax1_p2 - cell.mid);
+                // result.push_back(translated_axis_1);
+                result.push_back(axis_2);
+            }
+
+        } else {
+            double ax2_y1 = m1*(int_p.x - 1) + b1;
+            double ax2_y2 = m1*(int_p.x + 1) + b1;
+
+            double ax2_l1_x1 = int_p.x - 1;
+            double ax2_l1_x2 = int_p.x + 1;
+
+            double ax2_l2_x1 = int_p.x;
+            double ax2_l2_x2 = int_p.x;
+
+            Line axis_2 = axis_from_points(cell, {ax2_l1_x1, ax2_y1}, {ax2_l2_x1, ax2_y1},
+            {ax2_l1_x2, ax2_y2}, {ax2_l2_x2, ax2_y2});
+
+            auto axis_2_intersections = get_intersections(cell, axis_2);
+
+            if (intersects_cell(cell, axis_2_intersections) && is_monotone(axis_2)) {
+                // auto translated_axis_1 = Line::fromTwoPoints(ax1_p1 - cell.mid , ax1_p2 - cell.mid);
+                // result.push_back(translated_axis_1);
+                result.push_back(axis_2);
+            }
+        }
+
+        return result;
+    }
+
 
     double ax1_y1 = (b1/m1 - b2/m2 + 1) / (1/m1 - 1/m2);
     double ax1_y2 = (b1/m1 - b2/m2 - 1) / (1/m1 - 1/m2);
@@ -921,8 +1181,9 @@ get_axes(const Cell& cell) {
     auto axis_1_intersections = get_intersections(cell, axis_1);
 
     if (intersects_cell(cell, axis_1_intersections) && is_monotone(axis_1)) {
-        auto translated_axis_1 = Line::fromTwoPoints(ax1_p1 - cell.mid , ax1_p2 - cell.mid);
-        result.push_back(translated_axis_1);
+        // auto translated_axis_1 = Line::fromTwoPoints(ax1_p1 - cell.mid , ax1_p2 - cell.mid);
+        // result.push_back(translated_axis_1);
+        result.push_back(axis_1);
     }
 
     double ax2_x1 = (b2 - b1 + 1) / (m1 - m2);
@@ -945,8 +1206,9 @@ get_axes(const Cell& cell) {
     auto axis_2_intersections = get_intersections(cell, axis_2);
 
     if (intersects_cell(cell, axis_2_intersections) && is_monotone(axis_2)) {
-        auto translated_axis_2 = Line::fromTwoPoints(ax2_p1 - cell.mid , ax2_p2 - cell.mid);
-        result.push_back(translated_axis_2);
+        // auto translated_axis_2 = Line::fromTwoPoints(ax2_p1 - cell.mid , ax2_p2 - cell.mid);
+        // result.push_back(translated_axis_2);
+        result.push_back(axis_1);
     }
 
     // for (auto l: result) {
@@ -982,8 +1244,8 @@ const Cell& cell, double y_coef, bool y_const) {
 
     if (y_const) {
         auto terms_x = solve_integral(low_lim, hi_lim,
-            BivariatePolynomial<1>({{{{s1.x-s2.x - y_coef*cos(beta), 0}},{{0, 0}}}}),
-            cos(alpha), {sy, ty},
+            BivariatePolynomial<1>({{{{s1.x-s2.x - y_coef*_cos(beta), 0}},{{0, 0}}}}),
+            _cos(alpha), {sy, ty},
             {Polynomial<1>({sx, 0})}, {Polynomial<1>({tx, 0})} 
         );
 
@@ -991,8 +1253,8 @@ const Cell& cell, double y_coef, bool y_const) {
             xterms.push_back(term);
 
         auto terms_y = solve_integral(low_lim, hi_lim,
-            BivariatePolynomial<1>({{{{s1.y-s2.y - y_coef*sin(beta), 0}},{{0, 0}}}}),
-            sin(alpha), {sy, ty},
+            BivariatePolynomial<1>({{{{s1.y-s2.y - y_coef*_sin(beta), 0}},{{0, 0}}}}),
+            _sin(alpha), {sy, ty},
             {Polynomial<1>({sx, 0})}, {Polynomial<1>({tx, 0})} 
         );
 
@@ -1002,8 +1264,8 @@ const Cell& cell, double y_coef, bool y_const) {
             
     } else {
         auto terms_x = solve_integral(low_lim, hi_lim,
-            BivariatePolynomial<1>({{{{s1.x-s2.x, -cos(beta)}},{{0, 0}}}}),
-            cos(alpha), {sy, ty},
+            BivariatePolynomial<1>({{{{s1.x-s2.x, -_cos(beta)}},{{0, 0}}}}),
+            _cos(alpha), {sy, ty},
             {Polynomial<1>({sx, 0})}, {Polynomial<1>({tx, 0})} 
         );
 
@@ -1011,8 +1273,8 @@ const Cell& cell, double y_coef, bool y_const) {
             xterms.push_back(term);
 
         auto terms_y = solve_integral(low_lim, hi_lim,
-            BivariatePolynomial<1>({{{{s1.y-s2.y, -sin(beta)}},{{0, 0}}}}),
-            sin(alpha), {sy, ty},
+            BivariatePolynomial<1>({{{{s1.y-s2.y, -_sin(beta)}},{{0, 0}}}}),
+            _sin(alpha), {sy, ty},
             {Polynomial<1>({sx, 0})}, {Polynomial<1>({tx, 0})} 
         );
 
@@ -1028,8 +1290,13 @@ const Cell& cell, double y_coef, bool y_const) {
     auto valid_results = std::vector<ConstrainedBivariatePolynomial<2>>();
 
     for (auto f: results)
-        if (valid_constraints(f))
+        if (valid_constraints(f)) {
             valid_results.push_back(f);
+            if (approx_equal(f.f.coefficients[0][0], 1.5004442925622812) &&
+            approx_equal(f.f.coefficients[1][1], 0.99970362930465572) //&&
+            /*approx_equal(f.f.coefficients[2][0], -0.49955531229468275)*/)
+                std::cout << "hello\n";
+        }
 
     return valid_results;
 }
@@ -1060,8 +1327,8 @@ const Cell& cell, double x_coef, bool x_const
     
     if (x_const) {
         auto terms_x = solve_integral(low_lim, hi_lim,
-            BivariatePolynomial<1>({{{{x_coef*cos(alpha) + s1.x-s2.x, 0}},{{0, 0}}}}),
-            cos(beta), {sy, ty},
+            BivariatePolynomial<1>({{{{x_coef*_cos(alpha) + s1.x-s2.x, 0}},{{0, 0}}}}),
+            _cos(beta), {sy, ty},
             {Polynomial<1>({sx, 0})}, {Polynomial<1>({tx, 0})}
         );
 
@@ -1070,8 +1337,8 @@ const Cell& cell, double x_coef, bool x_const
 
 
         auto terms_y = solve_integral(low_lim, hi_lim,
-            BivariatePolynomial<1>({{{{x_coef * sin(alpha) + s1.y-s2.y, 0}},{{0, 0}}}}),
-            sin(beta), {sy, ty},
+            BivariatePolynomial<1>({{{{x_coef * _sin(alpha) + s1.y-s2.y, 0}},{{0, 0}}}}),
+            _sin(beta), {sy, ty},
             {Polynomial<1>({sx, 0})}, {Polynomial<1>({tx, 0})}
         );
 
@@ -1081,8 +1348,8 @@ const Cell& cell, double x_coef, bool x_const
     } else {
     
         auto terms_x = solve_integral(low_lim, hi_lim,
-            BivariatePolynomial<1>({{{{s1.x-s2.x, 0}},{{cos(alpha), 0}}}}),
-            cos(beta), {sy, ty},
+            BivariatePolynomial<1>({{{{s1.x-s2.x, 0}},{{_cos(alpha), 0}}}}),
+            _cos(beta), {sy, ty},
             {Polynomial<1>({sx, 0})}, {Polynomial<1>({tx, 0})}
         );
 
@@ -1090,8 +1357,8 @@ const Cell& cell, double x_coef, bool x_const
             xterms.push_back(term);
             
         auto terms_y = solve_integral(low_lim, hi_lim,
-            BivariatePolynomial<1>({{{{s1.y-s2.y, 0}},{{sin(alpha), 0}}}}),
-            sin(beta), {sy, ty},
+            BivariatePolynomial<1>({{{{s1.y-s2.y, 0}},{{_sin(alpha), 0}}}}),
+            _sin(beta), {sy, ty},
             {Polynomial<1>({sx, 0})}, {Polynomial<1>({tx, 0})}
         );
 
@@ -1136,20 +1403,30 @@ Interval y_range) {
     double b = gi.y;
 
     /*
-    * int_{l0}^{l1} | h(t, mt+b) |dt = int | t*cos(alpha) - (mt+b)*cos(beta) | + |t*sin(alpha) - (mt+b)*sin(alpha)|dt
+    * int_{l0}^{l1} | h(t, mt+b) |dt = int | t*_cos()alpha) - (mt+b)*_cos()beta) | + |t*_sin(alpha) - (mt+b)*_sin(alpha)|dt
     */
 
     auto xterms = solve_integral(
         low_lim, hi_lim,
-        BivariatePolynomial<1>({{{{s1.x-s2.x - b*cos(beta), 0}},{{0, 0}}}}),
-        m*cos(beta) - cos(alpha), y_range,
+        BivariatePolynomial<1>({{{{s1.x-s2.x - b*_cos(beta), 0}},{{0, 0}}}}),
+        m*_cos(beta) - _cos(alpha), y_range,
         left_constraints, right_constraints
     );
 
+    // std::cout << "s1.x: " << s1.x << "\n";
+    // std::cout << "s2.x: " << s2.x << "\n";
+
+    // for (auto term: xterms) {
+    //     std::cout << "axis xterm: " 
+    //     << (1+m)*term.f.coefficients[0][0] << " " 
+    //     << (1+m)*term.f.coefficients[0][1] << " " 
+    //     << (1+m)*term.f.coefficients[0][2] << "\n";
+    // }
+
     auto yterms = solve_integral(
         low_lim, hi_lim,
-        BivariatePolynomial<1>({{{{s1.y-s2.y - b*sin(beta), 0}},{{0, 0}}}}),
-        m*sin(beta) - sin(alpha), y_range,
+        BivariatePolynomial<1>({{{{s1.y-s2.y - b*_sin(beta), 0}},{{0, 0}}}}),
+        m*_sin(beta) - _sin(alpha), y_range,
         left_constraints, right_constraints
     );
 
@@ -1163,8 +1440,6 @@ Interval y_range) {
 
     for (auto f: results)
         if (valid_constraints(f)) {
-            if (!is_positive(f))
-                std::cout << "why\n";
             valid_results.push_back(f.multiply(fabs(1+m)));
         }
 
@@ -1329,10 +1604,16 @@ bottom_right_axis_integrals(Line axis, const Cell& cell) {
         BivariatePolynomial<1>({{{{0, 0}},{{1, 0}}}}),
         BivariatePolynomial<1>({{{{-b/m, 1/m}},{{0, 0}}}}),
         cell, axis,
-        {Polynomial<1>({sx, 0})}, 
+        {Polynomial<1>({sx, 0}), Polynomial<1>({-b/m, 0})}, 
         {Polynomial<1>({tx, 0}), Polynomial<1>({-b/m, 1/m})},
         {sy, sy ? std::min(ty, y_int) < sy : std::min(ty, y_int)}
     );
+
+    // for (auto term: uaa_axis_terms) {
+    //     std::cout << "axis y^2 coeff: " << term.f.coefficients[0][2] << std::endl;
+    // }
+
+    // std::cout << uaa_axis_terms[0] << std::end;
 
     auto uaa_across_terms = horizontal_int(
         BivariatePolynomial<1>({{{{-b/m, 1/m}},{{0, 0}}}}),
@@ -1340,10 +1621,17 @@ bottom_right_axis_integrals(Line axis, const Cell& cell) {
         cell, 1, false
     );
 
+    // for (auto term: uaa_across_terms) {
+    //     std::cout << "horizontal y^2 coeff: " << term.f.coefficients[0][2] << std::endl;
+    // }
+
 
     auto up_axis_across = combine_steps(3, {uaa_up_terms, uaa_axis_terms, uaa_across_terms});
-    for (auto poly: up_axis_across)
+    for (auto& poly: up_axis_across) {
+        poly.path_type = UAA;
+        poly.axis = axis;
         costs.push_back(poly);
+    }
     // across, axis, up
 
     auto aau_across_terms = horizontal_int(
@@ -1367,8 +1655,11 @@ bottom_right_axis_integrals(Line axis, const Cell& cell) {
         cell, tx, true);
 
     auto across_axis_up = combine_steps(3, {aau_up_terms, aau_axis_terms, aau_across_terms});
-    for (auto poly: across_axis_up)
+    for (auto& poly: across_axis_up) {
+        poly.path_type = AAU;
+        poly.axis = axis;
         costs.push_back(poly);
+    }
     // up axis up
 
     auto uau_up_terms_2 = vertical_int(
@@ -1381,7 +1672,7 @@ bottom_right_axis_integrals(Line axis, const Cell& cell) {
         BivariatePolynomial<1>({{{{(sy-b)/m, 0}},{{0, 0}}}}),
         BivariatePolynomial<1>({{{{tx, 0}},{{0, 0}}}}),
         cell, axis,
-        {Polynomial<1>({sx, 0})}, 
+        {Polynomial<1>({sx, 0}), Polynomial<1>({-b/m, 0})}, 
         {Polynomial<1>({tx, 0}), Polynomial<1>({(sy-b)/m, 0})},
         {std::max(sy, m*tx+b), ty}
     );
@@ -1393,8 +1684,11 @@ bottom_right_axis_integrals(Line axis, const Cell& cell) {
     );
 
     auto up_axis_up = combine_steps(3, {uau_up_terms_1, uau_axis_terms, uau_up_terms_2});
-    for (auto poly: up_axis_up)
+    for (auto& poly: up_axis_up) {
+        poly.path_type = UAU;
+        poly.axis = axis;
         costs.push_back(poly);
+    }
 
     // across axis across
 
@@ -1420,12 +1714,17 @@ bottom_right_axis_integrals(Line axis, const Cell& cell) {
     );
 
     auto across_axis_across = combine_steps(3, {aaa_across_terms_1, aaa_axis_terms, aaa_across_terms_2});
-    for (auto poly: across_axis_across)
+    for (auto& poly: across_axis_across) {
+        poly.path_type = AAA;
+        poly.axis = axis;
         costs.push_back(poly);
+    }
 
     for (auto cost: costs) {
-        if (valid_point(cost, {tx, 0}) && !approx_zero(cost.f({tx, 0})))
-            assert(false);
+        if (valid_point(cost, {tx, 0}) && !approx_zero(cost.f({tx, 0}))) {
+            auto value = cost.f({tx, 0});            
+            // assert(false);
+        }
         else if (valid_point(cost, {tx, 0}))
             std::cout << "cost: " << cost.f({tx, 0}) << std::endl;
     }
@@ -1481,8 +1780,13 @@ bottom_to_right_costs_2D(const Cell& cell) {
 
         auto up_across = combine_steps(2, {ua_up_terms, ua_across_terms});
 
-        for (auto poly: up_across)
+        if (!domain_covered(up_across, cell))
+            std::cout << "up_across: domain not covered...\n";
+
+        for (auto poly: up_across) {
+            poly.path_type = UA;
             costs.push_back(poly);
+        }
 
         // across and up
 
@@ -1500,8 +1804,13 @@ bottom_to_right_costs_2D(const Cell& cell) {
 
         auto across_up = combine_steps(2, {au_across_terms, au_up_terms});
 
-        for (auto poly: across_up)
+        if (!domain_covered(across_up, cell))
+            std::cout << "across_up: domain not covered...\n";
+
+        for (auto poly: across_up) {
+            poly.path_type = AU;
             costs.push_back(poly);
+        }
 
     if (axes.size() >= 1) {
         Line axis = axes[0];
@@ -1520,9 +1829,12 @@ bottom_to_right_costs_2D(const Cell& cell) {
     auto sus_polynomials = std::vector<ConstrainedBivariatePolynomial<2>>();
 
     
-    for (auto cost: costs)
-        if (approx_equal(cost.y_interval.max, ty))
-            sus_polynomials.push_back(cost);
+    // for (auto cost: costs)
+    //     if (approx_equal(cost.y_interval.max, ty))
+    //         sus_polynomials.push_back(cost);
+
+    for (auto& cost: costs)
+        cost.boundaries = BR;
 
     return costs;
 }
@@ -1551,28 +1863,30 @@ const Cell& cell, std::string fixed_var) {
     if (fixed_var == "y") {
 
         x_terms = solve_integral(low_lim, hi_lim,
-            BivariatePolynomial<1>({{{{s1.x-s2.x, cos(alpha)}},{{0, 0}}}}),
-            cos(beta), {sy, ty},
+            BivariatePolynomial<1>({{{{s1.x-s2.x, _cos(alpha)}},{{0, 0}}}}),
+            _cos(beta), {sy, ty},
             {Polynomial<1>({sx, 0})}, {Polynomial<1>({tx, 0})} 
         );
 
         y_terms = solve_integral(low_lim, hi_lim,
-            BivariatePolynomial<1>({{{{s1.y-s2.y, sin(alpha)}},{{0, 0}}}}),
-            sin(beta), {sy, ty},
+            BivariatePolynomial<1>({{{{s1.y-s2.y, _sin(alpha)}},{{0, 0}}}}),
+            _sin(beta), {sy, ty},
             {Polynomial<1>({sx, 0})}, {Polynomial<1>({tx, 0})} 
         );
+
+        // .14142x - 0.155563
 
     } else if (fixed_var == "x") {
 
         x_terms = solve_integral(low_lim, hi_lim,
-            BivariatePolynomial<1>({{{{s1.x-s2.x, 0}},{{cos(alpha), 0}}}}),
-            cos(beta), {sy, ty},
+            BivariatePolynomial<1>({{{{s1.x-s2.x, 0}},{{_cos(alpha), 0}}}}),
+            _cos(beta), {sy, ty},
             {Polynomial<1>({sx, 0})}, {Polynomial<1>({tx, 0})} 
         );
 
         y_terms = solve_integral(low_lim, hi_lim,
-            BivariatePolynomial<1>({{{{s1.y-s2.y, 0}},{{sin(alpha), 0}}}}),
-            sin(beta), {sy, ty},
+            BivariatePolynomial<1>({{{{s1.y-s2.y, 0}},{{_sin(alpha), 0}}}}),
+            _sin(beta), {sy, ty},
             {Polynomial<1>({sx, 0})}, {Polynomial<1>({tx, 0})} 
         );
 
@@ -1616,15 +1930,15 @@ const Cell& cell, double height) {
 
     auto x_terms = solve_integral(
         low_lim, hi_lim,
-        BivariatePolynomial<1>({{{{s2.x-s1.x + height*cos(beta), 0}},{{0, 0}}}}),
-        cos(alpha), {sy, ty},
+        BivariatePolynomial<1>({{{{s2.x-s1.x + height*_cos(beta), 0}},{{0, 0}}}}),
+        _cos(alpha), {sy, ty},
         {Polynomial<1>({sx, 0})}, {Polynomial<1>({tx, 0})}
     );
 
     auto y_terms = solve_integral(
         low_lim, hi_lim,
-        BivariatePolynomial<1>({{{{s2.y-s1.y + height*sin(beta), 0}},{{0, 0}}}}),
-        sin(alpha), {sy, ty},
+        BivariatePolynomial<1>({{{{s2.y-s1.y + height*_sin(beta), 0}},{{0, 0}}}}),
+       _sin(alpha), {sy, ty},
         {Polynomial<1>({sx, 0})}, {Polynomial<1>({tx, 0})}
     );
 
@@ -1668,15 +1982,15 @@ Interval y_range) {
 
     auto xterms = solve_integral(
         low_lim, hi_lim,
-        BivariatePolynomial<1>({{{{s1.x-s2.x - b*cos(beta), 0}},{{0, 0}}}}),
-        m*cos(beta) - cos(alpha), y_range,
+        BivariatePolynomial<1>({{{{s1.x-s2.x - b*_cos(beta), 0}},{{0, 0}}}}),
+        m*_cos(beta) - _cos(alpha), y_range,
         left_constraints, right_constraints
     );
 
     auto yterms = solve_integral(
         low_lim, hi_lim,
-        BivariatePolynomial<1>({{{{s1.y-s2.y - b*sin(beta), 0}},{{0, 0}}}}),
-        m*sin(beta) - sin(alpha), y_range,
+        BivariatePolynomial<1>({{{{s1.y-s2.y - b*_sin(beta), 0}},{{0, 0}}}}),
+        m*_sin(beta) - _sin(alpha), y_range,
         left_constraints, right_constraints
     );
 
@@ -1737,14 +2051,17 @@ bottom_top_axis_integrals(Line axis, const Cell& cell) {
     );
 
     auto uau_u2_terms = vertical_int_b2t(
-        BivariatePolynomial<1>({{{{b, 0}},{{m, 0}}}}),
+        BivariatePolynomial<1>({{{{b, m}},{{0, 0}}}}),
         BivariatePolynomial<1>({{{{cell.len2 , 0}},{{0, 0}}}}),
         cell, "y"
     );
 
     auto up_axis_up = combine_steps(3, {uau_u1_terms, uau_axis_terms, uau_u2_terms});
-    for (auto poly: up_axis_up)
+    for (auto poly: up_axis_up) {
+        poly.path_type = UAU;
+        poly.axis = axis;
         results.push_back(poly);
+    }
 
 
     // across-axis-up
@@ -1765,14 +2082,17 @@ bottom_top_axis_integrals(Line axis, const Cell& cell) {
     );
 
     auto aau_up_terms = vertical_int_b2t(
-        BivariatePolynomial<1>({{{{b, 0}},{{m, 0}}}}),
+        BivariatePolynomial<1>({{{{b, m}},{{0, 0}}}}),
         BivariatePolynomial<1>({{{{cell.len2 , 0}},{{0, 0}}}}),
         cell, "y"
     );
 
     auto across_axis_up = combine_steps(3, {aau_across_terms, aau_axis_terms, aau_up_terms});
-    for (auto poly: across_axis_up)
+    for (auto poly: across_axis_up) {
+        poly.path_type = AAU;
+        poly.axis = axis;
         results.push_back(poly);
+    }
 
     // up-axis-across
 
@@ -1798,8 +2118,11 @@ bottom_top_axis_integrals(Line axis, const Cell& cell) {
     );
 
     auto up_axis_across = combine_steps(3, {uaa_up_terms, uaa_axis_terms, uaa_across_terms});
-    for (auto poly: across_axis_up)
+    for (auto poly: up_axis_across) {
+        poly.path_type = UAA;
+        poly.axis = axis;
         results.push_back(poly);
+    }
 
     // across-axis-across
 
@@ -1825,14 +2148,20 @@ bottom_top_axis_integrals(Line axis, const Cell& cell) {
     );
 
     auto across_axis_across = combine_steps(3, {aaa_a1_terms, aaa_axis_terms, aaa_a2_terms});
-    for (auto poly: across_axis_up)
+    for (auto poly: across_axis_across) {
+        poly.path_type = AAA;
+        poly.axis = axis;
         results.push_back(poly);
+    }
 
     auto valid_results = std::vector<ConstrainedBivariatePolynomial<2>>();
 
     for (auto f: results)
         if (valid_constraints(f))
             valid_results.push_back(f);
+
+    for (auto f: valid_results)
+        f.boundaries = BT;
 
     return valid_results;
 }
@@ -1873,10 +2202,12 @@ bottom_to_top_costs_2D(const Cell& cell) {
         cell, cell.len2
     );
 
-    auto up_across = combine_steps(2, {ua_across_terms, ua_up_terms});
+    auto up_across = combine_steps(2, {ua_up_terms, ua_across_terms});
     for (auto poly: up_across) {
         if (!is_positive(poly))
                 std::cout << "nope\n";
+
+        poly.path_type = UA;
         costs.push_back(poly);
     }
 
@@ -1898,6 +2229,8 @@ bottom_to_top_costs_2D(const Cell& cell) {
     for (auto poly: across_up) {
         if (!is_positive(poly))
                 std::cout << "nope\n";
+
+        poly.path_type = AU;
         costs.push_back(poly);
     }
 
@@ -1924,6 +2257,9 @@ bottom_to_top_costs_2D(const Cell& cell) {
 
     // std::cout << "b2t cost count: " << costs.size() << std::endl;
     
+    for (auto& cost: costs)
+        cost.boundaries = BT;
+
     return costs;
 }
 
@@ -1960,14 +2296,16 @@ PiecewisePolynomial<2> propagate(
                     total_cost.f,
                     total_cost.y_interval,
                     total_cost.left_constraints,
-                    total_cost.right_constraints
+                    total_cost.right_constraints,
+                    cell_cost
                 );
 
                 min_pieces.insert(min_pieces.end(), min_total_cost.pieces.begin(), min_total_cost.pieces.end());
             }
-            std::cout << "incoming pieces: " << counter << std::endl;
+            // std::cout << "incoming pieces: " << counter << std::endl;
             ++pieces_it;
         }
+
 
         const auto result = naive_lower_envelope(min_pieces);
 
@@ -2108,14 +2446,14 @@ std::vector<ConstrainedBivariatePolynomial<2>>
 CDTW<2, Norm::L1, Norm::L1>::bottom_to_top_costs(const Cell& cell) const {
     auto subdivision = get_subdivision(cell);
 
-    auto result = bottom_to_top_costs_2D(cell);
+    // auto result = bottom_to_top_costs_2D(cell);
 
-    for (auto cost: result)
-        if (!is_positive(cost))
-            std::cout << "...\n";
+    // for (auto cost: result)
+    //     if (!is_positive(cost))
+    //         std::cout << "...\n";
 
-    if (subdivision.size() == 0)
-        return bottom_to_top_costs_2D(cell);
+    // if (subdivision.size() == 0)
+    //     return bottom_to_top_costs_2D(cell);
 
     return bottom_to_top_costs_2D(cell);
 }
