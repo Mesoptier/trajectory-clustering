@@ -12,3 +12,8 @@ out/
 .vscode
 
 data
+
+
+c1.txt
+c2.txt
+*.png
