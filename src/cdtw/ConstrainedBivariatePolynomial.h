@@ -21,6 +21,13 @@ struct ConstrainedBivariatePolynomial
     PathType path_type = NONE;
     Boundaries boundaries;
     Line axis;
+    std::string history;
+    double test_value = 0;
+    double xmin = 0;
+    double ymax = 0;
+
+    inline static int count = 0;
+    int _id;
 
     void transpose() {
 
@@ -234,14 +241,18 @@ struct ConstrainedBivariatePolynomial
             if (new_constraint)
                 right_constraints.push_back(poly);
         }
-    
 
-        return ConstrainedBivariatePolynomial{
+        auto output = ConstrainedBivariatePolynomial{
             polynomial,
             y_interval,
             left_constraints,
             right_constraints
         };
+
+        output.history = l.history + "_" + r.history;
+    
+
+        return output;
     }
 };
 

@@ -272,51 +272,60 @@
 // }
 // }
 
-// void exact_2dl1l1_heuristic_comp() {
+void exact_2dl1l1_heuristic_comp() {
 
-//     using _CDTW = CDTW<2, Norm::L1, Norm::L1>;
+    using _CDTW = CDTW<2, Norm::L1, Norm::L1>;
 
-//     auto characters = io::read_curves("data/characters/data");
-//     auto test_curves = std::vector<Curve>();
+    auto characters = io::read_curves("data/characters/data");
+    auto test_curves = std::vector<Curve>();
 
-//     for (int i = 0; i < 20; ++i) {
-//         test_curves.push_back(characters[10*i].slice(1, 20));
-//     }
+    for (int i = 0; i < 20; ++i) {
+        test_curves.push_back(characters[10*i].slice(1, 20));
+    }
+
+    std::ofstream output("output.csv");
+
+    output << "exact,heur\n";
 
 
-//     double max = -1;
-//     double min = 10000000;
-//     double sum = 0;
+    double max = -1;
+    double min = 10000000;
+    double sum = 0;
     
-//     for (int i = 0; i < test_curves.size(); ++i) 
-//         for (int j = i+1; j < test_curves.size(); ++j) {
-//             if (j == 6 && i == 0)
-//                 std::cout << "ahh\n";
-                
-//             auto cdtw = _CDTW(test_curves[i], test_curves[j]);
-//             IntegralFrechet heuristic_alg(test_curves[i], test_curves[j], ParamMetric::L1, .1);
-//             const auto heuristic_res = heuristic_alg.compute_matching();
+    // for (int i = 0; i < test_curves.size(); ++i) 
+    //     for (int j = i+1; j < test_curves.size(); ++j) {
 
-//             std::cout << "exact: " << cdtw.cost() << std::endl;
-//             std::cout << "heur: " << heuristic_res.cost << std::endl;
-//             std::cout << i << std::endl;
-//             std::cout << j << std::endl;
+        int i = 1;
+        int j = 19;
 
-//             double ratio = cdtw.cost() / heuristic_res.cost;
-//             std::cout << ratio << std::endl;
-//             max = std::max(max, ratio);
-//             min = std::min(min, ratio);
-//             sum += ratio;
+            std::cout << i << " "  << j << std::endl;
+            auto cdtw = _CDTW(test_curves[i], test_curves[j]);
+            IntegralFrechet heuristic_alg(test_curves[i], test_curves[j], ParamMetric::L1, .1);
+            const auto heuristic_res = heuristic_alg.compute_matching();
 
-//         };
+            // std::cout << "exact: " << cdtw.cost() << std::endl;
+            // std::cout << "heur: " << heuristic_res.cost << std::endl;
 
-//         double average_ratio = sum / (test_curves.size()*(test_curves.size()-1) / 2);
 
-//         std::cout << "average ratio: " << average_ratio << std::endl;
-//         std::cout << "max ratio: " << max << std::endl;
-//         std::cout << "min ratio: " << min << std::endl;
+            output << cdtw.cost() << "," << heuristic_res.cost << std::endl;
+
+            double ratio = cdtw.cost() / heuristic_res.cost;
+            std::cout << ratio << std::endl;
+            max = std::max(max, ratio);
+            min = std::min(min, ratio);
+            sum += ratio;
+
+        // };
+
+        double average_ratio = sum / (test_curves.size()*(test_curves.size()-1) / 2);
+
+        std::cout << "average ratio: " << average_ratio << std::endl;
+        std::cout << "max ratio: " << max << std::endl;
+        std::cout << "min ratio: " << min << std::endl;
+
+        output.close();
     
-// }
+}
 
 void test_case_1() {
     Point p1(0, 0);
@@ -571,6 +580,182 @@ void test_case_10() {
 
 }
 
+void test_case_11() {
+
+    // Point p1(0, 0);
+    // Point p2(0, 1);
+    // Point p3(0, 2);
+
+    // Point q1(0, 0);
+    // Point q2(0, 1);
+    // Point q3(0, 4);
+
+    std::vector<Point> c1_p = {};
+    std::vector<Point> c2_p = {};
+
+    for (int i = 0; i < 10; ++i) {
+        c1_p.push_back(Point(1, i));
+    }
+
+    for (int i = 0; i <2; ++i) {
+        c2_p.push_back(Point(20, i));
+    }
+
+    for (int i = 2; i < 4; ++i) {
+        c2_p.push_back(Point(20 + 5*(i-1), i));
+    }
+
+    for (int i = 4; i < 6; ++i) {
+        c2_p.push_back(Point(20 + 10 - 5*(i-3), i));
+    }
+
+    for (int i = 7; i < 10; ++i) {
+        c2_p.push_back(Point(20, i));
+    }
+
+
+
+    Curve c1("", c1_p);
+    Curve c2("", c2_p);
+
+    using _CDTW = CDTW<2, Norm::L1, Norm::L1>;
+    auto cdtw = _CDTW(c1, c2);
+
+    std::cout << "test case 11 cost: " << cdtw.cost() << std::endl;
+
+}
+
+void test_case_12() {
+
+    Point p1(0, 0);
+    Point p2(0, 1);
+    // Point p3(0, 1.5);
+    Point p4(0, 2);
+    // Point p5(0, 3);
+    // Point p6(0, 4);
+
+    Point q1(1, 0);
+    Point q2(1, 1);
+    // Point q3(5.5, 1.5);
+    Point q4(3, 2);
+    // Point q5(1, 3);
+    // Point q6(1, 4);
+
+    Curve c1("", {p2, p4});
+    Curve c2("", {q2, q4});
+
+    using _CDTW = CDTW<2, Norm::L1, Norm::L1>;
+    auto cdtw = _CDTW(c1, c2);
+
+    std::cout << "test case 12 cost: " << cdtw.cost() << std::endl;
+}
+
+void test_case_13() {
+
+    Point p4(0, 2);
+    Point p5(0, 3);
+    Point p6(0, 4);
+
+
+    Point q4(6, 2);
+    Point q5(3.5, 3);
+    Point q6(1, 4);
+
+
+
+    Curve c1("", {p4, p5, p6});
+    Curve c2("", {q4, q5, q6});
+
+    using _CDTW = CDTW<2, Norm::L1, Norm::L1>;
+    auto cdtw = _CDTW(c1, c2);
+
+    std::cout << "test case 13 cost: " << cdtw.cost() << std::endl;
+
+}
+
+void test_case_14() {
+    std::vector<Point> c1_p = {};
+    std::vector<Point> c2_p = {};
+
+    for (int i = 0; i < 100; ++i) {
+        c1_p.push_back(Point(10, 5*i));
+    }
+
+    for (int i = 0; i < 40; ++i) {
+        c2_p.push_back(Point(20, 5*i));
+    }
+    
+    for (int i = 40; i < 51; ++i) {
+        c2_p.push_back(Point(20 + 10*(i-39), 5*i));
+    }
+
+    for (int i = 51; i < 61; ++i) {
+        c2_p.push_back(Point(20 + 10*11 - 10*(i-50), 5*i));
+    }
+
+    for (int i = 61; i < 100; ++i) {
+        c2_p.push_back(Point(20, 5*i));
+    }
+
+
+
+    Curve c1("", c1_p);
+    Curve c2("", c2_p);
+
+    using _CDTW = CDTW<2, Norm::L1, Norm::L1>;
+    auto cdtw = _CDTW(c1, c2);
+
+    std::cout << "test case 14 cost: " << cdtw.cost() << std::endl;
+}
+
+void test_case_15() {
+
+    Point p1(0, 0);
+    Point p2(1, 0);
+
+    Point q1(0.1, 0);
+    Point q2(1.1, 0);
+
+    std::vector<Point> c1_p = {p1, p2};
+    std::vector<Point> c2_p = {q1, q2};
+
+
+    Curve c1("", c1_p);
+    Curve c2("", c2_p);
+
+    using _CDTW = CDTW<2, Norm::L1, Norm::L1>;
+    auto cdtw = _CDTW(c1, c2);
+
+    std::cout << "test case 15 cost: " << cdtw.cost() << std::endl;
+}
+
+void test_case_16() {
+    std::vector<Point> c1_p = {{1, 1}, {2, 1.1}, {3, 0.5}, {5, 9}, {4, 7}};
+    std::vector<Point> c2_p = {{0, 2.1}, {3, 2}, {4, 6}, {3, 6.1}, {4, 6.2}};
+
+
+    Curve c1("", c1_p);
+    Curve c2("", c2_p);
+
+    using _CDTW = CDTW<2, Norm::L1, Norm::L1>;
+    auto cdtw = _CDTW(c1, c2);
+
+    std::cout << "test case 16 cost: " << cdtw.cost() << std::endl;
+}
+
+void test_case_17() {
+    std::vector<Point> c1_p = {{1, 1}, {2, 1.1}, {3, 0.5}};
+    std::vector<Point> c2_p = {{0, 2.1}, {3, 2}};
+
+
+    Curve c1("", c1_p);
+    Curve c2("", c2_p);
+
+    using _CDTW = CDTW<2, Norm::L1, Norm::L1>;
+    auto cdtw = _CDTW(c1, c2);
+
+    std::cout << "test case 17 cost: " << cdtw.cost() << std::endl;
+}
 
 int main() {
     // TODO: Compare Heuristic CDTW vs Exact CDTW (timing and result)
@@ -622,8 +807,17 @@ int main() {
     // test_case_6();
     // test_case_7();
     // test_case_8();
-    test_case_9();
+    // test_case_9();
     // test_case_10();
+    // test_case_11();
+    // test_case_12();
+    // test_case_13();
+    // test_case_14();
+    // test_case_15();
+    // test_case_16();
+    test_case_17();
+
+    // exact_2dl1l1_heuristic_comp();
 
     Polynomial<1> left = Polynomial<1>(
             {{0, 0}}

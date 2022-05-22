@@ -7,6 +7,7 @@
 #include <iostream>
 #include <set>
 #include <algorithm>
+#include <iomanip>
 
 #include "Interval.h"
 #include "Polynomial.h"
@@ -487,10 +488,41 @@ private:
         std::vector<double> axis_to_right_u = {width, axis.getY(width), width, out};
         std::vector<double> axis_to_top_a = {axis.getX(height), height, out, height};
 
-        std::vector<double> along_bt = {in, axis.getY(in), out, axis.getY(out)};
-        std::vector<double> along_br = {in, axis.getY(in), axis.getX(out), out};
-        std::vector<double> along_lr = {axis.getX(in), in, axis.getX(out), out};
-        std::vector<double> along_lt = {axis.getX(in), in, out, axis.getY(out)};
+        std::vector<double> along_bt;// = {in, axis.getY(in), out, axis.getY(out)};
+        std::vector<double> along_br;// = {in, axis.getY(in), axis.getX(out), out};
+        std::vector<double> along_lr;// = {axis.getX(in), in, axis.getX(out), out};
+        std::vector<double> along_lt;// = {axis.getX(in), in, out, axis.getY(out)};
+
+        switch (path_type) {
+            case (UAU): {
+                along_bt = {in, axis.getY(in), out, axis.getY(out)};
+                along_br = {in, axis.getY(in), axis.getX(out), out};
+                along_lr = {0, axis.getY(0), width, axis.getY(width)};
+                along_lt = {0, axis.getY(0), out, axis.getY(out)};
+                break;
+            }
+            case (UAA): {
+                along_bt = {in, axis.getY(in), axis.getX(height), height};
+                along_br = {in, axis.getY(in), axis.getX(out), out};
+                along_lr = {0, axis.getY(0), axis.getX(out), out};
+                along_lt = {0, axis.getY(0), axis.getX(height), height};
+                break;
+            }
+            case (AAA): {
+                along_bt = {axis.getX(0), 0, axis.getX(height), height};
+                along_br = {axis.getX(0), 0, width, axis.getY(width)};
+                along_lr = {axis.getX(in), in, axis.getX(out), out};
+                along_lt = {axis.getX(in), in, axis.getX(height), height};
+                break;
+            }
+            case (AAU): {
+                along_bt = {axis.getX(0), 0, out, axis.getY(out)};
+                along_br = {axis.getX(0), 0, axis.getX(out), out};
+                along_lr = {axis.getX(in), in, width, axis.getY(width)};
+                along_lt = {axis.getX(in), in, out, axis.getY(out)};
+                break;
+            }
+        }
 
 
         if (path_type == UA) {
@@ -659,9 +691,9 @@ private:
 
         }
 
-        if (((path_type == BR) || (path_type == BT)) && i == 0) {
+        if (((boundaries == BR) || (boundaries == BT)) && i == 0) {
             e4 = {0, 0, in, 0};
-        } else if (((path_type == LR) || (path_type == LT)) && j == 0) {
+        } else if (((boundaries == LR) || (boundaries == LT)) && j == 0) {
             e4 = {0, 0, 0, in};
         }
 
@@ -703,6 +735,52 @@ private:
 
         std::cout << "";
 
+    }
+
+    void write_heat_map(Curve& new_curve1, Curve& new_curve2) {
+        std::ofstream output("heat_map.dat");
+
+        output << std::fixed << std::setprecision(10);
+
+        auto len1 = new_curve1.curve_length();
+        auto len2 = new_curve2.curve_length();
+
+        int grid_size = 100;
+
+        double x_step = len1 / grid_size;
+        double y_step = len2 / grid_size;
+
+        for (int i = 0; i < grid_size; ++i)
+            for (int j = 0; j < grid_size; ++j) {
+                CPoint cp1 = new_curve1.get_cpoint_after(x_step * i);
+                CPoint cp2 = new_curve2.get_cpoint_after(y_step * j);
+
+                PointID p1_id = cp1.getPoint();
+                distance_t p1_frac = cp1.getFraction();
+                Point p1 = new_curve1[p1_id] + (new_curve1[p1_id+1] - new_curve1[p1_id])*p1_frac;
+
+                std::cout << p1_id << " " << p1_frac << "\n";
+                std::cout << p1 << "\n";
+
+                PointID p2_id = cp2.getPoint();
+                distance_t p2_frac = cp2.getFraction();
+                Point p2 = new_curve2[p2_id] + (new_curve2[p2_id+1] - new_curve2[p2_id])*p2_frac;
+
+
+                // Point p1 = new_curve1[cp1.getPoint()];
+                // Point p2 = new_curve2[cp2.getPoint()];
+                double height = abs(p1.x - p2.x) + abs(p1.y - p2.y);
+
+
+                output << height;
+                if (j < grid_size - 1)
+                    output << " ";
+                else
+                    output << "\n";
+            }
+
+
+        output.close();
     }
 
     void compute_warping_path(Curve& new_curve1, Curve& new_curve2, 
@@ -798,6 +876,8 @@ private:
 
         if (j > 0 || i == 0) {
             // std::cout << in_functions[i][j].left.pieces.size();
+            if (i == 0 && j == 20)
+                std::cout << "hello\n";
             auto l2r = bottom_to_top(in_functions[i][j].left, cell_t);
             for (auto piece: l2r.pieces) {
                 right_out_functions.push_back(piece);
@@ -1119,12 +1199,13 @@ CDTW<dimension, image_norm, param_norm>::CDTW(Curve& _curve1, Curve& _curve2) :
 
     for (int i = 0; i < n-1; ++i)
         for (int j = 0; j < m-1; ++j) {
-            if (i == n-2 && j == m-2)
+            if (i == 1 && j == 0)
                 std::cout << "hi\n";
             process_cell(i, j, new_curve1, new_curve2);
         }
 
     auto output = std::vector<std::vector<double>>();
+    write_heat_map(new_curve1, new_curve2);
     compute_warping_path(new_curve1, new_curve2, output, n-2, m-1, new_curve1.curve_length(n-2, n-1), true);
     io::export_points("c1.txt", new_curve1.get_points());
     io::export_points("c2.txt", new_curve2.get_points());
