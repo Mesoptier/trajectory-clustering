@@ -523,7 +523,22 @@ Interval y_range, std::vector<Polynomial<1>> left_constraints, std::vector<Polyn
         double y_upper_bound = y_range.max;
         double y_lower_bound = y_range.min;
 
-        if (p3x > a*p2x) {
+
+        if (approx_equal(p3x, a*p2x)) {
+            if (a*p2y > p3y && !approx_equal(a*p2y, p3y)) {
+                y_upper_bound = std::min(y_upper_bound, (p3c-a*p2c) / (a*p2y-p3y));
+                std::cout << "case 1 p3, p2 comp, y_upper: " << y_upper_bound << std::endl;
+            }
+            else if (a*p2y < p3y && !approx_equal(a*p2y, p3y))
+                y_lower_bound = std::max(y_lower_bound, (p3c-a*p2c) / (a*p2y-p3y));
+            else if (approx_equal(a*p2y, p3y)) {
+                if (!(p3c-a*p2c > 0) && !approx_equal(p3c, a*p2c)) {
+                    double var1 = p3c;
+                    double var2 = a*p2c;
+                    y_upper_bound = -1;
+                }
+            }
+        } else if (p3x > a*p2x) {
             case_1_left_constraints.push_back(Polynomial<1>({
                 (a*p2c - p3c) / (p3x-a*p2x), (a*p2y-p3y) / (p3x-a*p2x) 
             }));
@@ -531,22 +546,22 @@ Interval y_range, std::vector<Polynomial<1>> left_constraints, std::vector<Polyn
             case_1_right_constraints.push_back(Polynomial<1>({
                 (a*p2c-p3c) / (p3x-a*p2x), (a*p2y-p3y) / (p3x-a*p2x) 
             }));
-        } else if (approx_equal(p3x, a*p2x)) {
-            if (a*p2y > p3y && !approx_equal(a*p2y, p3y)) {
-                std::cout << "a*p2y: " << a*p2y << "\n";
-                y_upper_bound = std::min(y_upper_bound, (p3c-a*p2c) / (a*p2y-p3y));
+        } 
+
+        if (approx_equal(p3x, a*p1x)) {
+            if (a*p1y > p3y) {
+                y_upper_bound = std::min(y_upper_bound, (p3c-a*p1c) / (a*p1y-p3y));
+                std::cout << "case 1 p3, p1 comp\n";
             }
-            else if (a*p2y < p3y && !approx_equal(a*p2y, p3y))
-                y_lower_bound = std::max(y_lower_bound, (p3c-a*p2c) / (a*p2y-p3y));
-            else if (approx_equal(a*p2y, p3y)) {
-                if (!(p3c-a*p2c >= 0)) {
-                    
+            else if (a*p1y < p3y)
+                y_lower_bound = std::max(y_lower_bound, (p3c-a*p1c) / (a*p1y-p3y));
+            else if (approx_equal(a*p1y, p3y)) {
+                if (!(p3c-a*p1c > 0 || approx_equal(p3c, a*p1c))) {
                     y_upper_bound = -1;
+                    std::cout << "case 1 p1y, p3y\n";
                 }
             }
-        }
-
-        if (p3x > a*p1x) {
+        } else if (p3x > a*p1x) {
             case_1_left_constraints.push_back(Polynomial<1>({
                 (a*p1c-p3c) / (p3x-a*p1x), (a*p1y-p3y) / (p3x-a*p1x) 
             }));
@@ -554,20 +569,7 @@ Interval y_range, std::vector<Polynomial<1>> left_constraints, std::vector<Polyn
             case_1_right_constraints.push_back(Polynomial<1>({
                 (a*p1c-p3c) / (p3x-a*p1x), (a*p1y-p3y) / (p3x-a*p1x) 
             }));
-        } else if (approx_equal(p3x, a*p1x)) {
-            if (a*p1y > p3y)
-                y_upper_bound = std::min(y_upper_bound, (p3c-a*p1c) / (a*p1y-p3y));
-            else if (a*p1y < p3y)
-                y_lower_bound = std::max(y_lower_bound, (p3c-a*p1c) / (a*p1y-p3y));
-            else if (approx_equal(a*p1y, p3y)) {
-                if (!(p3c-a*p1c >= 0)) {
-                    y_upper_bound = -1;
-                }
-            }
         }
-
-        std::cout << "+++++++++++++++++++++++++++\n";
-        std::cout << "a: " << a << "\np1y: " << p1y << "\np2y: " << p2y << "\np3y: " << p3y << "\n";
 
         for (auto constraint: left_constraints) 
             case_1_left_constraints.push_back(constraint);
@@ -582,9 +584,11 @@ Interval y_range, std::vector<Polynomial<1>> left_constraints, std::vector<Polyn
             case_1_right_constraints
         });
 
-        std::cout << "case 1 y_upper: " << y_upper_bound << "\n";
 
         output.back().history = "1";
+
+        if (approx_equal(y_upper_bound, -0.5))
+            std::cout << "hello\n";
 
         //case 2
         auto case_2_poly = BivariatePolynomial<2>({{{{-a*pow(p1c, 2)/2 + a*pow(p2c, 2)/2 + p1c*p3c - p2c*p3c,-a*p1c*p1y + a*p2c*p2y + p1c*p3y + p1y*p3c - p2c*p3y - p2y*p3c,-a*pow(p1y, 2)/2 + a*pow(p2y, 2)/2 + p1y*p3y - p2y*p3y}},
@@ -597,7 +601,21 @@ Interval y_range, std::vector<Polynomial<1>> left_constraints, std::vector<Polyn
         y_upper_bound = y_range.max;
         y_lower_bound = y_range.min;
 
-        if (p3x > a*p2x) {
+
+        if (approx_equal(p3x, a*p2x)) {
+            if (a*p2y > p3y)
+                y_lower_bound = std::max(y_lower_bound, (a*p2c-p3c) / (p3y-a*p2y));
+            else if (a*p2y < p3y)
+                y_upper_bound = std::min(y_upper_bound, (a*p2c-p3c) / (p3y-a*p2y));
+            else if (approx_equal(a*p2y, p3y)) {
+                if (!(p3c-a*p2c < 0) && !(approx_equal(p3c, a*p2c))) {
+                    y_upper_bound = -1;
+                    std::cout << "case 2 p2y, p2y\n";
+                    std::cout << "p3c: " << p3c << "\n";
+                    std::cout << "a*p2c: " << a*p2c << "\n";
+                }
+            }
+        } else if (p3x > a*p2x) {
             case_2_right_constraints.push_back(Polynomial<1>({
                 (a*p2c-p3c) / (p3x-a*p2x), (a*p2y-p3y) / (p3x-a*p2x) 
             }));
@@ -605,19 +623,20 @@ Interval y_range, std::vector<Polynomial<1>> left_constraints, std::vector<Polyn
             case_2_left_constraints.push_back(Polynomial<1>({
                 (a*p2c-p3c) / (p3x-a*p2x), (a*p2y-p3y) / (p3x-a*p2x) 
             }));
-        } else if (approx_equal(p3x, a*p2x)) {
-            if (a*p2y > p3y)
-                y_lower_bound = std::max(y_lower_bound, (a*p2c-p3c) / (p3y-a*p2y));
-            else if (a*p2y < p3y)
-                y_upper_bound = std::min(y_upper_bound, (a*p2c-p3c) / (p3y-a*p2y));
-            else if (approx_equal(a*p2y, p3y)) {
-                if (!(p3c-a*p2c <= 0)) {
-                    y_upper_bound = -1;
-                }
-            }
         }
 
-        if (p3x > a*p1x) {
+        if (approx_equal(p3x, a*p1x)) {
+            if (a*p1y > p3y)
+                y_lower_bound = std::max(y_lower_bound, (p3c-a*p1c) / (a*p1y-p3y));
+            else if (a*p1y < p3y)
+                y_upper_bound = std::min(y_upper_bound, (p3c-a*p1c) / (a*p1y-p3y));
+            else if (approx_equal(a*p1y, p3y)) {
+                if (!(p3c-a*p1c < 0) && !(approx_equal(p3c, a*p1c))) {
+                    y_upper_bound = -1;
+                    std::cout << "case 2 p3c, p1c\n";
+                }
+            }
+        } else if (p3x > a*p1x) {
             case_2_right_constraints.push_back(Polynomial<1>({
                 (a*p1c-p3c) / (p3x-a*p1x), (a*p1y-p3y) / (p3x-a*p1x) 
             }));
@@ -625,16 +644,6 @@ Interval y_range, std::vector<Polynomial<1>> left_constraints, std::vector<Polyn
             case_2_left_constraints.push_back(Polynomial<1>({
                 (a*p1c-p3c) / (p3x-a*p1x), (a*p1y-p3y) / (p3x-a*p1x) 
             }));
-        } else if (approx_equal(p3x, a*p1x)) {
-            if (a*p1y > p3y)
-                y_lower_bound = std::max(y_lower_bound, (p3c-a*p1c) / (a*p1y-p3y));
-            else if (a*p1y < p3y)
-                y_upper_bound = std::min(y_upper_bound, (p3c-a*p1c) / (a*p1y-p3y));
-            else if (approx_equal(a*p1y, p3y)) {
-                if (!(p3c-a*p1c <= 0)) {
-                    y_upper_bound = -1;
-                }
-            }
         }
 
         for (auto constraint: left_constraints) 
@@ -664,7 +673,17 @@ Interval y_range, std::vector<Polynomial<1>> left_constraints, std::vector<Polyn
         y_upper_bound = y_range.max;
         y_lower_bound = y_range.min;
 
-        if (p3x > a*p2x) {
+        if (approx_equal(p3x, p2x)) {
+            if (a*p2y > p3y)
+                y_lower_bound = std::max(y_lower_bound, (p3c-a*p2c) / (a*p2y-p3y));
+            else if (a*p2y < p3y)
+                y_upper_bound = std::min(y_upper_bound, (p3c-a*p2c) / (a*p2y-p3y));
+            else if (approx_equal(a*p2y, p3y)) {
+                if (!(p3c-a*p2c < 0) && !(approx_equal(p3c, a*p2c))) {
+                    y_upper_bound = -1;
+                }
+            }
+        } else if (p3x > a*p2x) {
             case_3a_right_constraints.push_back(Polynomial<1>({
                 (a*p2c-p3c) / (p3x-a*p2x), (a*p2y-p3y) / (p3x-a*p2x) 
             }));
@@ -672,19 +691,19 @@ Interval y_range, std::vector<Polynomial<1>> left_constraints, std::vector<Polyn
             case_3a_left_constraints.push_back(Polynomial<1>({
                 (a*p2c-p3c) / (p3x-a*p2x), (a*p2y-p3y) / (p3x-a*p2x) 
             }));
-        } else if (approx_equal(p3x, p2x)) {
-            if (a*p2y > p3y)
-                y_lower_bound = std::max(y_lower_bound, (p3c-a*p2c) / (a*p2y-p3y));
-            else if (a*p2y < p3y)
-                y_upper_bound = std::min(y_upper_bound, (p3c-a*p2c) / (a*p2y-p3y));
-            else if (approx_equal(a*p2y, p3y)) {
-                if (!(p3c-a*p2c <= 0)) {
+        }
+
+        if (approx_equal(p3x, a*p1x)) {
+            if (a*p1y > p3y)
+                y_upper_bound = std::min(y_upper_bound, (p3c-a*p1c) / (a*p1y-p3y));
+            else if (a*p1y < p3y)
+                y_lower_bound = std::max(y_lower_bound, (p3c-a*p1c) / (a*p1y-p3y));
+            else if (approx_equal(a*p1y, p3y)) {
+                if (!(p3c-a*p1c > 0) && !(approx_equal(p3c, a*p1c))) {
                     y_upper_bound = -1;
                 }
             }
-        }
-
-        if (p3x > a*p1x) {
+        } else if (p3x > a*p1x) {
             case_3a_left_constraints.push_back(Polynomial<1>({
                 (a*p1c-p3c) / (p3x-a*p1x), (a*p1y-p3y) / (p3x-a*p1x) 
             }));
@@ -692,16 +711,6 @@ Interval y_range, std::vector<Polynomial<1>> left_constraints, std::vector<Polyn
             case_3a_right_constraints.push_back(Polynomial<1>({
                 (a*p1c-p3c) / (p3x-a*p1x), (a*p1y-p3y) / (p3x-a*p1x) 
             }));
-        } else if (approx_equal(p3x, a*p1x)) {
-            if (a*p1y > p3y)
-                y_upper_bound = std::min(y_upper_bound, (p3c-a*p1c) / (a*p1y-p3y));
-            else if (a*p1y < p3y)
-                y_lower_bound = std::max(y_lower_bound, (p3c-a*p1c) / (a*p1y-p3y));
-            else if (approx_equal(a*p1y, p3y)) {
-                if (!(p3c-a*p1c >= 0)) {
-                    y_upper_bound = -1;
-                }
-            }
         }
 
         for (auto constraint: left_constraints) 
@@ -733,7 +742,17 @@ Interval y_range, std::vector<Polynomial<1>> left_constraints, std::vector<Polyn
         y_upper_bound = y_range.max;
         y_lower_bound = y_range.min;
 
-        if (p3x > a*p2x) {
+        if (approx_equal(p3x, a*p2x)) {
+            if (a*p2y > p3y)
+                y_upper_bound = std::min(y_upper_bound, (p3c-a*p2c) / (a*p2y-p3y));
+            else if (a*p2y < p3y)
+                y_lower_bound = std::max(y_lower_bound, (p3c-a*p2c) / (a*p2y-p3y));
+            else if (approx_equal(a*p2y, p3y)) {
+                if (!(p3c-a*p2c > 0) && !(approx_equal(p3c, a*p2c))) {
+                    y_upper_bound = -1;
+                }
+            }    
+        } else if (p3x > a*p2x) {
             case_3b_left_constraints.push_back(Polynomial<1>({
                 (a*p2c-p3c) / (p3x-a*p2x), (a*p2y-p3y) / (p3x-a*p2x) 
             }));
@@ -741,19 +760,19 @@ Interval y_range, std::vector<Polynomial<1>> left_constraints, std::vector<Polyn
             case_3b_right_constraints.push_back(Polynomial<1>({
                 (a*p2c-p3c) / (p3x-a*p2x), (a*p2y-p3y) / (p3x-a*p2x) 
             }));
-        } else if (approx_equal(p3x, a*p2x)) {
-            if (a*p2y > p3y)
-                y_upper_bound = std::min(y_upper_bound, (p3c-a*p2c) / (a*p2y-p3y));
-            else if (a*p2y < p3y)
-                y_lower_bound = std::max(y_lower_bound, (p3c-a*p2c) / (a*p2y-p3y));
-            else if (approx_equal(a*p2y, p3y)) {
-                if (!(p3c-a*p2c >= 0)) {
-                    y_upper_bound = -1;
-                }
-            }    
         }
 
-        if (p3x > a*p1x) {
+        if (approx_equal(p3x, a*p1x)) {
+            if (a*p1y > p3y)
+                y_lower_bound = std::max(y_lower_bound, (p3c-a*p1c) / (a*p1y-p3y));
+            else if (a*p1y < p3y)
+                y_upper_bound = std::min(y_upper_bound, (p3c-a*p1c) / (a*p1y-p3y));
+            else if (approx_equal(a*p1y, p3y)) {
+                if (!(p3c-a*p1c < 0) && !(approx_equal(p3c, a*p1c))) {
+                    y_upper_bound = -1;
+                }
+            }
+        } else if (p3x > a*p1x) {
             case_3b_right_constraints.push_back(Polynomial<1>({
                 (a*p1c-p3c) / (p3x-a*p1x), (a*p1y-p3y) / (p3x-a*p1x) 
             }));
@@ -761,16 +780,6 @@ Interval y_range, std::vector<Polynomial<1>> left_constraints, std::vector<Polyn
             case_3b_left_constraints.push_back(Polynomial<1>({
                 (a*p1c-p3c) / (p3x-a*p1x), (a*p1y-p3y) / (p3x-a*p1x) 
             }));
-        } else if (approx_equal(p3x, a*p1x)) {
-            if (a*p1y > p3y)
-                y_lower_bound = std::max(y_lower_bound, (p3c-a*p1c) / (a*p1y-p3y));
-            else if (a*p1y < p3y)
-                y_upper_bound = std::min(y_upper_bound, (p3c-a*p1c) / (a*p1y-p3y));
-            else if (approx_equal(a*p1y, p3y)) {
-                if (!(p3c-a*p1c <= 0)) {
-                    y_upper_bound = -1;
-                }
-            }
         }
 
         for (auto constraint: left_constraints) 
@@ -797,7 +806,6 @@ Interval y_range, std::vector<Polynomial<1>> left_constraints, std::vector<Polyn
     for (auto& poly: output)
         if (valid_constraints(poly)) {
             if (!is_positive(poly)) {
-                std::cout << "negative\n";
                 auto res = is_positive(poly);
                 valid_constraints(poly);
             } 
@@ -1039,11 +1047,6 @@ Point l1_p1, Point l2_p1, Point l1_p2, Point l2_p2) {
     Point ax1_p2 = param_space(cell.s1, cell.t1, 
     cell.s2, cell.t2, l1_p2, l2_p2);
 
-    std::cout << "ax_p1: " << ax1_p1 << std::endl;
-    std::cout << "ax_p2: " << ax1_p2 << std::endl;
-    std::cout << cell.s1 << std::endl;
-    std::cout << "dist: " << cell.s1.dist(l1_p1) << std::endl;
-
     Line axis = Line::fromTwoPoints(ax1_p1, ax1_p2);
 
     return axis;
@@ -1133,8 +1136,6 @@ get_axes(const Cell& cell) {
     double m2 = gi_2.x;
     double b1 = gi_1.y;
     double b2 = gi_2.y;
-
-    std::cout << "grad not equal " << m1 << " " << m2 << "\n";
     
 
     if (l1.isVertical()) {
@@ -1251,18 +1252,9 @@ get_axes(const Cell& cell) {
 
             double ax2_l2_x1 = int_p.x;
             double ax2_l2_x2 = int_p.x;
-            
-            std::cout << "int_p: " << int_p << std::endl;
-            std::cout << "m1: " << m1 << std::endl;
-            std::cout << "ax2_l1_p1: " << Point(ax2_l1_x1, ax2_y1) << std::endl;
-            std::cout << "ax2_l2_p1: " << Point(ax2_l2_x1, ax2_y1) << std::endl;
-            std::cout << "ax2_l1_p2: " << Point(ax2_l1_x2, ax2_y2) << std::endl;
-            std::cout << "ax2_l2_p2: " << Point(ax2_l2_x2, ax2_y2) << std::endl;
 
             Line axis_2 = axis_from_points(cell, {ax2_l1_x1, ax2_y1}, {ax2_l2_x1, ax2_y1},
             {ax2_l1_x2, ax2_y2}, {ax2_l2_x2, ax2_y2});
-
-            std::cout << "ax2: " <<  axis_2.origin << std::endl;
 
             auto axis_2_intersections = get_intersections(cell, axis_2);
 
@@ -1276,6 +1268,73 @@ get_axes(const Cell& cell) {
         return result;
     }
 
+    Point int_point = intersect(l1, l2);
+
+    if (l1.isHorizontal()) {
+
+        double ax1_l1_x1 = int_point.x + 1;
+        double ax1_l2_x = int_point.x;
+        double ax1_l1_x2 = int_point.x - 1;
+        double ax1_y = int_point.y;
+
+        double ax2_l2_y1 = int_point.y + 1;
+        double ax2_l2_y2 = int_point.y - 1;
+        double ax2_l1_y = int_point.y;
+        double ax2_x1 = l2.getX(int_point.y + 1);
+        double ax2_x2 = l2.getX(int_point.y - 1);
+
+        Point ax1_p1 = param_space(cell.s1, cell.t1, cell.s2, cell.t2,
+        {ax1_l1_x1, ax1_y}, {ax1_l2_x, ax1_y});
+        Point ax1_p2 = param_space(cell.s1, cell.t1, cell.s2, cell.t2,
+        {ax1_l1_x2, ax1_y}, {ax1_l2_x, ax1_y});
+
+        Line axis_1 = Line::fromTwoPoints(ax1_p1, ax1_p2);
+
+        Point ax2_p1 = param_space(cell.s1, cell.t1, cell.s2, cell.t2,
+        {ax2_x1, ax2_l1_y}, {ax2_x1, ax2_l2_y1});
+        Point ax2_p2 = param_space(cell.s1, cell.t1, cell.s2, cell.t2,
+        {ax2_x2, ax2_l1_y}, {ax2_x2, ax2_l2_y2});
+
+        Line axis_2 = Line::fromTwoPoints(ax2_p1, ax2_p2);
+
+        result.push_back(axis_1);
+        result.push_back(axis_2);
+
+        return result;
+
+
+    } else if (l2.isHorizontal()) {
+
+        double ax1_l2_x1 = int_point.x + 1;
+        double ax1_l1_x = int_point.x;
+        double ax1_l2_x2 = int_point.x - 1;
+        double ax1_y = int_point.y;
+
+        double ax2_l1_y1 = int_point.y + 1;
+        double ax2_l1_y2 = int_point.y - 1;
+        double ax2_l2_y = int_point.y;
+        double ax2_x1 = l1.getX(int_point.y + 1);
+        double ax2_x2 = l1.getX(int_point.y - 1);
+
+        Point ax1_p1 = param_space(cell.s1, cell.t1, cell.s2, cell.t2,
+        {ax1_l1_x, ax1_y}, {ax1_l2_x1, ax1_y});
+        Point ax1_p2 = param_space(cell.s1, cell.t1, cell.s2, cell.t2,
+        {ax1_l1_x, ax1_y}, {ax1_l2_x2, ax1_y});
+
+        Line axis_1 = Line::fromTwoPoints(ax1_p1, ax1_p2);
+
+        Point ax2_p1 = param_space(cell.s1, cell.t1, cell.s2, cell.t2,
+        {ax2_x1, ax2_l1_y1}, {ax2_x1, ax2_l2_y});
+        Point ax2_p2 = param_space(cell.s1, cell.t1, cell.s2, cell.t2,
+        {ax2_x2, ax2_l1_y2}, {ax2_x2, ax2_l2_y});
+
+        Line axis_2 = Line::fromTwoPoints(ax2_p1, ax2_p2);
+
+        result.push_back(axis_1);
+        result.push_back(axis_2);
+
+        return result;
+    }
 
     double ax1_y1 = (b1/m1 - b2/m2 + 1) / (1/m1 - 1/m2);
     double ax1_y2 = (b1/m1 - b2/m2 - 1) / (1/m1 - 1/m2);
@@ -1744,7 +1803,7 @@ bottom_right_axis_integrals(Line axis, const Cell& cell) {
     std::vector<Polynomial<1>> right_to_axis_l_const = {};
 
     auto uaa_up_terms = vertical_int(
-        BivariatePolynomial<1>({{{{sy, 0}},{{0, 0}}}}),
+        BivariatePolynomial<1>({{{{0, 0}},{{0, 0}}}}),
         BivariatePolynomial<1>({{{{b, 0}},{{m, 0}}}}),
         cell, 1, false
     );
@@ -1797,9 +1856,9 @@ bottom_right_axis_integrals(Line axis, const Cell& cell) {
     // across, axis, up
 
     auto aau_across_terms = horizontal_int(
-        BivariatePolynomial<1>({{{{sx, 0}},{{0, 0}}}}),
+        BivariatePolynomial<1>({{{{0, 0}},{{1, 0}}}}),
         BivariatePolynomial<1>({{{{(sy-b)/m, 0}},{{0, 0}}}}),
-        cell, 1, false
+        cell, sy, true
     );
 
     auto aau_axis_terms = axis_int(
@@ -1807,7 +1866,7 @@ bottom_right_axis_integrals(Line axis, const Cell& cell) {
         BivariatePolynomial<1>({{{{tx, 0}},{{0, 0}}}}),
         cell, axis,
         {Polynomial<1>({sx, 0}), right_to_axis_xl}, 
-        {Polynomial<1>({tx, 0}), Polynomial<1>({(sy-b)/m, 0}), right_to_axis_xr},
+        {Polynomial<1>({tx, 0}), Polynomial<1>({(ty-b)/m, 0}), right_to_axis_xr},
         {std::max(sy, m*tx+b), ty}
     );
 
@@ -1824,25 +1883,25 @@ bottom_right_axis_integrals(Line axis, const Cell& cell) {
     }
     // up axis up
 
-    auto uau_up_terms_2 = vertical_int(
-        BivariatePolynomial<1>({{{{sy, 0}},{{0, 0}}}}),
-        BivariatePolynomial<1>({{{{b, 0}},{{1, 0}}}}),
+    auto uau_up_terms_1 = vertical_int(
+        BivariatePolynomial<1>({{{{0, 0}},{{0, 0}}}}),
+        BivariatePolynomial<1>({{{{b, 0}},{{m, 0}}}}),
         cell, 1, false
     );
 
     auto uau_axis_terms = axis_int(
-        BivariatePolynomial<1>({{{{(sy-b)/m, 0}},{{0, 0}}}}),
+        BivariatePolynomial<1>({{{{0, 0}},{{1, 0}}}}),
         BivariatePolynomial<1>({{{{tx, 0}},{{0, 0}}}}),
         cell, axis,
         {Polynomial<1>({sx, 0}), Polynomial<1>({-b/m, 0}), up_to_axis_xl}, 
-        {Polynomial<1>({tx, 0}), Polynomial<1>({(sy-b)/m, 0}), up_to_axis_xr},
+        {Polynomial<1>({tx, 0}), Polynomial<1>({(ty-b)/m, 0}), up_to_axis_xr},
         {std::max(sy, m*tx+b), ty}
     );
 
-    auto uau_up_terms_1 = vertical_int(
+    auto uau_up_terms_2 = vertical_int(
         BivariatePolynomial<1>({{{{m*tx+b, 0}},{{0, 0}}}}),
-        BivariatePolynomial<1>({{{{0, 0}},{{1, 0}}}}),
-        cell, 1, false
+        BivariatePolynomial<1>({{{{0, 1}},{{0, 0}}}}),
+        cell, tx, true
     );
 
     auto up_axis_up = combine_steps(3, {uau_up_terms_1, uau_axis_terms, uau_up_terms_2});
@@ -1855,9 +1914,9 @@ bottom_right_axis_integrals(Line axis, const Cell& cell) {
     // across axis across
 
     auto aaa_across_terms_1 = horizontal_int(
-        BivariatePolynomial<1>({{{{sx, 0}},{{0, 0}}}}),
+        BivariatePolynomial<1>({{{{0, 0}},{{1, 0}}}}),
         BivariatePolynomial<1>({{{{(sy-b)/m, 0}},{{0, 0}}}}),
-        cell, 1, false
+        cell, sy, true
     );
 
     auto aaa_axis_terms = axis_int(
@@ -1998,6 +2057,8 @@ bottom_to_right_costs_2D(const Cell& cell) {
     for (auto& cost: costs)
         cost.boundaries = BR;
 
+    assert(domain_covered(costs, cell));
+
     return costs;
 }
 
@@ -2035,8 +2096,6 @@ const Cell& cell, std::string fixed_var) {
             _sin(beta), {sy, ty},
             {Polynomial<1>({sx, 0})}, {Polynomial<1>({tx, 0})} 
         );
-
-        // .14142x - 0.155563
 
     } else if (fixed_var == "x") {
 
@@ -2177,7 +2236,7 @@ bottom_top_axis_integrals(Line axis, const Cell& cell) {
     auto sx = 0.;
     auto tx = cell.len1;
     auto sy = 0.;
-    auto ty = cell.len1;
+    auto ty = cell.len2;
 
     double alpha = angle(cell.s1, cell.t1);
     double beta = angle(cell.s2, cell.t2);
@@ -2220,7 +2279,7 @@ bottom_top_axis_integrals(Line axis, const Cell& cell) {
         cell, axis,
         {Polynomial<1>({sx, 0}), Polynomial<1>({bottom_int}), up_to_axis_xl}, 
         {Polynomial<1>({tx, 0}), up_to_axis_xr},
-        {sy, std::min(ty, top_int)}
+        {sx, std::min(tx, top_int)}
     );
 
     auto uau_u2_terms = vertical_int_b2t(
@@ -2251,7 +2310,7 @@ bottom_top_axis_integrals(Line axis, const Cell& cell) {
         cell, axis,
         {Polynomial<1>({sx, 0}), right_to_axis_xl}, 
         {Polynomial<1>({tx, 0}), Polynomial<1>({bottom_int, 0}), right_to_axis_xr},
-        {sy, std::min(ty, top_int)}
+        {sx, std::min(tx, top_int)}
     );
 
     auto aau_up_terms = vertical_int_b2t(
@@ -2279,9 +2338,9 @@ bottom_top_axis_integrals(Line axis, const Cell& cell) {
         BivariatePolynomial<1>({{{{0, 0}},{{1, 0}}}}),
         BivariatePolynomial<1>({{{{top_int, 0}},{{0, 0}}}}),
         cell, axis,
-        {Polynomial<1>({sx, 0}), up_to_axis_xl}, 
-        {Polynomial<1>({tx, 0}), Polynomial<1>({bottom_int, 0}), up_to_axis_xr},
-        {std::max(sy, top_int), ty}
+        {Polynomial<1>({sx, 0}), Polynomial<1>({bottom_int, 0}), up_to_axis_xl}, 
+        {Polynomial<1>({tx, 0}), up_to_axis_xr},
+        {std::max(sx, top_int), tx}
     );
 
     auto uaa_across_terms = horizontal_int_b2t(
@@ -2311,7 +2370,7 @@ bottom_top_axis_integrals(Line axis, const Cell& cell) {
         cell, axis,
         {Polynomial<1>({sx, 0}), right_to_axis_xl}, 
         {Polynomial<1>({tx, 0}), Polynomial<1>({bottom_int, 0}), right_to_axis_xr},
-        {std::max(sy, top_int), ty}
+        {std::max(sx, top_int), tx}
     );
 
     auto aaa_a2_terms = horizontal_int_b2t(
@@ -2408,7 +2467,7 @@ bottom_to_top_costs_2D(const Cell& cell) {
     }
 
 
-    if (axes.size() == 1) {
+    if (axes.size() >= 1) {
         Line axis = axes[0];
         auto axis_costs = bottom_top_axis_integrals(axis, cell);
         for (auto poly: axis_costs) {
@@ -2428,10 +2487,20 @@ bottom_to_top_costs_2D(const Cell& cell) {
         }
     }
 
-    // std::cout << "b2t cost count: " << costs.size() << std::endl;
+    std::vector<ConstrainedBivariatePolynomial<2>> corner = std::vector<ConstrainedBivariatePolynomial<2>>();
+
+    for (auto c: costs) {
+        if (approx_equal(c.ymax, tx)) {
+            corner.push_back(c);
+        }
+    }
+
     
     for (auto& cost: costs)
         cost.boundaries = BT;
+
+
+    assert(domain_covered(costs, cell));
 
     return costs;
 }
@@ -2475,7 +2544,6 @@ PiecewisePolynomial<2> propagate(
 
                 min_pieces.insert(min_pieces.end(), min_total_cost.pieces.begin(), min_total_cost.pieces.end());
             }
-            // std::cout << "incoming pieces: " << counter << std::endl;
             ++pieces_it;
         }
 
@@ -2584,25 +2652,8 @@ PiecewisePolynomial<2> CDTW<2, Norm::L1, Norm::L1>::base_bottom(const Cell& cell
 template<>
 std::vector<ConstrainedBivariatePolynomial<2>>
 CDTW<2, Norm::L1, Norm::L1>::bottom_to_right_costs(const Cell& cell) const {
-    // auto subdivision = get_subdivision(cell);
-
-    // if (subdivision.size() == 0)
-    //     return bottom_to_right_costs_2D(cell);
-
-    // auto& bl = subdivision[0];
-    // auto& tl = subdivision[1];
-    // auto& br = subdivision[2];
-    // auto& tr = subdivision[3];
-
-    // // auto& br_in_functions
-
-    // std::cout << subdivision.size() << std::endl;
 
     auto costs = bottom_to_right_costs_2D(cell);
-
-    // for (auto cost: costs)
-    //     if (!is_positive(cost))
-    //         std::cout << "...\n";
 
     return costs;
 }
@@ -2618,15 +2669,6 @@ template<>
 std::vector<ConstrainedBivariatePolynomial<2>>
 CDTW<2, Norm::L1, Norm::L1>::bottom_to_top_costs(const Cell& cell) const {
     auto subdivision = get_subdivision(cell);
-
-    // auto result = bottom_to_top_costs_2D(cell);
-
-    // for (auto cost: result)
-    //     if (!is_positive(cost))
-    //         std::cout << "...\n";
-
-    // if (subdivision.size() == 0)
-    //     return bottom_to_top_costs_2D(cell);
 
     return bottom_to_top_costs_2D(cell);
 }

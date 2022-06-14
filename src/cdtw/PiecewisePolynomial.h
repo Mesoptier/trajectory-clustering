@@ -85,6 +85,8 @@ struct PolynomialPiece
 
     History history;
 
+    double test_value;
+
     PolynomialPiece(const Interval& interval, const Polynomial<D>& polynomial) :
         interval(interval), polynomial(polynomial) {}
 

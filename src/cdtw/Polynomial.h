@@ -144,11 +144,7 @@ struct Polynomial
                 g = g.derivative();
                 --d;
             }
-            if (approx_equal(x, 0.000170711)) {
-                std::cout << f(x) << std::endl;
-                std::cout << g(x) << std::endl;
-                std::cout << x << std::endl;
-            }
+
             return f(x) < g(x);
         }
     };

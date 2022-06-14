@@ -7,7 +7,7 @@ import sys
 from matplotlib import collections  as mc
 
 
-path_file = open('warping_path.txt').read().rstrip().split("\n")
+path_file = open('warping_path_h.txt').read().rstrip().split("\n")
 c1 = open('c1.txt').read().rstrip().split("\n")
 c2 = open('c2.txt').read().rstrip().split("\n")
 
@@ -178,7 +178,6 @@ for i in range(1, len(c2)):
         [(float(p[0]), float(p[1])), (float(q[0]), float(q[1]))]
     )
 
-
 im_c1 = mc.LineCollection(edges1, linewidths=2, color="y")
 im_c2 = mc.LineCollection(edges2, linewidths=2, color="m")
 ax2.add_collection(im_c1)
@@ -218,7 +217,6 @@ c2_vert = pandas.DataFrame(c2_vert)
 
 c2_vert.plot(kind="scatter", x="x", y="y", color="black", ax = ax2)
 
-
 print([x_min, x_max, y_min, y_max])
 
-fig.savefig('warping_path.png')
+fig.savefig('warping_path_hueristic.png')

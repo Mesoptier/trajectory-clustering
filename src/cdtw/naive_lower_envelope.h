@@ -214,11 +214,17 @@ PiecewisePolynomial<D> naive_lower_envelope(const std::vector<PolynomialPiece<D>
             // Close previous piece
             if (prev_open_id != INVALID_PIECE_ID) {
                 if (!approx_equal(start_x, event.x)) {
-                    if (!result_pieces.empty() && approx_equal(result_pieces.back().polynomial, pieces[prev_open_id].polynomial)) {
+                    if (!result_pieces.empty() && approx_equal(result_pieces.back().polynomial, pieces[prev_open_id].polynomial)
+                    && result_pieces.back().history.path_type == pieces[prev_open_id].history.path_type) {
+                        if (approx_equal(result_pieces.back().test_value, 0.67677669529663675))
+                            std::cout << "hi\n";
                         result_pieces.back().interval.max = event.x;
                     } else {
                         result_pieces.emplace_back(Interval{start_x, event.x}, pieces[prev_open_id].polynomial);
                         result_pieces.back().history = pieces[prev_open_id].history;
+                        result_pieces.back().test_value = result_pieces.back().polynomial(result_pieces.back().interval.max);
+                        if (approx_equal(result_pieces.back().test_value, 0.67677669529663675))
+                            std::cout << "hi\n";
                     }
                 }
             }
@@ -237,6 +243,17 @@ PiecewisePolynomial<D> naive_lower_envelope(const std::vector<PolynomialPiece<D>
         // Verify state
         assert(std::is_sorted(state.begin(), state.end(), compare_pieces));
     }
+
+    // for (int i = 1; i < result_pieces.size(); ++i) {
+    //         auto l = result_pieces[i-1];
+    //         auto r = result_pieces[i];
+    //         assert(approx_equal(l.interval.max, r.interval.min));
+    //         auto l_max = l.polynomial(l.interval.max);
+    //         auto r_min = r.polynomial(r.interval.min);
+    //         if (!(approx_equal(l_max, r_min)))
+    //             assert(approx_equal(l_max, r_min));
+    //     }
+
 
     return {result_pieces};
 }

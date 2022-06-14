@@ -85,5 +85,11 @@ Points compute_matching<ParamMetric::L1>(const Cell& cell, const Point& s, const
 
 template<>
 distance_t integrate_linear_dist<ParamMetric::L1>(const Cell& /*cell*/, const Point& s, const Point& t) {
+    
+    // if (approx_equal(s.x, t.x) || approx_equal(s.y, t.y))
+    //     return 1;
+
+    // return 1 + (t.y - s.y) / (t.x - s.x);
+    
     return std::abs(t.x - s.x) + std::abs(t.y - s.y);
 }

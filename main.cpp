@@ -272,6 +272,19 @@
 // }
 // }
 
+void write_heur_warping_path(IntegralFrechet::MatchingResult matching) {
+    std::ofstream file("warping_path_h.txt");
+
+    auto m = matching.matching;
+
+    for (int i = 1; i < m.size(); ++i) {
+        file << m[i-1].x << " " << m[i-1].y << " "
+        << m[i].x << " " << m[i].y << "\n";
+    }
+
+    file.close();
+}
+
 void exact_2dl1l1_heuristic_comp() {
 
     using _CDTW = CDTW<2, Norm::L1, Norm::L1>;
@@ -292,30 +305,42 @@ void exact_2dl1l1_heuristic_comp() {
     double min = 10000000;
     double sum = 0;
     
-    // for (int i = 0; i < test_curves.size(); ++i) 
-    //     for (int j = i+1; j < test_curves.size(); ++j) {
+    for (int i = 0; i < test_curves.size(); ++i) 
+        for (int j = i+1; j < test_curves.size(); ++j) {
 
-        int i = 1;
-        int j = 19;
+        // int i = 0;
+        // int j = 1;
+
+            Curve c1("", {test_curves[i][0], test_curves[i][1]*10});
+            Curve c2("", {test_curves[j][18], test_curves[j][19]});
 
             std::cout << i << " "  << j << std::endl;
+            std::cout << test_curves[i].size() << std::endl;
+            std::cout << test_curves[j].size() << std::endl;
             auto cdtw = _CDTW(test_curves[i], test_curves[j]);
+            // auto cdtw = _CDTW(c1, c2);
             IntegralFrechet heuristic_alg(test_curves[i], test_curves[j], ParamMetric::L1, .1);
             const auto heuristic_res = heuristic_alg.compute_matching();
 
-            // std::cout << "exact: " << cdtw.cost() << std::endl;
-            // std::cout << "heur: " << heuristic_res.cost << std::endl;
+            std::cout << "exact: " << cdtw.cost() << std::endl;
+            std::cout << "heur: " << heuristic_res.cost << std::endl;
 
 
             output << cdtw.cost() << "," << heuristic_res.cost << std::endl;
 
             double ratio = cdtw.cost() / heuristic_res.cost;
+
+            if (ratio > 2) {
+                std::cout << "ratio greater than 2: " << i << " " << j << "\n";
+                std::cout << "stop here\n";
+            }
+
             std::cout << ratio << std::endl;
             max = std::max(max, ratio);
             min = std::min(min, ratio);
             sum += ratio;
 
-        // };
+        };
 
         double average_ratio = sum / (test_curves.size()*(test_curves.size()-1) / 2);
 
@@ -331,6 +356,7 @@ void test_case_1() {
     Point p1(0, 0);
     Point p2(0, 1);
     Point p3(0, 2);
+
     Point p4(0, 3);
 
     Point q1(0 ,0);
@@ -556,7 +582,12 @@ void test_case_9() {
     using _CDTW = CDTW<2, Norm::L1, Norm::L1>;
     auto cdtw = _CDTW(c1, c2);
 
-    std::cout << "test case 9 cost: " << cdtw.cost() << std::endl;
+    
+    IntegralFrechet heuristic_alg(c1, c2, ParamMetric::L1, .1);
+    const auto heuristic_res = heuristic_alg.compute_matching();
+
+    std::cout << "test case 9 cdtw cost: " << cdtw.cost() << std::endl;
+    std::cout << "test case 9 heuristic cost: " <<  heuristic_res.cost << std::endl;
 }
 
 void test_case_10() {
@@ -740,7 +771,11 @@ void test_case_16() {
     using _CDTW = CDTW<2, Norm::L1, Norm::L1>;
     auto cdtw = _CDTW(c1, c2);
 
-    std::cout << "test case 16 cost: " << cdtw.cost() << std::endl;
+    IntegralFrechet heuristic_alg(c1, c2, ParamMetric::L1, .1);
+    const auto heuristic_res = heuristic_alg.compute_matching();
+
+    std::cout << "test case 16 cdtw cost: " << cdtw.cost() << std::endl;
+    std::cout << "test case 16 heuristic cost: " <<  heuristic_res.cost << std::endl;
 }
 
 void test_case_17() {
@@ -755,6 +790,127 @@ void test_case_17() {
     auto cdtw = _CDTW(c1, c2);
 
     std::cout << "test case 17 cost: " << cdtw.cost() << std::endl;
+}
+
+void test_case_18() {
+    std::vector<Point> c1_p = {{3, 0.5}, {5, 9}};
+    std::vector<Point> c2_p = {{4, 6}, {3, 6.1}};
+
+
+
+    Curve c1("", c1_p);
+    Curve c2("", c2_p);
+
+    using _CDTW = CDTW<2, Norm::L1, Norm::L1>;
+    auto cdtw = _CDTW(c1, c2);
+
+    std::cout << "test case 18 cost: " << cdtw.cost() << std::endl;
+}
+
+void test_case_19() {
+    std::vector<Point> c1_p = {{0, 0}, {10, 0}};
+    std::vector<Point> c2_p = {{0, 1}, {1, -1}, {2, 1}, {3, -1}, {4, 1}, {5, -1}, {6, 1}, {7, -1}, {8, 1}, {9, -1}, {10, 1}};
+
+    Curve c1("", c1_p);
+    Curve c2("", c2_p);
+
+    using _CDTW = CDTW<2, Norm::L1, Norm::L1>;
+    auto cdtw = _CDTW(c1, c2);
+
+    std::cout << "test case 19 cost: " << cdtw.cost() << std::endl;
+}
+
+void test_case_20() {
+
+    double PI = 3.1415926535897932384;
+
+    std::vector<Point> c1_p = {};
+
+    int count = 20;
+    for (int i = 0; i < count; ++i) {
+        c1_p.push_back(Point(cos(i*2*PI / count), sin(i*2*PI/count))*2);
+    }
+
+    std::vector<Point> c2_p = {};
+
+    for (int i = 0; i < count; ++i) {
+        c2_p.push_back(Point(cos(-i*2*PI / count), sin(-i*2*PI/count)));
+    }
+
+
+    Curve c1("", c1_p);
+    Curve c2("", c2_p);
+
+    using _CDTW = CDTW<2, Norm::L1, Norm::L1>;
+    auto cdtw = _CDTW(c1, c2);
+
+    std::cout << "test case 20 cost: " << cdtw.cost() << std::endl;
+
+}
+
+void test_case_21() {
+    std::vector<Point> c1_p = {{0, 0}, {0, 1}, {1, 2}};
+    std::vector<Point> c2_p = {{0, 0}, {1, 1}, {1.00001, 1.1}, {2.00002, 1.2}};
+
+    Curve c1("", c1_p);
+    Curve c2("", c2_p);
+
+    using _CDTW = CDTW<2, Norm::L1, Norm::L1>;
+    auto cdtw = _CDTW(c1, c2);
+
+    IntegralFrechet heuristic_alg(c1, c2, ParamMetric::L1, .1);
+    const auto heuristic_res = heuristic_alg.compute_matching();
+
+    std::cout << "test case 21 cdtw cost: " << cdtw.cost() << std::endl;
+    std::cout << "test case 21 heuristic cost: " <<  heuristic_res.cost << std::endl;
+}
+
+void h_exact_basic() {
+
+    double PI = 3.141593;
+
+    Point p1({0, 0});
+    Point p2({cos(-PI/8)/sqrt(2) - sin(-PI/8)/sqrt(2), cos(-PI/8)/sqrt(2) + sin(-PI/8)/sqrt(2)});
+
+    Point q1({0, 0});
+    Point q2({-sqrt(2)*sin(-PI/8), sqrt(2)*cos(-PI/8)});
+
+    Curve c1("", {p1, p2, p2*2});
+    Curve c2("", {q1, q2, q2*2});
+
+    using _CDTW = CDTW<2, Norm::L1, Norm::L1>;
+    auto cdtw = _CDTW(c1, c2);
+
+    IntegralFrechet heuristic_alg(c1, c2, ParamMetric::L1, 10000);
+    const auto heuristic_res = heuristic_alg.compute_matching();
+
+    cdtw.write_heat_map(c1, c2, "L1");
+    write_heur_warping_path(heuristic_res);
+
+    std::cout << "test case basic cdtw cost: " << cdtw.cost() << std::endl;
+    std::cout << "test case basic heuristic cost: " <<  heuristic_res.cost << std::endl;
+}
+
+void h_test() {
+
+    Point p1(0, 0);
+    Point p2(1, 0);
+
+    Point q1(0, .5);
+    Point q2(1, .5);
+
+    Curve c1("", {p1, p2});
+    Curve c2("", {q1, q2});
+
+
+
+    // using _CDTW = CDTW<2, Norm::L1, Norm::L1>;
+    // auto cdtw = _CDTW(c1, c2);
+    IntegralFrechet heuristic_alg(c1, c2, ParamMetric::L1, 1);
+    const auto heuristic_res = heuristic_alg.compute_matching();
+
+    // std::cout << "exact cdtw cost: " << cdtw.cost() << std::endl;
+    std::cout << "heuristic cost: " << heuristic_res.cost << std::endl;
 }
 
 int main() {
@@ -815,9 +971,16 @@ int main() {
     // test_case_14();
     // test_case_15();
     // test_case_16();
-    test_case_17();
+    // test_case_17();
+    // test_case_18();
+    // test_case_19();
+    test_case_20();
+    // test_case_21();
 
+    // h_exact_basic();
     // exact_2dl1l1_heuristic_comp();
+    // h_test();
+
 
     Polynomial<1> left = Polynomial<1>(
             {{0, 0}}

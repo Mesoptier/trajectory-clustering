@@ -345,6 +345,53 @@ public:
         PiecewisePolynomial<D> left;
     };
 
+    std::vector<Point> warping_path;
+
+    void write_heat_map(Curve& new_curve1, Curve& new_curve2, std::string norm="L1") {
+
+        std::ofstream output("heat_map_" + norm + "_.dat");
+
+        output << std::fixed << std::setprecision(10);
+
+        auto len1 = new_curve1.curve_length();
+        auto len2 = new_curve2.curve_length();
+
+        int grid_size = 100;
+
+        double x_step = len1 / grid_size;
+        double y_step = len2 / grid_size;
+
+        for (int i = 0; i < grid_size; ++i)
+            for (int j = 0; j < grid_size; ++j) {
+                CPoint cp1 = new_curve1.get_cpoint_after(x_step * i);
+                CPoint cp2 = new_curve2.get_cpoint_after(y_step * j);
+
+                PointID p1_id = cp1.getPoint();
+                distance_t p1_frac = cp1.getFraction();
+                Point p1 = new_curve1[p1_id] + (new_curve1[p1_id+1] - new_curve1[p1_id])*p1_frac;
+
+                PointID p2_id = cp2.getPoint();
+                distance_t p2_frac = cp2.getFraction();
+                Point p2 = new_curve2[p2_id] + (new_curve2[p2_id+1] - new_curve2[p2_id])*p2_frac;
+
+
+                // Point p1 = new_curve1[cp1.getPoint()];
+                // Point p2 = new_curve2[cp2.getPoint()];
+                double height = norm == "L1" ? abs(p1.x - p2.x) + abs(p1.y - p2.y) :
+                sqrt(pow(p1.x - p2.x, 2) + pow(p1.y - p2.y, 2));
+
+
+                output << height;
+                if (j < grid_size - 1)
+                    output << " ";
+                else
+                    output << "\n";
+            }
+
+
+        output.close();
+    }
+
 private:
     Curve& curve1;
     Curve& curve2;
@@ -413,32 +460,32 @@ private:
                     cell_cost
                 );
 
-                auto single_variable = total_cost.slice_at_y(1.4142630607139537);
-
-                auto single_variable_cell_cost = cell_cost.slice_at_y(1.4142630607139537);
-
-                // if (min_total_cost.pieces.size() > 0) {
-                //     auto poly = min_total_cost.pieces.back();
-                //     if (approx_equal(poly.polynomial(poly.interval.max) / 100000, 8.21263 / 100000))
-                //         std::cout << "hello\n";
-                //     else
-                //         std::cout << "value: " << poly.polynomial(poly.interval.max) << " const: " << poly.polynomial.coefficients[0] << std::endl;
-                // }
-
-                
-
                 min_pieces.insert(min_pieces.end(), min_total_cost.pieces.begin(), min_total_cost.pieces.end());
             }
 
             ++pieces_it;
         }
-        // std::cout << "count: " << counter << std::endl;
+
+        std::vector<PolynomialPiece<2>> suspects = {};
+        for (auto poly: min_pieces)
+            if (poly.history.path_type == AAU)
+                suspects.push_back(poly);
+
+        if (suspects.size() == 12 && pieces.size() == 2) {
+            
+            std::vector<ConstrainedBivariatePolynomial<2>> suspects_cell = {};
+            for (auto poly: cell_costs)
+                if (poly.path_type == AAU) {
+                    suspects_cell.push_back(poly);
+                
+                    distance_t cost_1 = pieces[1].polynomial(0) + poly.f.slice_at_y(1)(0);
+                    distance_t cost_2 = pieces[0].polynomial(0.99999979092296653) + poly.f.slice_at_y(1)(0.99999979092296653);
+                    auto diff = cost_2 - cost_1;
+                } 
+        }
+
         const auto result = naive_lower_envelope(min_pieces);
 
-
-        // if (approx_equal(cell_cost.f.coefficients[0][0], 1.4141994337255621) 
-        //         && approx_equal(cell_cost.f.coefficients[2][0], 7.0710501343442271e-06))
-        //             std::cout << "hi\n";
         #ifndef NDEBUG
         verify_minimum(result, total_costs);
         #endif
@@ -529,23 +576,23 @@ private:
 
             if (boundaries == BR) {
 
-                e1 = {width, out, in, out};
-                e2 = {in, out, in, 0};
+                e2 = {width, out, in, out};
+                e1 = {in, out, in, 0};
 
             } else if (boundaries == BT) {
 
-                e1 = {out, height, in, height};
-                e2 = {in, height, in, 0};
+                e2 = {out, height, in, height};
+                e1 = {in, height, in, 0};
 
             } else if (boundaries == LT) {
 
-                e1 = {out, height, 0, height};
-                e2 = {0, height, 0, in};
+                e2 = {out, height, 0, height};
+                e1 = {0, height, 0, in};
 
             } else if (boundaries == LR) {
 
-                e1 = {width, out, 0, out};
-                e2 = {0, in, 0, in};
+                e2 = {width, out, 0, out};
+                e1 = {0, in, 0, in};
 
             }
 
@@ -553,23 +600,24 @@ private:
 
             if (boundaries == BR) {
 
-                e1 = {width, out, width, 0};
-                e2 = {width, 0, in, 0};
+                e2 = {width, out, width, 0};
+                e1 = {width, 0, in, 0};
+                std::cout << "this is what I expected...\n";
 
             } else if (boundaries == BT) {
 
-                e1 = {out, height, out, 0};
-                e2 = {out, 0, in, 0};
+                e2 = {out, height, out, 0};
+                e1 = {out, 0, in, 0};
 
             } else if (boundaries == LT) {
 
-                e1 = {out, height, 0, height};
-                e2 = {0, height, 0, in};
+                e2 = {out, height, out, in};
+                e1 = {out, in, 0, in};
 
             } else if (boundaries == LR) {
 
-                e1 = {width, out, 0, out};
-                e2 = {0, out, 0, in};
+                e2 = {width, out, 0, out};
+                e1 = {0, out, 0, in};
 
             }
 
@@ -699,16 +747,16 @@ private:
 
         int count = 0;
 
-        if (e1.size() > 0) {
-            output.push_back(e1);
+        if (e3.size() > 0) {
+            output.push_back(e3);
             ++count;
         }
         if (e2.size() > 0){
             output.push_back(e2);
             ++count;
         }
-        if (e3.size() > 0) {
-            output.push_back(e3);
+         if (e1.size() > 0) {
+            output.push_back(e1);
             ++count;
         }
         if (e4.size() > 0) {
@@ -732,56 +780,9 @@ private:
                 output[output.size()-1-k][2] = output[output.size()-1-k][2] + x_translation;
             }
         }
-
-        std::cout << "";
-
     }
 
-    void write_heat_map(Curve& new_curve1, Curve& new_curve2) {
-        std::ofstream output("heat_map.dat");
-
-        output << std::fixed << std::setprecision(10);
-
-        auto len1 = new_curve1.curve_length();
-        auto len2 = new_curve2.curve_length();
-
-        int grid_size = 100;
-
-        double x_step = len1 / grid_size;
-        double y_step = len2 / grid_size;
-
-        for (int i = 0; i < grid_size; ++i)
-            for (int j = 0; j < grid_size; ++j) {
-                CPoint cp1 = new_curve1.get_cpoint_after(x_step * i);
-                CPoint cp2 = new_curve2.get_cpoint_after(y_step * j);
-
-                PointID p1_id = cp1.getPoint();
-                distance_t p1_frac = cp1.getFraction();
-                Point p1 = new_curve1[p1_id] + (new_curve1[p1_id+1] - new_curve1[p1_id])*p1_frac;
-
-                std::cout << p1_id << " " << p1_frac << "\n";
-                std::cout << p1 << "\n";
-
-                PointID p2_id = cp2.getPoint();
-                distance_t p2_frac = cp2.getFraction();
-                Point p2 = new_curve2[p2_id] + (new_curve2[p2_id+1] - new_curve2[p2_id])*p2_frac;
-
-
-                // Point p1 = new_curve1[cp1.getPoint()];
-                // Point p2 = new_curve2[cp2.getPoint()];
-                double height = abs(p1.x - p2.x) + abs(p1.y - p2.y);
-
-
-                output << height;
-                if (j < grid_size - 1)
-                    output << " ";
-                else
-                    output << "\n";
-            }
-
-
-        output.close();
-    }
+    
 
     void compute_warping_path(Curve& new_curve1, Curve& new_curve2, 
     std::vector<std::vector<double>>& output, int i, int j, double y, bool left) {
@@ -838,6 +839,18 @@ private:
                 break;
         }
 
+        for (int i = 0; i < output.size(); ++i) {
+            auto seg = output[i];
+            double x1 = seg[0];
+            double y1 = seg[1];
+            double x2 = seg[2];
+            double y2 = seg[3];
+
+            if ((x2 < x1 && !approx_equal(x1, x2)) 
+            || (y2 < y1 && !approx_equal(y, y2))) {
+                output[i] = {x2, y2, x1, y1};
+            }
+        }
         io::write_path("warping_path.txt", output, new_curve1.size(), new_curve2.size()); 
     }
 
@@ -863,7 +876,8 @@ private:
 
         if (i > 0 || j == 0) {
             // std::cout << in_functions[i][j].bottom.pieces.size();
-
+            if (i == 1 && j == 1)
+                std::cout << "hi";
             auto b2r = bottom_to_right(in_functions[i][j].bottom, cell);
             for (auto piece: b2r.pieces)
                 right_out_functions.push_back(piece);
@@ -879,9 +893,16 @@ private:
             if (i == 0 && j == 20)
                 std::cout << "hello\n";
             auto l2r = bottom_to_top(in_functions[i][j].left, cell_t);
+
+        
             for (auto piece: l2r.pieces) {
                 right_out_functions.push_back(piece);
                 right_out_functions.back().history.transpose();
+            }
+            if (l2r.pieces.size() == 6) {
+                l2r.pieces[5].history.transpose();
+                double y = l2r.pieces[5].history.axis.getY(0);
+                std::cout << "hi";
             }
 
 
@@ -1197,11 +1218,25 @@ CDTW<dimension, image_norm, param_norm>::CDTW(Curve& _curve1, Curve& _curve2) :
     n = new_curve1.size();
     m = new_curve2.size();
 
+    in_functions = std::vector<std::vector<Entry>>(n, std::vector<Entry>(m));
+
     for (int i = 0; i < n-1; ++i)
         for (int j = 0; j < m-1; ++j) {
-            if (i == 1 && j == 0)
-                std::cout << "hi\n";
+            if (i == 1 && j == 1)
+                std::cout << "hello\n";
             process_cell(i, j, new_curve1, new_curve2);
+        }
+
+    for (int i = 1; i < n-1; ++i)
+        for (int j = 1; j < m-1;++j) {
+            auto top = in_functions[i][j-1].bottom.pieces.back();
+            auto right = in_functions[i-1][j].left.pieces.back();
+
+            if (!approx_equal(top.polynomial(top.interval.max), 
+            right.polynomial(right.interval.max))) {
+                std::cout << "do not match: " << i-1 << ", " << j-1 << std::endl; 
+                assert(false);
+            }
         }
 
     auto output = std::vector<std::vector<double>>();
@@ -1209,6 +1244,36 @@ CDTW<dimension, image_norm, param_norm>::CDTW(Curve& _curve1, Curve& _curve2) :
     compute_warping_path(new_curve1, new_curve2, output, n-2, m-1, new_curve1.curve_length(n-2, n-1), true);
     io::export_points("c1.txt", new_curve1.get_points());
     io::export_points("c2.txt", new_curve2.get_points());
+
+    for (int i = output.size()-1; i > -1; --i) {
+        Point p1(output[i][0], output[i][1]);
+        Point p2(output[i][2], output[i][3]);
+
+        if (warping_path.size() == 0 || !approx_equal(warping_path.back(), p1))
+            warping_path.push_back(p1);
+
+        if (!approx_equal(p1, p2))
+            warping_path.push_back(p2);
+    }
+
+    double max_x = 0;
+    double max_y = 0;
+
+    std::ofstream path("point_based_path.txt");
+    for (auto p: warping_path) {
+        path << p.x << " " << p.y << std::endl;
+        if (p.x > max_x)
+            max_x = p.x;
+        if (p.y > max_y)
+            max_y = p.y;
+
+        if (p.x < max_x && !approx_equal(p.x, max_x))
+            std::cout << "path not monotone\n";
+        if (p.y < max_y && !approx_equal(p.y, max_y))
+            std::cout << "path not monotone\n";
+    }
+    path.close();
+
     std::cout << "segments: " << output.size() << std::endl;
     std::cout << "computed cdtw...\n";
 }

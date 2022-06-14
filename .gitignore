@@ -18,4 +18,5 @@ c1.txt
 c2.txt
 *.png
 *.csv
+*.dat
 warping_path.txt
