@@ -2,6 +2,7 @@
 #define CENTER_UPDATE_H
 
 #include "basic_types.h"
+#include "../IntegralFrechet/metrics.h"
 
 namespace clustering {
     using Curves = std::vector<Curve>;
@@ -44,6 +45,35 @@ namespace clustering {
      */
     Curve cdba_update(Curves const& curves, Cluster const& cluster,
         bool fix_start = false, bool fix_end = false);
+
+    /**
+     * \brief Given a cluster and a set of curves, compute a new center for the
+     * cluster with CDBA using the L1 metric in image space.
+     * \param curves The set of curves.
+     * \param cluster One of the clusters resulting from clustering curves.
+     * \param fix_start Whether we should fix or are allowed to move the
+     * starting point of the center curve.
+     * \param fix_end Ditto for the end point.
+     * \return The new center curve.
+     */
+    Curve cdba_l1_update(Curves const& curves, Cluster const& cluster,
+        bool fix_start = false, bool fix_end = false);
+
+    /**
+     * \brief Given a cluster and a set of curves, compute a new center for the
+     * cluster with CDBA with the exact cdtw distance.
+     * 
+     * \param curves The set of curves. 
+     * \param cluster One of the clusters resulting from clustering curves. 
+     * \param fix_start Whether we should fix or are allowed to move the
+     * starting point of the center curve
+     * \param fix_end 
+     * \return Curve 
+     */
+    Curve cdba_exact_update(Curves const& curves, Cluster const& cluster,
+    bool fix_start = false, bool fix_end = false);
+
+
 
     /**
      * \brief Given a cluster and a set of curves, compute a new center for the

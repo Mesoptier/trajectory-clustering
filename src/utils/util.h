@@ -4,7 +4,14 @@
 #include <cmath>
 #include <functional>
 
-double const ABS_TOL = 1e-9;
+double const ABS_TOL = 1e-12;
+// double const ABS_TOL = 1e-9;
+// double const ABS_TOL = 1e-6;
+
+// int lower_enelope_time;
+// int total_cdtw_time;
+// int solve_integral_time;
+
 
 template<class T>
 bool approx_equal(T const& a, T const& b, double tol = ABS_TOL) {
@@ -13,6 +20,32 @@ bool approx_equal(T const& a, T const& b, double tol = ABS_TOL) {
     if (std::isinf(a) || std::isinf(b)) // && a != b
         return false;
     return std::abs(a - b) <= tol;
+}
+
+template<class T>
+bool approx_equal(const std::vector<T>& a, const std::vector<T>& b, double tol = ABS_TOL) {
+    if (a.size() != b.size()) {
+        return false;
+    }
+
+    for (size_t i = 0; i < a.size(); ++i) {
+        if (!approx_equal(a[i], b[i], tol)) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+template<class T, size_t N>
+bool approx_equal(const std::array<T, N>& a, const std::array<T, N>& b, double tol = ABS_TOL) {
+    for (size_t i = 0; i < N; ++i) {
+        if (!approx_equal(a[i], b[i], tol)) {
+            return false;
+        }
+    }
+
+    return true;
 }
 
 template<class T>

@@ -5,6 +5,7 @@ std::string clustering::toString(CenterAlg center_alg) {
     case CenterAlg::fsa: return "FSA";
     case CenterAlg::dba: return "DBA";
     case CenterAlg::cdba: return "CDBA";
+    case CenterAlg::cdba_l1: return "CDBA_L1";
     case CenterAlg::wedge: return "Wedge method";
     case CenterAlg::none: return "No center update";
     default: ERROR("Unknown center_alg.");

@@ -18,6 +18,7 @@ using SymmetricMatrix = SymmetricMatrixT<distance_t>;
 enum class Norm {
     L1,
     L2,
+    L2Squared,
     LInf,
 };
 
@@ -163,6 +164,19 @@ struct Line
 
     inline bool isHorizontal() const {
         return approx_zero(direction.y);
+    }
+
+    Point grad_int() {
+        if (direction.x != 0)
+            return {
+                direction.y / direction.x,
+                getY(0)    
+            };
+        else
+            return {
+                direction.y / 0.000001,
+                getY(0)
+            };
     }
 
     /**

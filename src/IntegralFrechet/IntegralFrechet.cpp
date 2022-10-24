@@ -9,13 +9,15 @@ IntegralFrechet::IntegralFrechet(
     Curve const& c2,
     ParamMetric metric,
     distance_t res,
-    MatchingBand const* const b
+    MatchingBand const* const b,
+    ImageMetric im_metric
 ) :
     curve1(c1),
     curve2(c2),
     resolution(res),
     band(b),
-    param_metric(metric) {}
+    param_metric(metric),
+    image_metric(im_metric) {}
 
 Cell IntegralFrechet::get_cell(CPosition const& s, CPosition const& t) const {
     auto const s1 = curve1.interpolate_at(s[0]);
@@ -94,9 +96,11 @@ distance_t IntegralFrechet::compute_cell_cost(Cell const& cell,
         Points const& matching) const {
     switch (param_metric) {
         case ParamMetric::L1:
-            return ::compute_cost<ParamMetric::L1>(cell, matching);
+            if (image_metric == ImageMetric::L2)
+                return ::compute_cost<ParamMetric::L1, ImageMetric::L2>(cell, matching);
+            else return ::compute_cost<ParamMetric::L1, ImageMetric::L1>(cell, matching);
         case ParamMetric::LInfinity_NoShortcuts:
-            return ::compute_cost<ParamMetric::LInfinity_NoShortcuts>(
+            return ::compute_cost<ParamMetric::LInfinity_NoShortcuts, ImageMetric::L2>(
                 cell, matching);
         default:
             throw std::invalid_argument("Unsupported norm");

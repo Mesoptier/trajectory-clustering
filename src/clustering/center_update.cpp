@@ -7,6 +7,8 @@
 #include "Frechet/frechet_light.h"
 #include "Frechet/frechet_matching.h"
 #include "IntegralFrechet/IntegralFrechet.h"
+#include "../distance_functions.h"
+#include "../cdtw/cdtw.h"
 
 namespace {
     /**
@@ -149,7 +151,7 @@ Curve clustering::dba_update(Curves const& curves, Cluster const& cluster,
     return new_center_curve;
 }
 
-Curve clustering::cdba_update(Curves const& curves, Cluster const& cluster,
+Curve clustering::cdba_l1_update(Curves const& curves, Cluster const& cluster,
         bool fix_start, bool fix_end) {
     auto const& center_curve = cluster.center_curve;
     Curve new_center_curve;
@@ -162,7 +164,7 @@ Curve clustering::cdba_update(Curves const& curves, Cluster const& cluster,
             (center_curve.curve_length() + curve.curve_length())
             / (center_curve.size() + curve.size()) / 5), 1UL);
         auto param_space_path = IntegralFrechet(center_curve, curve,
-            ParamMetric::L1, res, nullptr).compute_matching().matching;
+            ParamMetric::L1, res, nullptr, ImageMetric::L1).compute_matching().matching;
         std::vector<Points> matching(center_curve.size());
 
         for (std::size_t i = 0; i < center_curve.size(); ++i) {
@@ -211,6 +213,136 @@ Curve clustering::cdba_update(Curves const& curves, Cluster const& cluster,
         new_center_curve.push_back(center_curve.back());
     return new_center_curve;
 }
+
+Curve clustering::cdba_update(Curves const& curves, Cluster const& cluster,
+        bool fix_start, bool fix_end) {
+    auto const& center_curve = cluster.center_curve;
+    Curve new_center_curve;
+    std::vector<std::vector<Points>> matchings(cluster.curve_ids.size());
+
+    #pragma omp parallel for schedule(dynamic)
+    for (std::size_t cid = 0; cid < cluster.curve_ids.size(); ++cid) {
+        auto const& curve = curves[cluster.curve_ids[cid]];
+        auto const res = std::max(static_cast<std::size_t>(
+            (center_curve.curve_length() + curve.curve_length())
+            / (center_curve.size() + curve.size()) / 5), 1UL);
+        auto param_space_path = IntegralFrechet(center_curve, curve,
+            ParamMetric::L1, res, nullptr, ImageMetric::L2).compute_matching().matching;
+        std::vector<Points> matching(center_curve.size());
+
+        for (std::size_t i = 0; i < center_curve.size(); ++i) {
+            distance_t dist = center_curve.curve_length(i);
+            auto y_range = get_y_range(param_space_path, dist);
+
+            if (approx_equal(y_range.first, y_range.second))
+                matching[i].emplace_back(curve.interpolate_at(
+                    curve.get_cpoint_after(y_range.first)));
+            else {
+                distance_t length = y_range.second - y_range.first;
+                distance_t ratio_to_curve_length = length / curve.curve_length();
+                auto number_of_samples = static_cast<std::size_t>(
+                    2 * curve.size() * ratio_to_curve_length);
+                if (number_of_samples == 0)
+                    number_of_samples = 1;
+
+                for (std::size_t j = 0; j < number_of_samples; ++j) {
+                    distance_t dist_along_curve = y_range.first
+                        + j * length / number_of_samples;
+                    matching[i].emplace_back(curve.interpolate_at(
+                        curve.get_cpoint_after(dist_along_curve)));
+                }
+            }
+        }
+        matchings[cid] = std::move(matching);
+    }
+
+    if (fix_start)
+        new_center_curve.push_back(center_curve[0]);
+
+    for (PointID i = fix_start; i < center_curve.size() - fix_end; ++i) {
+        Points points_to_average;
+        for (auto const& matching: matchings)
+            for (auto const& point: matching[i])
+                points_to_average.emplace_back(point);
+
+        Point new_point = mean_of_points(points_to_average);
+
+        if (new_center_curve.empty() ||
+                !approx_equal(new_point, new_center_curve.back()))
+            new_center_curve.push_back(new_point);
+    }
+
+    if (fix_end)
+        new_center_curve.push_back(center_curve.back());
+    return new_center_curve;
+}
+
+Curve clustering::cdba_exact_update(Curves const& curves, Cluster const& cluster,
+    bool fix_start, bool fix_end) {
+        auto const& center_curve = cluster.center_curve;
+        Curve new_center_curve;
+        std::vector<std::vector<Points>> matchings(cluster.curve_ids.size());
+
+        #pragma omp parallel for schedule(dynamic)
+        for (std::size_t cid = 0; cid < cluster.curve_ids.size(); ++cid) {
+            auto const& curve = curves[cluster.curve_ids[cid]];
+            auto const res = std::max(static_cast<std::size_t>(
+                (center_curve.curve_length() + curve.curve_length())
+                / (center_curve.size() + curve.size()) / 5), 1UL);
+            // auto param_space_path = IntegralFrechet(center_curve, curve,
+            //     ParamMetric::L1, res, nullptr).compute_matching().matching;
+            auto cdtw = CDTW<2, Norm::L1, Norm::L1>(center_curve, curve);
+            auto param_space_path = cdtw.warping_path;
+            std::vector<Points> matching(center_curve.size());
+
+            for (std::size_t i = 0; i < center_curve.size(); ++i) {
+                distance_t dist = center_curve.curve_length(i);
+                auto y_range = get_y_range(param_space_path, dist);
+
+                if (approx_equal(y_range.first, y_range.second))
+                    matching[i].emplace_back(curve.interpolate_at(
+                        curve.get_cpoint_after(y_range.first)));
+                else {
+                    distance_t length = y_range.second - y_range.first;
+                    distance_t ratio_to_curve_length = length / curve.curve_length();
+                    auto number_of_samples = static_cast<std::size_t>(
+                        2 * curve.size() * ratio_to_curve_length);
+                    if (number_of_samples == 0)
+                        number_of_samples = 1;
+
+                    for (std::size_t j = 0; j < number_of_samples; ++j) {
+                        distance_t dist_along_curve = y_range.first
+                            + j * length / number_of_samples;
+                        matching[i].emplace_back(curve.interpolate_at(
+                            curve.get_cpoint_after(dist_along_curve)));
+                    }
+                }
+            }
+            matchings[cid] = std::move(matching);
+        }
+
+        if (fix_start)
+            new_center_curve.push_back(center_curve[0]);
+
+        for (PointID i = fix_start; i < center_curve.size() - fix_end; ++i) {
+            Points points_to_average;
+            for (auto const& matching: matchings)
+                for (auto const& point: matching[i])
+                    points_to_average.emplace_back(point);
+
+            Point new_point = mean_of_points(points_to_average);
+
+            if (new_center_curve.empty() ||
+                    !approx_equal(new_point, new_center_curve.back()))
+                new_center_curve.push_back(new_point);
+        }
+
+        if (fix_end)
+            new_center_curve.push_back(center_curve.back());
+        return new_center_curve;
+
+    }
+
 
 Curve clustering::wedge_update(Curves const& curves, Cluster const& cluster,
         bool fix_start, bool fix_end, distance_t eps, int radius) {

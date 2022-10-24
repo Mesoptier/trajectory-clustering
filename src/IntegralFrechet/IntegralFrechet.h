@@ -17,6 +17,8 @@ private:
     distance_t const resolution;
     MatchingBand const* const band;
     ParamMetric const param_metric;
+    ImageMetric const image_metric;
+    
 
     Cell get_cell(CPosition const& s, CPosition const& t) const;
 
@@ -34,7 +36,7 @@ private:
 public:
 
     IntegralFrechet(Curve const& c1, Curve const& c2, ParamMetric metric,
-        distance_t res, MatchingBand const* b = nullptr);
+        distance_t res, MatchingBand const* b = nullptr, ImageMetric im_metric = ImageMetric::L2);
 
     struct MatchingResult {
         distance_t cost;

@@ -1,3 +1,5 @@
+#pragma once
+
 #ifndef DISTANCE_FUNCTIONS_H
 #define DISTANCE_FUNCTIONS_H
 
@@ -51,6 +53,25 @@ namespace df {
      * \return The distance.
      */
     distance_t average_frechet(Curve const& curve_1, Curve const& curve_2);
+
+
+    /**
+     * @brief Compute the 2d_l1_l1 cdtw distance vetween two curves 
+     * 
+     * @param curve_1 First curve.
+     * @param curve_2 Second curve.
+     * @return The distance. 
+     */
+    distance_t cdtw_2d_l1_l1(Curve const& curve_1, Curve const& curve_2);
+
+    /**
+     * @brief Compute the 2d_l1_l1 cdtw distance vetween two curves using the heurisitic algorithm 
+     * 
+     * @param curve_1 First curve.
+     * @param curve_2 Second curve.
+     * @return The distance. 
+     */
+    distance_t heur_cdtw_2d_l1_l1(Curve const& curve_1, Curve const& curve_2);
 
     /**
      * \brief Compute the average Fréchet distance between two curves
@@ -125,5 +146,6 @@ namespace df {
      */
     bool average_frechet_fast_lt(Curve const& curve_1, Curve const& curve_2,
         distance_t delta);
+
 }
 #endif

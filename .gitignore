@@ -31,3 +31,9 @@ gmon.out
 compile_commands.json
 *.tar.xz
 
+
+data/
+*.png
+*.txt
+*.csv
+

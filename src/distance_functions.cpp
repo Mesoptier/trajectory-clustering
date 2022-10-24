@@ -3,6 +3,8 @@
 #include "DTW/dtw.h"
 #include "Frechet/frechet_light.h"
 #include "IntegralFrechet/IntegralFrechet.h"
+#include "cdtw/cdtw.h"
+#include "cdtw/2d-l1-l1.h"
 
 namespace {
     /**
@@ -53,10 +55,24 @@ distance_t df::dtw(Curve const& curve_1, Curve const& curve_2) {
     return DTW(curve_1, curve_2).cost();
 }
 
+void write_heur_warping_path(IntegralFrechet::MatchingResult matching) {
+    std::ofstream file("warping_path_h.txt");
+
+    auto m = matching.matching;
+
+    for (int i = 1; i < m.size(); ++i) {
+        file << m[i-1].x << " " << m[i-1].y << " "
+        << m[i].x << " " << m[i].y << "\n";
+    }
+
+    file.close();
+}
+
 distance_t df::integral_frechet(Curve const& curve_1, Curve const& curve_2) {
     auto const res = std::max(static_cast<std::size_t>(
         (curve_1.curve_length() + curve_2.curve_length())
         / (curve_1.size() + curve_2.size()) / 5), 1UL);
+
     return IntegralFrechet(curve_1, curve_2, ParamMetric::L1, res, nullptr)
         .compute_matching().cost;
 }
@@ -71,7 +87,7 @@ distance_t df::integral_frechet_fast(Curve const& curve_1,
     if (curve1_simpl.curve == curve2_simpl.curve)
         return integral_frechet(curve_1, curve_2);
     auto matching_simpl = IntegralFrechet(curve1_simpl.curve,
-        curve2_simpl.curve, ParamMetric::L1, 10 * res, nullptr)
+        curve2_simpl.curve, ParamMetric::L1, 10 * res, nullptr, ImageMetric::L2)
         .compute_matching().matching;
     reparametrize_matching(matching_simpl, curve_1, curve1_simpl,
         curve_2, curve2_simpl);
@@ -95,6 +111,26 @@ distance_t df::average_frechet_fast(Curve const& curve_1,
         Curve const& curve_2) {
     return integral_frechet_fast(curve_1, curve_2) /
         (curve_1.curve_length() + curve_2.curve_length());
+}
+
+distance_t df::cdtw_2d_l1_l1(Curve const& curve_1,
+    Curve const& curve_2) {
+
+        using CDTW = CDTW<2, Norm::L1, Norm::L1>;
+        
+        auto cdtw = CDTW(curve_1, curve_2);
+        return cdtw.cost();
+}
+
+distance_t df::heur_cdtw_2d_l1_l1(Curve const& curve_1,
+    Curve const& curve_2) {
+        auto const res = std::max(static_cast<std::size_t>(
+        (curve_1.curve_length() + curve_2.curve_length())
+        / (curve_1.size() + curve_2.size()) / 5), 1UL);
+    write_heur_warping_path(IntegralFrechet(curve_1, curve_2, ParamMetric::L1, res, nullptr, ImageMetric::L1)
+        .compute_matching());
+    return IntegralFrechet(curve_1, curve_2, ParamMetric::L1, res, nullptr, ImageMetric::L1)
+        .compute_matching().cost;
 }
 
 bool df::dtw_lt(Curve const& curve_1, Curve const& curve_2, distance_t delta) {

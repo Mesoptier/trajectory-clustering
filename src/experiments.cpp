@@ -116,18 +116,33 @@ void experiments::initial_clustering_experiment() {
         "weston_10.txt"
     };
 
+    std::array l1_matrix_paths {
+        "bladon_heath_l1_10.txt",
+        "church_l1_10.txt",
+        "horspath_l1_10.txt",
+        "weston_l1_10.txt"
+    };
+
     std::filesystem::create_directories(
         "results/initial_clustering_experiment/figures");
 
     std::string const filename = 
         "results/initial_clustering_experiment/results.txt";
     std::ofstream results(filename);
+
+    std::string const l1_filename = 
+        "results/initial_clustering_experiment/results_l1.txt";
+    std::ofstream l1_results(l1_filename);
     if (!results.is_open())
+        throw std::runtime_error("Failed to open file " + filename);
+
+    if (!l1_results.is_open())
         throw std::runtime_error("Failed to open file " + filename);
 
     for (std::size_t i = 0 ; i < pigeon_sites.size(); ++i) {
         std::string const& site = pigeon_sites[i];
         std::string const& dist_matrix_path = dist_matrix_paths[i];
+        std::string const& l1_matrix_path = l1_matrix_paths[i];
 
         Curves raw_pigeon_curves = io::read_curves(
             "data/Data_for_Mann_et_al_RSBL/" + site + "/utm", 1);
@@ -142,9 +157,19 @@ void experiments::initial_clustering_experiment() {
         CurveSimpMatrix dist_matrix = read_or_create(dist_matrix_path, curves,
             10, df::integral_frechet);
 
+        CurveSimpMatrix l1_matrix = read_or_create(l1_matrix_path, curves,
+        10, df::heur_cdtw_2d_l1_l1);
+
         for (std::size_t k = 1; k <= 10; ++k) {
             // Run the experiment 6 times without center updates, helps with
             // randomness in Gonzalez initialization.
+            Clustering gonzalez_res =
+                clustering::computeCenterClustering(curves, k, 10, true, true,
+                    clustering::ClusterAlg::Gonzalez,
+                    clustering::CenterAlg::none, dist_matrix,
+                    df::integral_frechet, df::integral_frechet,
+                    df::frechet_lt, 6);
+
             Clustering gonzalez_pam_res =
                 clustering::computeCenterClustering(curves, k, 10, true, true,
                     clustering::ClusterAlg::GonzalezPAM,
@@ -159,17 +184,35 @@ void experiments::initial_clustering_experiment() {
 
             // Run the experiment 6 times without center updates, helps with
             // randomness in Gonzalez initialization.
-            Clustering gonzalez_res =
+            Clustering gonzalez_res_l1 =
                 clustering::computeCenterClustering(curves, k, 10, true, true,
                     clustering::ClusterAlg::Gonzalez,
-                    clustering::CenterAlg::none, dist_matrix,
-                    df::integral_frechet, df::integral_frechet,
+                    clustering::CenterAlg::none, l1_matrix,
+                    df::heur_cdtw_2d_l1_l1, df::heur_cdtw_2d_l1_l1,
                     df::frechet_lt, 6);
+
+            Clustering gonzalez_pam_res_l1 =
+                clustering::computeCenterClustering(curves, k, 10, true, true,
+                    clustering::ClusterAlg::GonzalezPAM,
+                    clustering::CenterAlg::none, l1_matrix,
+                    df::heur_cdtw_2d_l1_l1, df::heur_cdtw_2d_l1_l1,
+                    df::frechet_lt, 6);
+            // No randomness in PAM, so running once is enough.
+            Clustering pam_res_l1 =
+                clustering::computeClustering(curves, k, 10,
+                    clustering::ClusterAlg::PAM, l1_matrix, dummy_dist,
+                    df::frechet_lt);
+
 
             results << site << "\t" << k << "\t" <<
             kMedianCostMat(gonzalez_pam_res, dist_matrix) <<
             "\t" << kMedianCostMat(pam_res, dist_matrix) <<
             "\t" << kMedianCostMat(gonzalez_res, dist_matrix) << std::endl;
+
+            l1_results << site << "\t" << k << "\t" <<
+            kMedianCostMat(gonzalez_pam_res_l1, l1_matrix) <<
+            "\t" << kMedianCostMat(pam_res_l1, l1_matrix) <<
+            "\t" << kMedianCostMat(gonzalez_res_l1, l1_matrix) << std::endl;
         }
     }
 }
@@ -208,6 +251,9 @@ void experiments::center_update_experiment_movebank(
     CurveSimpMatrix dist_matrix = read_or_create("movebank.txt", curves, l,
         df::integral_frechet);
 
+    CurveSimpMatrix l1_matrix = read_or_create("movebank_l1.txt", curves, l,
+        df::heur_cdtw_2d_l1_l1);
+
     Clustering initial = clustering::computeClustering(curves, k, l,
         clustering::ClusterAlg::PAM, dist_matrix, dummy_dist, df::frechet_lt);
 
@@ -216,6 +262,10 @@ void experiments::center_update_experiment_movebank(
     Clustering cdba_res = clustering::computeCenterClustering(curves, k, l,
         false, true, clustering::ClusterAlg::PAM, clustering::CenterAlg::cdba,
         dist_matrix, dummy_dist, df::integral_frechet, df::frechet_lt, 1);
+
+    Clustering cdba_l1_res = clustering::computeCenterClustering(curves, k, l,
+        false, true, clustering::ClusterAlg::PAM, clustering::CenterAlg::cdba_l1,
+        l1_matrix, dummy_dist, df::heur_cdtw_2d_l1_l1, df::frechet_lt, 1);
 
     Clustering dba_res = clustering::computeCenterClustering(curves, k, l,
         false, true, clustering::ClusterAlg::PAM, clustering::CenterAlg::dba,
@@ -232,6 +282,7 @@ void experiments::center_update_experiment_movebank(
 
     clustering::plot_clustering(initial, curves, path + "initial.txt");
     clustering::plot_clustering(cdba_res, curves, path + "cdba.txt");
+    clustering::plot_clustering(cdba_l1_res, curves, path + "cdba_l1.txt");
     clustering::plot_clustering(dba_res, curves, path + "dba.txt");
     clustering::plot_clustering(fsa_res, curves, path + "fsa.txt");
     clustering::plot_clustering(wedge_res, curves, path + "wedge.txt");
@@ -268,6 +319,9 @@ void experiments::center_update_experiment_characters(
     for (auto const& [letter, crv]: curves_by_letter) {
         CurveSimpMatrix dist_matrix = read_or_create(std::string("characters/")
             + letter + ".txt", crv, l, df::integral_frechet);
+
+        CurveSimpMatrix l1_matrix = read_or_create(std::string("characters/")
+            + letter + ".l1_txt", crv, l, df::heur_cdtw_2d_l1_l1);
         Clustering initial = clustering::computeClustering(crv, k, l,
             clustering::ClusterAlg::PAM, dist_matrix, dummy_dist,
             df::frechet_lt);
@@ -278,6 +332,12 @@ void experiments::center_update_experiment_characters(
             false, false, clustering::ClusterAlg::PAM,
             clustering::CenterAlg::cdba, dist_matrix, dummy_dist,
             df::integral_frechet, df::frechet_lt, 1);
+        
+        Clustering cdba_l1_res = clustering::computeCenterClustering(crv, k, l,
+            false, false, clustering::ClusterAlg::PAM,
+            clustering::CenterAlg::cdba_l1, l1_matrix, dummy_dist,
+            df::heur_cdtw_2d_l1_l1, df::frechet_lt, 1);
+
 
         Clustering dba_res = clustering::computeCenterClustering(crv, k, l,
             false, false, clustering::ClusterAlg::PAM,
@@ -300,6 +360,8 @@ void experiments::center_update_experiment_characters(
             path + "fsa_" + letter + ".txt");
         clustering::plot_clustering(cdba_res, crv,
             path + "cdba_" + letter + ".txt");
+        clustering::plot_clustering(cdba_l1_res, crv,
+            path + "cdba_l1_" + letter + ".txt");
         clustering::plot_clustering(wedge_res, crv,
             path + "wedge_" + letter + ".txt");
         clustering::plot_clustering(initial, crv,
@@ -309,11 +371,12 @@ void experiments::center_update_experiment_characters(
             << kMedianCost(crv, dba_res, df::integral_frechet) << ","
             << kMedianCost(crv, fsa_res, df::integral_frechet) << ","
             << kMedianCost(crv, cdba_res, df::integral_frechet) << ","
+            << kMedianCost(crv, cdba_l1_res, df::integral_frechet) << ","
             << kMedianCost(crv, wedge_res, df::integral_frechet) << ","
             << kMedianCostMat(initial, dist_matrix) << std::endl;
 
         plots << "dba_" << letter << "\n" << "fsa_" << letter << "\n"
-            << "cdba_" << letter << "\n" << "wedge_" << letter << "\n"
+            << "cdba_" << letter << "\n" << "cdba_l1_" << letter << "\n"  << "wedge_" << letter << "\n"
             << "init_" << letter << std::endl;
     }
 }
@@ -382,12 +445,21 @@ void experiments::center_update_experiment_pigeons(
             clustering::ClusterAlg::PAM, dist_matrix, dummy_dist,
             df::frechet_lt);
 
+
+        CurveSimpMatrix l1_matrix = read_or_create(
+            "pigeons/" + pigeon + ".l1_txt", curves, l, df::heur_cdtw_2d_l1_l1);
+
         // PAM is not random, so we can just recompute the initial clustering
         // four times.
         Clustering cdba_res = clustering::computeCenterClustering(curves, k, l,
             true, true, clustering::ClusterAlg::PAM,
             clustering::CenterAlg::cdba, dist_matrix, dummy_dist,
             df::integral_frechet, df::frechet_lt, 1);
+
+        Clustering cdba_l1_res = clustering::computeCenterClustering(curves, k, l,
+            true, true, clustering::ClusterAlg::PAM,
+            clustering::CenterAlg::cdba_l1, l1_matrix, dummy_dist,
+            df::heur_cdtw_2d_l1_l1, df::frechet_lt, 1);
 
         Clustering dba_res = clustering::computeCenterClustering(curves, k, l,
             true, true, clustering::ClusterAlg::PAM,
@@ -410,19 +482,22 @@ void experiments::center_update_experiment_pigeons(
             "results/" + directory + "/" + pigeon + "_fsa.txt");
         clustering::plot_clustering(cdba_res, curves,
             "results/" + directory + "/" + pigeon + "_cdba.txt");
+        clustering::plot_clustering(cdba_l1_res, curves,
+            "results/" + directory + "/" + pigeon + "_cdba_l1.txt");
         clustering::plot_clustering(wedge_res, curves,
             "results/" + directory + "/" + pigeon + "_wedge.txt");
         clustering::plot_clustering(initial, curves,
             "results/" + directory + "/" + pigeon + "_init.txt");
 
         plots << pigeon << "_dba\n" << pigeon << "_fsa\n"
-            << pigeon << "_cdba\n" << pigeon << "_wedge\n"
+            << pigeon << "_cdba\n" << pigeon << "_cdba_l1\n" << pigeon << "_wedge\n"
             << pigeon <<"_init" << std::endl;
 
         k_med_scores << pigeon << "\t"
             << kMedianCost(curves, dba_res, df::integral_frechet) << "\t"
             << kMedianCost(curves, fsa_res, df::integral_frechet) << "\t"
             << kMedianCost(curves, cdba_res, df::integral_frechet) << "\t"
+            << kMedianCost(curves, cdba_l1_res, df::integral_frechet) << "\t"
             << kMedianCost(curves, wedge_res, df::integral_frechet) << "\t"
             << kMedianCostMat(initial, dist_matrix) << std::endl;
     }

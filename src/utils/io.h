@@ -41,5 +41,15 @@ namespace io {
      * \param points The curve / point sequence to write.
      */
     void export_points(std::string const& filename, Points const& points);
+
+    /**
+     * @brief Writes a warping path to file
+     * 
+     * @param filename 
+     * @param edges 
+     * @param n 
+     * @param m 
+     */
+    void write_path(const std::string& filename, std::vector<std::vector<double>>& edges, int n, int m);
 }
 #endif

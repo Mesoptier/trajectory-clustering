@@ -16,7 +16,7 @@ namespace clustering {
      * \brief Iterative center update methods (see paper).
      */
     enum class CenterAlg {
-        fsa, dba, cdba, wedge, none
+        fsa, dba, cdba, cdba_l1, wedge, none
     };
 
     /**
@@ -122,6 +122,9 @@ namespace clustering {
         case CenterAlg::cdba:
             return detail::updateCenters(curves, clustering, C2CDist::Median,
                 fix_start, fix_end, dist, cdba_update);
+        case CenterAlg::cdba_l1:
+            return detail::updateCenters(curves, clustering, C2CDist::Median,
+                fix_start, fix_end, dist, cdba_l1_update);
         case CenterAlg::wedge:
             return detail::updateCenters(curves, clustering, C2CDist::Median,
                 fix_start, fix_end, dist, wedge_wrap<Args...>,

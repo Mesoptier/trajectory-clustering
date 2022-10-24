@@ -47,9 +47,9 @@ set(GNU_OPTIONS
 set(CLANG_OPTIONS
     "-Weverything" "-Wno-c++98-compat" "-Wno-covered-switch-default"
     "-Wno-float-equal" "-Wno-double-promotion" "-Wno-unused-template"
-    "-Wno-c++98-compat-pedantic" "-Wno-padded" "-Wno-weak-template-vtables")
+    "-Wno-c++98-compat-pedantic" "-Wno-padded" "-Wno-weak-template-vtables" "-Wl,--no-as-needed" "-lprofiler -Wl","--as-needed")
 
-set(MSVC_OPTIONS "/W4")
+# set(MSVC_OPTIONS "/W4")
 
 if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
     target_compile_options(TrajectoryClustering_lib PRIVATE ${GNU_OPTIONS})

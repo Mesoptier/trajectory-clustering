@@ -1,6 +1,15 @@
 file(GLOB_RECURSE HEADER_FILES *.h)
 
+set(Eigen3_DIR "/usr/include/eigen-3.4-rc1/build")
+find_package(Eigen3 3.3 REQUIRED NO_MODULE)
+
 set(SOURCE_FILES
+    test.cpp
+    cdtw/Polynomial.cpp
+    cdtw/Interval.cpp
+    cdtw/2d-l1-l1.cpp
+    cdtw/cdtw.cpp
+    cdtw/BivariatePolynomial.cpp
     classification_experiment.cpp
     Curve.cpp
     distance_functions.cpp
@@ -34,3 +43,4 @@ set(SOURCE_FILES
 
 add_library(TrajectoryClustering_lib STATIC ${SOURCE_FILES} ${HEADER_FILES})
 target_include_directories(TrajectoryClustering_lib PUBLIC ./)
+target_link_libraries(TrajectoryClustering_lib Eigen3::Eigen)
