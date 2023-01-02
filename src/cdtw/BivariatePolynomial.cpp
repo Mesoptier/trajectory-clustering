@@ -195,6 +195,12 @@
         return aux;
     }
 
+    template<>
+    BivariatePolynomial<1> BivariatePolynomial<1>::operator*(double a) {
+        BivariatePolynomial<1> aux = *this;
+        return aux*=a;
+    }
+
 
 // template<size_t D>
 // struct BivariatePolynomial

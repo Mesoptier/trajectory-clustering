@@ -9,7 +9,6 @@ from matplotlib import collections  as mc
 
 plt.rcParams["figure.dpi"] = 400
 
-
 path_file = open('warping_path.txt').read().rstrip().split("\n")
 path_file_h = open('warping_path_h.txt').read().rstrip().split("\n")
 c1 = open('c1.txt').read().rstrip().split("\n")
@@ -33,7 +32,6 @@ for i in range(1, len(c1)):
         pow(float(p1[0])-float(p2[0]), 2) + pow(float(p1[1])-float(p2[1]), 2)
     , 0.5)
     c1_dist.append(c1_total + dist)
-    print(c1_dist[len(c1_dist) - 1])
     c1_total += dist
 
     if float(p1[0]) > x_max:
@@ -65,7 +63,6 @@ for i in range(1, len(c2)):
         pow(float(p1[0])-float(p2[0]), 2) + pow(float(p1[1])-float(p2[1]), 2)
     , 0.5)
     c2_dist.append(c2_total + dist)
-    print(c2_dist[len(c2_dist) - 1])
     c2_total += dist
 
     if float(p1[0]) > x_max:
@@ -168,7 +165,6 @@ x_c = mc.LineCollection(x_ax, linewidths=1, color='m')
 ax1.add_collection(y_c)
 ax1.add_collection(x_c)
 
-
 # plotting curves in image space
 
 edges1 = []
@@ -246,11 +242,6 @@ c2_vert = pandas.DataFrame(c2_vert)
 c2_vert.plot(kind="scatter", x="x", y="y", color="black", ax = ax2)
 
 ax2.plot(c2_start["x"], c2_start["y"], "^", markersize=12, color="black")
-
-print(c2_start)
-
-
-print([x_min, x_max, y_min, y_max])
 
 ax1.axis('off')
 ax2.axis('off')

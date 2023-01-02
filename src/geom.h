@@ -140,12 +140,21 @@ struct Line
         return {p, {1, slope}};
     }
 
+    friend std::ostream& operator<<(std::ostream& out, Line const& l);
+
     static Line horizontal(Point p) {
         return {p, {1, 0}};
     }
 
     static Line vertical(Point p) {
         return {p, {0, 1}};
+    }
+
+    // Returns the line orthognal to this
+    // through the point p.
+    Line orthogonal(Point p) {
+        Point new_dir = {-direction.y, direction.x};
+        return Line(p, new_dir);
     }
 
     Point operator()(distance_t t) const {
@@ -166,7 +175,7 @@ struct Line
         return approx_zero(direction.y);
     }
 
-    Point grad_int() {
+    Point grad_int() const {
         if (direction.x != 0)
             return {
                 direction.y / direction.x,
@@ -199,6 +208,13 @@ struct Line
     }
 
     Point closest(Point const& point) const;
+
+    Points closest_l1(Point const& point) const;
+    
+    bool has_on_positive_side(Point const& point);
+
+    bool has_on_negative_side(Point const& point);
+
     int side(Point const& point) const;
 
     /**

@@ -6,6 +6,7 @@
 #include <set>
 #include <algorithm>
 #include <iomanip>
+#include <limits>
 
 #include "Interval.h"
 #include "Polynomial.h"
@@ -218,8 +219,10 @@ PiecewisePolynomial<D> find_minimum(
 
 
     // std::cout << "number of pieces: " << pieces.size() << std::endl;
-
-    return naive_lower_envelope(pieces);
+    if (FAST_LOWER_ENVELOPE)
+        return fast_lower_envelope_v2(pieces);
+    else
+        return naive_lower_envelope(pieces);
 }
 
 template<size_t D>
@@ -228,6 +231,7 @@ void fast_lower_envelope(PiecewisePolynomial<D>& left, const PiecewisePolynomial
     std::vector<PolynomialPiece<D>> pieces = left.pieces;
     pieces.insert(pieces.end(), right.pieces.begin(), right.pieces.end());
     left = naive_lower_envelope(pieces);
+    // left = fast_lower_envelope_v2(pieces);
     return;
 
     // Early return for empty cases
@@ -405,24 +409,40 @@ template<class Iterator>
                 } 
         }
 
-        const auto result = naive_lower_envelope(min_pieces);
+        // auto naive = naive_lower_envelope(min_pieces);
+        // auto fast = fast_lower_envelope_v2(min_pieces);
+        // if (!are_equal(naive.pieces, fast.pieces)) {
+            // if (min_pieces.size() == 5) {
+                // std::cout << naive.pieces.back().polynomial(naive.pieces.back().interval.max) << std::endl;
+                // std::cout << fast.pieces.back().polynomial(fast.pieces.back().interval.max) << std::endl;
+                // are_equal(naive.pieces, fast.pieces);
+                // fast = fast_lower_envelope_v2(min_pieces);
+                // write_polynomial_set(min_pieces, "test_data/polynomial_set.txt");
+                // write_polynomial_set(naive.pieces, "test_data/naive.txt");
+                // write_polynomial_set(fast.pieces, "test_data/fast.txt");
+                // std::cout << "good\n"; 
+            // }
+            // are_equal(naive.pieces, fast.pieces);
+        // }
+        if (FAST_LOWER_ENVELOPE)
+            return fast_lower_envelope_v2(min_pieces);
+        else
+            return naive_lower_envelope(min_pieces);
 
         #ifndef NDEBUG
         // verify_minimum(result, total_costs);
         #endif
-
-        return result;
     }
 
 template<size_t dimension, Norm image_norm, Norm param_norm>
-void CDTW<dimension, image_norm, param_norm>::write_heat_map(Curve& new_curve1, Curve& new_curve2, std::string norm) {
+void CDTW<dimension, image_norm, param_norm>::write_heat_map(const Curve& curve1, const Curve& curve2, std::string norm) {
 
         std::ofstream output("heat_map_" + norm + "_.dat");
 
         output << std::fixed << std::setprecision(10);
 
-        auto len1 = new_curve1.curve_length();
-        auto len2 = new_curve2.curve_length();
+        auto len1 = curve1.curve_length();
+        auto len2 = curve2.curve_length();
 
         int grid_size = 1000;
 
@@ -431,16 +451,16 @@ void CDTW<dimension, image_norm, param_norm>::write_heat_map(Curve& new_curve1, 
 
         for (int i = 0; i < grid_size; ++i)
             for (int j = 0; j < grid_size; ++j) {
-                CPoint cp1 = new_curve1.get_cpoint_after(x_step * i);
-                CPoint cp2 = new_curve2.get_cpoint_after(y_step * j);
+                CPoint cp1 = curve1.get_cpoint_after(x_step * i);
+                CPoint cp2 = curve2.get_cpoint_after(y_step * j);
 
                 PointID p1_id = cp1.getPoint();
                 distance_t p1_frac = cp1.getFraction();
-                Point p1 = new_curve1[p1_id] + (new_curve1[p1_id+1] - new_curve1[p1_id])*p1_frac;
+                Point p1 = curve1[p1_id] + (curve1[p1_id+1] - curve1[p1_id])*p1_frac;
 
                 PointID p2_id = cp2.getPoint();
                 distance_t p2_frac = cp2.getFraction();
-                Point p2 = new_curve2[p2_id] + (new_curve2[p2_id+1] - new_curve2[p2_id])*p2_frac;
+                Point p2 = curve2[p2_id] + (curve2[p2_id+1] - curve2[p2_id])*p2_frac;
 
 
                 // Point p1 = new_curve1[cp1.getPoint()];
@@ -469,12 +489,17 @@ PiecewisePolynomial<2> CDTW<dimension, image_norm, param_norm>::bottom_to_right(
 
 template<size_t dimension, Norm image_norm, Norm param_norm>
 PiecewisePolynomial<2> CDTW<dimension, image_norm, param_norm>::bottom_to_top(const PiecewisePolynomial<D>& in, const Cell& cell) const {
+    // distance_t len1 = cell.len1;
+    // distance_t len2 = cell.len2;
+    // std::cout.precision(std::numeric_limits<double>::max_digits10);
+    // std::cout << "len1: " << len1 << std::endl;
+    // std::cout << "len2: " << len2 << std::endl;
     return propagate(bottom_to_top_costs(cell), in.pieces.begin(), in.pieces.cend());
 }
 
 template<size_t dimension, Norm image_norm, Norm param_norm>
 void CDTW<dimension, image_norm, param_norm>::get_path_segs(PathType path_type, Boundaries boundaries, double in, double out,
-std::vector<std::vector<double>>& output, Curve& c1, Curve& c2, int i, int j, Line axis, bool left) {
+std::vector<std::vector<double>>& output, int i, int j, Line axis, bool left) {
 
         std::vector<double> e1;
         std::vector<double> e2;
@@ -483,17 +508,17 @@ std::vector<std::vector<double>>& output, Curve& c1, Curve& c2, int i, int j, Li
 
         double width; 
         if (left && j > 0)
-            width = c2.curve_length(j-1, j);
-        else if (j < c2.size()-1)
-            width = c2.curve_length(j, j+1);
+            width = curve2.curve_length(j-1, j);
+        else if (j < curve2.size()-1)
+            width = curve2.curve_length(j, j+1);
         else
             width = 10000000;
 
         double height;
         if (left)
-            height = c1.curve_length(i, i+1);
+            height = curve1.curve_length(i, i+1);
         else if (i > 0)
-            height = c1.curve_length(i-1, i);
+            height = curve1.curve_length(i-1, i);
         else
             height = 10000000;
 
@@ -541,6 +566,12 @@ std::vector<std::vector<double>>& output, Curve& c1, Curve& c2, int i, int j, Li
                 along_lt = {axis.getX(in), in, out, axis.getY(out)};
                 break;
             }
+            case (AU):
+                break;
+            case (UA):
+                break;
+            case (NONE):
+                break;
         }
 
 
@@ -707,7 +738,6 @@ std::vector<std::vector<double>>& output, Curve& c1, Curve& c2, int i, int j, Li
                 }
 
             }
-
         }
 
         if (((boundaries == BR) || (boundaries == BT)) && i == 0) {
@@ -740,13 +770,13 @@ std::vector<std::vector<double>>& output, Curve& c1, Curve& c2, int i, int j, Li
 
         for (int k = 0; k < count; ++k) {
             if (i > 0) {
-                y_translation = left ? c1.curve_length(0, i) : c1.curve_length(0, i-1);
+                y_translation = left ? curve1.curve_length(0, i) : curve1.curve_length(0, i-1);
                 output[output.size()-1-k][1] = output[output.size()-1-k][1] + y_translation;
                 output[output.size()-1-k][3] = output[output.size()-1-k][3] + y_translation;
             }
 
             if (j > 0) {
-                x_translation = left ? c2.curve_length(0, j-1) : c2.curve_length(0, j);
+                x_translation = left ? curve2.curve_length(0, j-1) : curve2.curve_length(0, j);
                 output[output.size()-1-k][0] = output[output.size()-1-k][0] + x_translation;
                 output[output.size()-1-k][2] = output[output.size()-1-k][2] + x_translation;
             }
@@ -755,8 +785,7 @@ std::vector<std::vector<double>>& output, Curve& c1, Curve& c2, int i, int j, Li
 
     
     template<size_t dimension, Norm image_norm, Norm param_norm>
-    void CDTW<dimension, image_norm, param_norm>::compute_warping_path(Curve& new_curve1, Curve& new_curve2, 
-    std::vector<std::vector<double>>& output, int i, int j, double y, bool left) {
+    void CDTW<dimension, image_norm, param_norm>::compute_warping_path(std::vector<std::vector<double>>& output, int i, int j, double y, bool left) {
 
         if (i + j == 0)
             return;
@@ -774,9 +803,7 @@ std::vector<std::vector<double>>& output, Curve& c1, Curve& c2, int i, int j, Li
         auto axis = piece.history.axis;
         double x = piece.history.x_poly(y);
 
-        get_path_segs(path_type, boundaries, x, y, output, new_curve1, new_curve2, i, j, axis, left);
-
-        
+        get_path_segs(path_type, boundaries, x, y, output, i, j, axis, left);
 
         switch(boundaries) {
             case BR:
@@ -784,28 +811,28 @@ std::vector<std::vector<double>>& output, Curve& c1, Curve& c2, int i, int j, Li
                 if (j == 0)
                     break;
                 else
-                    compute_warping_path(new_curve1, new_curve2, output, i, j-1, x, false);
+                    compute_warping_path(output, i, j-1, x, false);
                 break;
             case LR:
                 assert(left);
                 if (j == 0)
                     break;
                 else
-                    compute_warping_path(new_curve1, new_curve2, output, i, j-1, x, true);
+                    compute_warping_path(output, i, j-1, x, true);
                 break;
             case BT:
                 assert(!left);
                 if (i == 0)
                     break;
                 else
-                    compute_warping_path(new_curve1, new_curve2, output, i-1, j, x, false);
+                    compute_warping_path(output, i-1, j, x, false);
                 break;
             case LT:
                 assert(!left);
                 if (i == 0)
                     break;
                 else
-                    compute_warping_path(new_curve1, new_curve2, output, i-1, j, x, true);
+                    compute_warping_path(output, i-1, j, x, true);
                 break;
         }
 
@@ -821,11 +848,21 @@ std::vector<std::vector<double>>& output, Curve& c1, Curve& c2, int i, int j, Li
                 output[i] = {x2, y2, x1, y1};
             }
         }
-        io::write_path("warping_path.txt", output, new_curve1.size(), new_curve2.size()); 
+
+        io::write_path("warping_path.txt", output, curve1.size(), curve2.size()); 
     }
 
     template<size_t dimension, Norm image_norm, Norm param_norm>
-    void CDTW<dimension, image_norm, param_norm>::process_cell(int i, int j, Curve& curve1, Curve& curve2) {
+    void CDTW<dimension, image_norm, param_norm>::write_warping_path() {
+        write_heat_map(curve1, curve2);
+        auto output = std::vector<std::vector<double>>();
+        compute_warping_path(output, n-2, m-1, curve1.curve_length(n-2, n-1), true);
+        io::export_points("c1.txt", curve1.get_points());
+        io::export_points("c2.txt", curve2.get_points());
+    }
+
+    template<size_t dimension, Norm image_norm, Norm param_norm>
+    void CDTW<dimension, image_norm, param_norm>::process_cell(int i, int j, const Curve& curve1, const Curve& curve2) {
         
         auto cell_t = Cell(curve1[i], curve2[j], curve1[i+1], curve2[j+1]);
         const Cell cell(curve2[j], curve1[i], curve2[j+1], curve1[i+1]);
@@ -858,7 +895,6 @@ std::vector<std::vector<double>>& output, Curve& c1, Curve& c2, int i, int j, Li
         }
 
         if (j > 0 || i == 0) {
-            // std::cout << in_functions[i][j].left.pieces.size();
             auto l2r = bottom_to_top(in_functions[i][j].left, cell_t);
 
         
@@ -866,12 +902,6 @@ std::vector<std::vector<double>>& output, Curve& c1, Curve& c2, int i, int j, Li
                 right_out_functions.push_back(piece);
                 right_out_functions.back().history.transpose();
             }
-            // if (l2r.pieces.size() == 6) {
-            //     l2r.pieces[5].history.transpose();
-            //     double y = l2r.pieces[5].history.axis.getY(0);
-            //     std::cout << "hi";
-            // }
-
 
             auto l2t = bottom_to_right(in_functions[i][j].left, cell_t);
             for (auto piece: l2t.pieces) {
@@ -880,11 +910,17 @@ std::vector<std::vector<double>>& output, Curve& c1, Curve& c2, int i, int j, Li
             }
         }
 
-
-        if (j < in_functions[i].size()-1)
-            in_functions[i][j+1].left = naive_lower_envelope(right_out_functions);
-        if (i < in_functions.size()-1)
-            in_functions[i+1][j].bottom = naive_lower_envelope(top_out_functions);
+        if (FAST_LOWER_ENVELOPE) {
+            if (j < in_functions[i].size()-1)
+                in_functions[i][j+1].left = fast_lower_envelope_v2(right_out_functions);
+            if (i < in_functions.size()-1)
+                in_functions[i+1][j].bottom = fast_lower_envelope_v2(top_out_functions);
+        } else {
+            if (j < in_functions[i].size()-1)
+                in_functions[i][j+1].left = naive_lower_envelope(right_out_functions);
+            if (i < in_functions.size()-1)
+                in_functions[i+1][j].bottom = naive_lower_envelope(top_out_functions);
+        }
     }
 
 template<size_t dimension, Norm image_norm, Norm param_norm>
@@ -1113,114 +1149,27 @@ CDTW<dimension, image_norm, param_norm>::CDTW(Curve const& _curve1, Curve const&
     n(curve1.size()), m(curve2.size()),
     in_functions(n, std::vector<Entry>(m))
 {
-    int new_n;
-    int new_m;
-
-    std::vector<CPoint> new_c_points_1 = std::vector<CPoint>();
-    std::vector<CPoint> new_c_points_2 = std::vector<CPoint>();
-
-    for (int i = 0; i < curve1.size(); ++i) {
-        new_c_points_1.push_back(CPoint(i, 0));
-    }
-
-    for (int i = 0; i < curve2.size(); ++i) {
-        new_c_points_2.push_back(CPoint(i, 0));
-    }
-
-
-    for (int i = 0; i < curve1.size()-1; ++i) {
-        auto s1 = curve1[i];
-        auto t1 = curve1[i+1];
-
-        const auto l1 = Line::fromTwoPoints(s1, t1);
-
-        for (int j = 0; j < curve2.size()-1; ++j) {
-
-            auto s2 = curve2[j];
-            auto t2 = curve2[j+1];
-
-            const auto l2 = Line::fromTwoPoints(s2, t2);
-
-            if (!isParallel(l1, l2)) {
-                const auto p = intersect(l1, l2);
-                Point mid = p;
-
-                distance_t c1_dist = s1.dist(mid);
-                distance_t c2_dist = s2.dist(mid);
-
-                if ((mid.x - s1.x)*(mid.x - t1.x) < 0
-                && (mid.x - s2.x)*(mid.x - t2.x) < 0) {
-                    // std::cout << c1_dist/(s1.dist(t1)) << std::endl;
-                    // std::cout << c2_dist/(s2.dist(t2)) << std::endl;
-                    // std::cout << s1 << std::endl;
-                    // std::cout << t1 << std::endl;
-                    // std::cout << s2 << std::endl;
-                    // std::cout << t2 << std::endl;
-                    // std::cout << mid << std::endl;
-                    new_c_points_1.push_back(CPoint(i, c1_dist/(s1.dist(t1))));
-                    new_c_points_2.push_back(CPoint(j, c2_dist/(s2.dist(t2))));
-                }
-            }
-        }
-    }
-
-    std::sort(new_c_points_1.begin(), new_c_points_1.end());
-    std::sort(new_c_points_2.begin(), new_c_points_2.end());
-
-    Points new_points_1 = Points();
-
-    for (auto c: new_c_points_1)
-        if (new_points_1.size() == 0 || !approx_equal(curve1.interpolate_at(c), new_points_1.back()))
-            new_points_1.push_back(curve1.interpolate_at(c));
-
-    Points new_points_2 = Points();
-
-    for (auto c: new_c_points_2)
-        if (new_points_2.size() == 0 || !approx_equal(curve2.interpolate_at(c), new_points_2.back()))
-            new_points_2.push_back(curve2.interpolate_at(c));
-
-    Curve new_curve1 = Curve("", new_points_1);
-    Curve new_curve2 = Curve("", new_points_2);
-
-    n = new_curve1.size();
-    m = new_curve2.size();
-
     in_functions = std::vector<std::vector<Entry>>(n, std::vector<Entry>(m));
 
     for (int i = 0; i < n-1; ++i)
         for (int j = 0; j < m-1; ++j) {
-            process_cell(i, j, new_curve1, new_curve2);
+            process_cell(i, j, curve1, curve2);
         }
-
-    // for (int i = 1; i < n-1; ++i)
-    //     for (int j = 1; j < m-1;++j) {
-    //         auto top = in_functions[i][j-1].bottom.pieces.back();
-    //         auto right = in_functions[i-1][j].left.pieces.back();
-
-    //         if (!approx_equal(top.polynomial(top.interval.max), 
-    //         right.polynomial(right.interval.max))) {
-    //             std::cout << "do not match: " << i-1 << ", " << j-1 << std::endl;
-    //              std::cout << top.polynomial(top.interval.max) << " != " << right.polynomial(right.interval.max) << std::endl;
-    //             // assert(false);
-    //         }
-    //     }
-
-    auto output = std::vector<std::vector<double>>();
     // write_heat_map(new_curve1, new_curve2);
     // compute_warping_path(new_curve1, new_curve2, output, n-2, m-1, new_curve1.curve_length(n-2, n-1), true);
     // io::export_points("c1.txt", new_curve1.get_points());
     // io::export_points("c2.txt", new_curve2.get_points());
 
-    for (int i = output.size()-1; i > -1; --i) {
-        Point p1(output[i][0], output[i][1]);
-        Point p2(output[i][2], output[i][3]);
+    // for (int i = output.size()-1; i > -1; --i) {
+    //     Point p1(output[i][0], output[i][1]);
+    //     Point p2(output[i][2], output[i][3]);
 
-        if (warping_path.size() == 0 || !approx_equal(warping_path.back(), p1))
-            warping_path.push_back(p1);
+    //     if (warping_path.size() == 0 || !approx_equal(warping_path.back(), p1))
+    //         warping_path.push_back(p1);
 
-        if (!approx_equal(p1, p2))
-            warping_path.push_back(p2);
-    }
+    //     if (!approx_equal(p1, p2))
+    //         warping_path.push_back(p2);
+    // }
 
     double max_x = 0;
     double max_y = 0;
@@ -1263,192 +1212,5 @@ void CDTW<dimension, image_norm, param_norm>::find_max_pieces() {
         }
     }
 }
-
-
-// template<size_t dimension, Norm image_norm, Norm param_norm>
-// CDTW<dimension, image_norm, param_norm>::CDTW(Curve& _curve1, Curve& _curve2) :
-//     curve1(_curve1), curve2(_curve2),
-//     n(curve1.size()), m(curve2.size()),
-//     in_functions(n, std::vector<Entry>(m))
-// {
-//     struct Function {
-//         PiecewisePolynomial<D> f;
-//         distance_t min_cost;
-//         bool open; // Whether this function is currently in the open_set
-//     };
-
-//     // Curve new_curve1("", curve1.get_points());
-//     // Curve new_curve2("", curve2.get_points());
-
-//     // if (dimension == 2 && image_norm == Norm::L1 && param_norm == Norm::L1) {
-
-//         int new_n;
-//         int new_m;
-
-//         std::vector<CPoint> new_c_points_1 = std::vector<CPoint>();
-//         std::vector<CPoint> new_c_points_2 = std::vector<CPoint>();
-
-//         for (int i = 0; i < curve1.size(); ++i) {
-//             new_c_points_1.push_back(CPoint(i, 0));
-//         }
-
-//         for (int i = 0; i < curve2.size(); ++i) {
-//             new_c_points_2.push_back(CPoint(i, 0));
-//         }
-
-
-//         for (int i = 0; i < curve1.size()-1; ++i) {
-//             auto s1 = curve1[i];
-//             auto t1 = curve1[i+1];
-
-//             const auto l1 = Line::fromTwoPoints(s1, t1);
-
-//             for (int j = 0; j < curve2.size()-1; ++j) {
-
-//                 auto s2 = curve2[j];
-//                 auto t2 = curve2[j+1];
-
-//                 const auto l2 = Line::fromTwoPoints(s2, t2);
-
-//                 if (!isParallel(l1, l2)) {
-//                     const auto p = intersect(l1, l2);
-//                     Point mid = p;
-
-//                     distance_t c1_dist = s1.dist(mid);
-//                     distance_t c2_dist = s2.dist(mid);
-
-//                     if ((mid.x - s1.x)*(mid.x - t1.x) < 0
-//                     && (mid.x - s2.x)*(mid.x - t2.x) < 0) {
-//                         std::cout << c1_dist/(s1.dist(t1)) << std::endl;
-//                         std::cout << c2_dist/(s2.dist(t2)) << std::endl;
-//                         // std::cout << s1 << std::endl;
-//                         // std::cout << t1 << std::endl;
-//                         // std::cout << s2 << std::endl;
-//                         // std::cout << t2 << std::endl;
-//                         // std::cout << mid << std::endl;
-//                         new_c_points_1.push_back(CPoint(i, c1_dist/(s1.dist(t1))));
-//                         new_c_points_2.push_back(CPoint(j, c2_dist/(s2.dist(t2))));
-//                     }
-//                 }
-//             }
-//         }
-
-//         std::sort(new_c_points_1.begin(), new_c_points_1.end());
-//         std::sort(new_c_points_2.begin(), new_c_points_2.end());
-    
-//         Points new_points_1 = Points();
-
-//         for (auto c: new_c_points_1)
-//             new_points_1.push_back(curve1.interpolate_at(c));
-
-//         Points new_points_2 = Points();
-
-//         for (auto c: new_c_points_2)
-//             new_points_2.push_back(curve2.interpolate_at(c));
-
-//         Curve new_curve1 = Curve("", new_points_1);
-//         Curve new_curve2 = Curve("", new_points_2);
-//     // }
-
-//     std::unordered_map<Coord, Function, typename Coord::hash> functions;
-//     std::priority_queue<PQNode, std::vector<PQNode>, std::greater<>> open_set;
-
-//     {
-//         const Cell cell(new_curve1[0], new_curve2[0], new_curve1[1], new_curve2[1]);
-
-//         const Function f1{base_bottom(cell), 0, true};
-//         const Coord c1{0, 0, Side::BOTTOM};
-//         functions.insert_or_assign(c1, f1);
-//         open_set.push({f1.f.min_value(), c1});
-//     }
-
-//     distance_t min_result_cost = std::numeric_limits<distance_t>::infinity();
-
-//     size_t nodes_handled = 0;
-//     size_t nodes_skipped = 0;
-//     size_t nodes_opened = open_set.size();
-//     size_t nodes_reopened = 0;
-
-//     while (!open_set.empty()) {
-//         const PQNode node = open_set.top();
-//         open_set.pop();
-
-//         std::cout << node.coord << std::endl;
-
-// //        std::cout << min_result_cost << " " << node << '\n';
-//         const Coord coord = node.coord;
-//         Function& f = functions.at(coord);
-//         f.open = false;
-
-//         // We can no longer find a lower min_result_cost, so the search is finished
-//         if (node.min_cost >= min_result_cost) {
-//             break;
-//         }
-
-//         if (node.min_cost > f.min_cost) {
-//             ++nodes_skipped;
-//             continue;
-//         }
-
-//         if (coord.i1 == new_curve1.size() - 1 || coord.i2 == new_curve2.size() - 1) {
-//             if (coord.i1 == new_curve1.size() - 2 || coord.i2 == new_curve2.size() - 2) {
-//                 min_result_cost = std::min(min_result_cost, f.f.right_value());
-//             }
-//             ++nodes_skipped;
-//             continue;
-//         }
-
-//         ++nodes_handled;
-
-//         // Cell and transposed cell
-//         const Cell cell(new_curve1[coord.i1], new_curve2[coord.i2], new_curve1[coord.i1 + 1], new_curve2[coord.i2 + 1]);
-//         const Cell cell_t(new_curve2[coord.i2], new_curve1[coord.i1], new_curve2[coord.i2 + 1], new_curve1[coord.i1 + 1]);
-
-//         for (size_t i = 0; i < 2; ++i) { // 0 -> right, 1 -> top
-//             const PiecewisePolynomial<D> out_f = i == 0
-//                 ? (coord.side == Side::BOTTOM ? bottom_to_right(f.f, cell) : bottom_to_top(f.f, cell_t))
-//                 : (coord.side == Side::BOTTOM ? bottom_to_top(f.f, cell) : bottom_to_right(f.f, cell_t));
-//             const Coord out_coord = i == 0
-//                 ? coord.right()
-//                 : coord.top();
-
-            
-
-//             distance_t min_cost = out_f.min_value();
-
-//             auto it = functions.find(out_coord);
-//             if (it == functions.end()) {
-//                 functions.emplace(out_coord, Function{out_f, min_cost, true});
-//                 open_set.push({min_cost, out_coord});
-//                 ++nodes_opened;
-//             } else {
-//                 Function& prev_out = it->second;
-//                 // TODO: Only re-open function if lower_envelope has changed
-//                 fast_lower_envelope(prev_out.f, out_f);
-
-//                 if (min_cost < prev_out.min_cost) {
-//                     prev_out.open = true;
-//                     open_set.push({min_cost, out_coord});
-//                     ++nodes_reopened;
-//                 } else { // min_cost == prev_out.min_cost
-//                     if (!prev_out.open) {
-//                         prev_out.open = true;
-//                         open_set.push({min_cost, out_coord});
-//                         ++nodes_reopened;
-//                     }
-//                 }
-//             }
-//         }
-//     }
-
-
-//     cdtw_cost = min_result_cost;
-//     std::cout << min_result_cost << "\n";
-//     std::cout << "nodes_handled: " << nodes_handled << "\n";
-//     std::cout << "nodes_skipped: " << nodes_skipped << "\n";
-//     std::cout << "nodes_opened: " << nodes_opened << "\n";
-//     std::cout << "nodes_reopened: " << nodes_reopened << "\n";
-//     std::cout << "nodes remaining: " << open_set.size() << "\n";
-// }
 
 template class CDTW<2, Norm::L1, Norm::L1>;

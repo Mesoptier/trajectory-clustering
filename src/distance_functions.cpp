@@ -127,10 +127,18 @@ distance_t df::heur_cdtw_2d_l1_l1(Curve const& curve_1,
         auto const res = std::max(static_cast<std::size_t>(
         (curve_1.curve_length() + curve_2.curve_length())
         / (curve_1.size() + curve_2.size()) / 5), 1UL);
-    write_heur_warping_path(IntegralFrechet(curve_1, curve_2, ParamMetric::L1, res, nullptr, ImageMetric::L1)
-        .compute_matching());
     return IntegralFrechet(curve_1, curve_2, ParamMetric::L1, res, nullptr, ImageMetric::L1)
         .compute_matching().cost;
+}
+
+distance_t df::heur_cdtw_2d_l1_l1_path(Curve const& curve_1, Curve const& curve_2) {
+    auto const res = std::max(static_cast<std::size_t>(
+        (curve_1.curve_length() + curve_2.curve_length())
+        / (curve_1.size() + curve_2.size()) / 5), 1UL);
+        auto matching = IntegralFrechet(curve_1, curve_2, ParamMetric::L1, res, nullptr, ImageMetric::L1)
+        .compute_matching();
+    write_heur_warping_path(matching);
+    return matching.cost;
 }
 
 bool df::dtw_lt(Curve const& curve_1, Curve const& curve_2, distance_t delta) {

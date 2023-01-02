@@ -49,6 +49,8 @@ struct BivariatePolynomial
 
     BivariatePolynomial<D> operator+(const BivariatePolynomial<D>& rhs);
 
+    BivariatePolynomial<D> operator*(double a);
+
     // friend std::ostream& operator<<(std::ostream& os, const BivariatePolynomial<D>& p);
 
 

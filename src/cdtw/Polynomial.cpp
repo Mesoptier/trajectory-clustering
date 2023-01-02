@@ -152,6 +152,10 @@ Polynomial<2> Polynomial<2>::translate_xy(double cx, double cy) const {
 
     template<>
     bool Polynomial<2>::operator==(const Polynomial<2>& rhs) const {
+        for (int i = 0; i < coefficients.size(); ++i)
+            if (!approx_equal(coefficients[i], rhs.coefficients[i]))
+                return false;
+        return true;
         return coefficients == rhs.coefficients;
     }
 

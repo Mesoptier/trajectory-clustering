@@ -74,6 +74,16 @@ namespace df {
     distance_t heur_cdtw_2d_l1_l1(Curve const& curve_1, Curve const& curve_2);
 
     /**
+     * @brief Compute the 2d_l1_l1 cdtw distance vetween two curves using the heurisitic algorithm 
+     * and write the resulting warping to the file warping_path_h.txt
+     * 
+     * @param curve_1 First curve.
+     * @param curve_2 Second curve.
+     * @return The distance.
+     */
+    distance_t heur_cdtw_2d_l1_l1_path(Curve const& curve_1, Curve const& curve_2);
+
+    /**
      * \brief Compute the average Fréchet distance between two curves
      * (integral_frechet_fast) with curve-length adjustments.
      * \param curve_1 First curve.

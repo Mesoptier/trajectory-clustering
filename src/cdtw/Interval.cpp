@@ -35,3 +35,9 @@ Interval_c Interval_c::intersect(Interval_c& other) {
 
     return { left, right };
 }
+
+bool Interval_c::intersects(Interval_c& other) {
+    return (contains_excl(other.min) || contains_excl(other.max))
+    || (other.contains_excl(min) || other.contains_excl(max)) ||
+    (approx_equal(min, other.min) && approx_equal(max, other.max));
+}

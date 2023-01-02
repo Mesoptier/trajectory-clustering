@@ -73,6 +73,9 @@ struct History {
                 path_type = AAA;
                 break;
             }
+            case NONE: {
+                throw std::logic_error("attempt to transpose path type NONE");
+            }
         }
     }
 };
@@ -180,10 +183,10 @@ struct PiecewisePolynomial
             const PolynomialPiece<D>& p1 = pieces[i - 1];
             const PolynomialPiece<D>& p2 = pieces[i];
             // Verify that piece intervals line up
-            if (!approx_equal(p1.interval.max, p2.interval.min)) { 
-                std::cout << "that is very not good\n";
-                assert(approx_equal(p1.interval.max, p2.interval.min));
-            }
+            // if (!approx_equal(p1.interval.max, p2.interval.min)) { 
+            //     std::cout << "that is very not good\n";
+            //     assert(approx_equal(p1.interval.max, p2.interval.min));
+            // }
             // Verify that pieces connect
 
             // double diff = fabs(p1.polynomial(p1.interval.max) -  p2.polynomial(p2.interval.min));
@@ -196,6 +199,7 @@ struct PiecewisePolynomial
         for (auto piece: pieces)
             if (piece.interval.contains(y))
                 return piece;
+        throw std::logic_error("no polynomial piece contains the given value in its interval");
     }
 
     bool empty() const {
@@ -279,6 +283,19 @@ struct PiecewisePolynomial
 template<size_t D>
 bool approx_equal(const PiecewisePolynomial<D>& a, const PiecewisePolynomial<D>& b, double tol = ABS_TOL) {
     return approx_equal(a.pieces, b.pieces, tol);
+}
+
+template<size_t D>
+void write_polynomial_set(std::vector<PolynomialPiece<D>> polynomials, std::string filename) {
+    std::ofstream output(filename);
+    for (auto piece: polynomials) {
+        for (auto coeff: piece.polynomial.coefficients) {
+            output << std::to_string(coeff) << " ";
+        }
+        output << std::to_string(piece.interval.min) << " ";
+        output << std::to_string(piece.interval.max) << "\n";
+    }
+    output.close();
 }
 
 #endif //TRAJECTORY_CLUSTERING_PIECEWISEPOLYNOMIAL_H

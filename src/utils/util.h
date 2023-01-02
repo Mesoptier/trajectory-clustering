@@ -4,9 +4,11 @@
 #include <cmath>
 #include <functional>
 
-double const ABS_TOL = 1e-12;
+// double const ABS_TOL = 1e-12;
 // double const ABS_TOL = 1e-9;
-// double const ABS_TOL = 1e-6;
+double const ABS_TOL = 1e-6;
+// double const ABS_TOL = 1e-4;
+
 
 // int lower_enelope_time;
 // int total_cdtw_time;

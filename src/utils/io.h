@@ -7,6 +7,7 @@
 #include "Curve.h"
 #include "geom.h"
 
+
 namespace io {
     /**
      * \brief Read the curve coordinates from a file, skipping the header.

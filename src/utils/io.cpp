@@ -5,6 +5,7 @@
 
 void io::read_curve(std::string const& filename, Curve& curve,
         std::size_t header_size) {
+            distance_t scale = 1;
     std::ifstream file(filename);
     if (!file.is_open())
         throw std::runtime_error("Failed to open file " + filename);
@@ -20,7 +21,7 @@ void io::read_curve(std::string const& filename, Curve& curve,
         // Ignore duplicate coordinates
         if (!curve.empty() && approx_equal(curve.back(), {x, y}))
             continue;
-        curve.push_back({x, y});
+        curve.push_back({scale*x, scale*y});
     }
 
     file.close();

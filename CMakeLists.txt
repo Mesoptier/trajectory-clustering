@@ -47,7 +47,9 @@ set(GNU_OPTIONS
 set(CLANG_OPTIONS
     "-Weverything" "-Wno-c++98-compat" "-Wno-covered-switch-default"
     "-Wno-float-equal" "-Wno-double-promotion" "-Wno-unused-template"
-    "-Wno-c++98-compat-pedantic" "-Wno-padded" "-Wno-weak-template-vtables" "-Wl,--no-as-needed" "-lprofiler -Wl","--as-needed")
+    "-Wno-c++98-compat-pedantic" "-Wno-padded" "-Wno-weak-template-vtables" 
+    "-Wl,--no-as-needed" "-lprofiler -Wl" "--as-needed"
+     "-fprofile-instr-generate" "fprofile-arcs" "-fcoverage-mapping")
 
 # set(MSVC_OPTIONS "/W4")
 

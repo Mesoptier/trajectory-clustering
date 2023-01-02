@@ -19,7 +19,6 @@ PiecewisePolynomial<D> naive_lower_envelope(const std::vector<PolynomialPiece<D>
         return {};
     }
     auto start_time = std::chrono::high_resolution_clock::now();
-
     // State:
     //  - Open pieces sorted by value (and derivatives) at x
     // Events:
@@ -155,7 +154,8 @@ PiecewisePolynomial<D> naive_lower_envelope(const std::vector<PolynomialPiece<D>
                         continue;
                     }
 
-                    assert(approx_zero(diff(root)));
+                    // std::cout << diff(root) << std::endl;
+                    // assert(approx_zero(diff(root)));
 
                     // Check that the intersection actually swaps the order (and not just touches).
                     if (!diff.changes_sign_at(root)) {

@@ -3,45 +3,6 @@
 
 #include "cdtw.h"
 #include "BivariatePolynomial.h"
-// #include "1d-l1-l1.h"
-
-//
-// 2D + L1 image norm + L1 param norm
-//
-
-// struct Constraint {
-//     bool is_y_constraint;
-//     bool is_lower_bound;
-//     double y_bound;
-//     Polynomial<1> x_bound;
-
-//     Constraint(bool y_const, bool lower_bound, double _y_bound, Polynomial<1> _x_bound) :
-//     is_y_constraint(y_const), is_lower_bound(lower_bound), y_bound(_y_bound), x_bound(_x_bound) {}
-
-//     bool valid_point(Point p);
-
-//     Point normal();
-
-//     void shift();
-
-//     Point boundary_point();
-
-//     bool zero_between(const Constraint& other);
-
-//     bool operator==(const Constraint& rhs);
-
-//     bool operator!=(const Constraint& rhs);
-// };
-
-// bool domain_covered(std::vector<ConstrainedBivariatePolynomial<2>> costs, const Cell& cell);
-
-// bool is_parallel(Constraint a, Constraint b);
-
-// Point intersect(Constraint a, Constraint b);
-
-// bool valid_triple(Constraint a, Constraint b, Constraint c);
-
-// bool valid_constraints(ConstrainedBivariatePolynomial<2>& poly);
 
 /**
  * 
@@ -152,7 +113,7 @@ std::vector<ConstrainedBivariatePolynomial<2>>
 bottom_to_right_axis_paths(const Cell& cell, Line& axis);
 
 std::vector<ConstrainedBivariatePolynomial<2>>
-bottom_right_axis_integrals(Line axis, const Cell& cell);
+bottom_right_valley_integrals(Line axis, const Cell& cell);
 
 std::vector<ConstrainedBivariatePolynomial<2>>
 bottom_to_right_costs_2D(const Cell& cell);
@@ -172,7 +133,7 @@ Interval_c y_range);
 
 
 std::vector<ConstrainedBivariatePolynomial<2>>
-bottom_top_axis_integrals(Line axis, const Cell& cell);
+bottom_top_valley_integrals(Line axis, const Cell& cell);
 
 std::vector<ConstrainedBivariatePolynomial<2>>
 bottom_to_top_costs_2D(const Cell& cell);

@@ -24,6 +24,8 @@ struct Interval_c {
     double interpolate(double t) const;
 
     Interval_c intersect(Interval_c& other);
+
+    bool intersects(Interval_c& other);
 };
 
 template<>

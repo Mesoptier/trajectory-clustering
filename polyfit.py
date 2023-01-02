@@ -2,7 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
 
-truncate = pd.read_csv('trunc_results.csv')
+truncate = pd.read_csv('trunc_results_char.csv')
 sample = pd.read_csv('sample_results.csv')
 
 pieces_trunc = truncate["number_of_pieces"].to_list()
@@ -24,7 +24,7 @@ ax.set_ylabel("piece-wise polynomial size", fontdict={'fontsize':16})
 ax.set_xlabel("curve size", fontdict={'fontsize':16})
 s = poly
 # plt.text(80, 4, s, bbox=dict(fill=False, edgecolor='red', linewidth=2))
-plt.savefig("polynomial_pieces_truncate_pigeon")
+plt.savefig("polynomial_pieces_truncate_char")
 print(poly)
 fig, ax = plt.subplots()
 # ax.plot(pieces_trunc, label='polynomial pieces')
@@ -33,6 +33,6 @@ ax.plot(x, np.polyval(poly_time, x), label='fit')
 ax.legend(prop={'size': 16})
 ax.set_ylabel("execution time (milliseconds)", fontdict={'fontsize':16})
 ax.set_xlabel("curve size", fontdict={'fontsize':16})
-plt.savefig("time_truncate_pigeon")
+plt.savefig("time_truncate_char")
 
 print(poly_time)

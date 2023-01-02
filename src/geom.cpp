@@ -167,8 +167,32 @@ bool MonotoneComparator::operator()(Point const& a, Point const& b) {
 //
 // Lines
 //
+
+std::ostream& operator<<(std::ostream& out, Line const& l) {
+    out << std::setprecision(15)
+        << "origin: " << l.origin << " direction: " << l.direction;
+    return out;
+}
+
 Point Line::closest(Point const& point) const {
     return direction * dot(point - origin, direction) + origin;
+}
+
+Points Line::closest_l1(Point const& point) const {
+    if (!isVertical() && !isHorizontal()) {
+        if (abs(point.x - getX(point.y)) 
+        < abs(point.y - getY(point.x)))
+            return {{getX(point.y), point.y}};
+        else if (abs(point.x - getX(point.y)) 
+        > abs(point.y - getY(point.x)))
+            return {{point.x, getY(point.x)}};
+        else {
+            return {{getX(point.y), point.y}, {point.x, getY(point.x)}};
+        }
+    }
+    if (isVertical())
+        return {{getX(point.y), point.y}};
+    return {{point.x, getY(point.x)}}; 
 }
 
 int Line::side(Point const& point) const {
