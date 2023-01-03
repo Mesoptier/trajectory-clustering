@@ -4,87 +4,6 @@
 #include "cdtw.h"
 #include "BivariatePolynomial.h"
 
-/**
- * 
- * Samples points from the domian
- * of a constrained bivariate quadratic
- */
-std::vector<Point> sample_domain(ConstrainedBivariatePolynomial<2>& poly);
-
-
-bool valid_point(ConstrainedBivariatePolynomial<2>& poly, Point p);
-
-bool is_positive(ConstrainedBivariatePolynomial<2>& poly);
-
-
-
-/**
- * Explicity solves an integral and returns a vector
- * of constrained bivariate quadratic functions
- * 
- * 
-*/
-std::vector<ConstrainedBivariatePolynomial<2>>
-solve_integral(BivariatePolynomial<1> low_lim, 
-BivariatePolynomial<1> hi_lim,
-BivariatePolynomial<1> integrand, double t_coeff,
-Interval_c y_range, std::vector<Polynomial<1>> left_constraints, std::vector<Polynomial<1>> right_constraints);
-
-//TODO: Implement this properly
-bool has_positive_slope(Line line);
-
-distance_t get_angle(Line line);
-
-bool contains_midpoint(const Cell& cell);
-
-
-std::vector<Cell> 
-get_subdivision(const Cell& cell);
-
-double param_space_coord(const Point& s, const Point& t, Point a);
-
-Point param_space(const Point& s1, const Point& t1,
-const Point& s2, const Point& t2,
-Point a, Point b);
-
-/**
- * Determines if axis is monote
- * @param axis
- * @return true if axis is monotone, false otherwise
- * */
-bool is_monotone(Line& axis);
-
-struct CellIntersections {
-    Point left;
-    Point right;
-    Point bottom;
-    Point top;
-
-    std::vector<bool> int_exists;
-};
-
-/**
- * computes the intersections
- * of the given line with the four lines
- * through the cell boundaries
- */
-CellIntersections get_intersections(const Cell& cell, Line& line);
-
-bool intersects_cell(const Cell& cell, CellIntersections& intersections);
-
-Line axis_from_points(const Cell& cell, 
-Point l1_p1, Point l2_p1, Point l1_p2, Point l2_p2);
-
-
-/**
-* Get axes for given cell
-* @param cell
-* @return vector of lines corresponding to the axes which
-* intersect the cell
-*/
-std::vector<Line>
-get_axes(const Cell& cell);
-
 
 std::vector<ConstrainedBivariatePolynomial<2>>
 horizontal_int(BivariatePolynomial<1> low_lim, BivariatePolynomial<1> hi_lim,
@@ -94,7 +13,6 @@ std::vector<ConstrainedBivariatePolynomial<2>>
 vertical_int(BivariatePolynomial<1> low_lim, BivariatePolynomial<1> hi_lim,
 const Cell& cell, double x_coef, bool x_const
 );
-
 
 std::vector<ConstrainedBivariatePolynomial<2>>
 axis_int(BivariatePolynomial<1> low_lim, BivariatePolynomial<1> hi_lim, const Cell& cell, Line axis,

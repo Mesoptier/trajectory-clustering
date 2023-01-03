@@ -10,6 +10,8 @@ set(SOURCE_FILES
     cdtw/2d-l1-l1.cpp
     cdtw/cdtw.cpp
     cdtw/BivariatePolynomial.cpp
+    cdtw/integral_solver.cpp
+    cdtw/2d_utils.cpp
     classification_experiment.cpp
     Curve.cpp
     distance_functions.cpp

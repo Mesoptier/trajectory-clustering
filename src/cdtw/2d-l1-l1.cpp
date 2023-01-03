@@ -5,6 +5,7 @@
 #include "BivariatePolynomial.h"
 #include "2d-l1-l1.h"
 #include "2d_utils.h"
+#include "integral_solver.h"
 
 //
 // 2D + L1 image norm + L1 param norm
@@ -126,7 +127,6 @@ const Cell& cell, double x_coef, bool x_const
         for (auto term: terms_x)
             xterms.push_back(term);
 
-
         auto terms_y = solve_integral(low_lim, hi_lim,
             BivariatePolynomial<1>({{{{x_coef * _sin(alpha) + s1.y-s2.y, 0}},{{0, 0}}}}),
             _sin(beta), {sy, ty},
@@ -242,17 +242,17 @@ combine_steps(size_t step_count, std::vector<std::vector<ConstrainedBivariatePol
                 results.push_back(steps[0][i] + steps[1][j]);
 
                 // debugging
-                auto poly = results.back();
-                results.back().ymax = poly.y_interval.max;
-                double xmin = -1;
-                for (auto c: poly.left_constraints) {
-                    xmin = std::max(xmin, c(poly.y_interval.max));
-                }
-                results.back().xmin = xmin;
-                auto cost = poly.slice_at_y(poly.y_interval.max).polynomial(xmin);
-                results.back().test_value = cost;
+                // auto poly = results.back();
+                // results.back().ymax = poly.y_interval.max;
+                // double xmin = -1;
+                // for (auto c: poly.left_constraints) {
+                //     xmin = std::max(xmin, c(poly.y_interval.max));
+                // }
+                // results.back().xmin = xmin;
+                // auto cost = poly.slice_at_y(poly.y_interval.max).polynomial(xmin);
+                // results.back().test_value = cost;
             }
-            
+
     else if (step_count == 3)
         for (size_t i = 0; i < steps[0].size(); ++i)
             for (size_t j = 0; j < steps[1].size(); ++j)
@@ -261,15 +261,15 @@ combine_steps(size_t step_count, std::vector<std::vector<ConstrainedBivariatePol
                     results.push_back(lhs + steps[2][k]);
                     
                     // debugging
-                    auto poly = results.back();
-                    results.back().ymax = poly.y_interval.max;
-                    double xmin = -1;
-                    for (auto c: poly.left_constraints) {
-                        xmin = std::max(xmin, c(poly.y_interval.max));
-                    }
-                    results.back().xmin = xmin;
-                    auto cost = poly.slice_at_y(poly.y_interval.max).polynomial(xmin);
-                    results.back().test_value = cost;
+                    // auto poly = results.back();
+                    // results.back().ymax = poly.y_interval.max;
+                    // double xmin = -1;
+                    // for (auto c: poly.left_constraints) {
+                    //     xmin = std::max(xmin, c(poly.y_interval.max));
+                    // }
+                    // results.back().xmin = xmin;
+                    // auto cost = poly.slice_at_y(poly.y_interval.max).polynomial(xmin);
+                    // results.back().test_value = cost;
                 }
 
 
@@ -466,14 +466,14 @@ bottom_right_axis_integrals(Line axis, const Cell& cell) {
         costs.push_back(poly);
     }
 
-    for (auto cost: costs) {
-        if (valid_point(cost, {tx, 0}) && !approx_zero(cost.f({tx, 0}))) {
-            auto value = cost.f({tx, 0});            
-            // assert(false);
-        }
-        else if (valid_point(cost, {tx, 0}))
-            std::cout << "cost: " << cost.f({tx, 0}) << std::endl;
-    }
+    // for (auto cost: costs) {
+    //     if (valid_point(cost, {tx, 0}) && !approx_zero(cost.f({tx, 0}))) {
+    //         auto value = cost.f({tx, 0});            
+    //         // assert(false);
+    //     }
+    //     else if (valid_point(cost, {tx, 0}))
+    //         std::cout << "cost: " << cost.f({tx, 0}) << std::endl;
+    // }
 
     return costs;
 }
