@@ -156,9 +156,6 @@ struct ConstrainedBivariatePolynomial
 
         std::vector<Polynomial<1>> result;
 
-        if (approx_equal(init_set[0].coefficients[0], 1.4142135623730951) && approx_equal(init_set[0].coefficients[1], -1.0000049999625003))
-            std::cout << "...\n";
-
         for (auto c: init_set) {  
 
             bool undominated = true;
@@ -180,9 +177,6 @@ struct ConstrainedBivariatePolynomial
                     result.push_back(c);
             }
         }
-
-        if (result.size() == 0)
-            std::cout << "...\n";
 
         return result;
     }

@@ -9,10 +9,8 @@
 #include "src/utils/io.h"
 #include "src/cdtw/2d-l1-l1.h"
 #include "src/cdtw/cdtw.h"
-#include "src/test.h"
 #include "src/running_time_exp.h"
 #include <random>
-
 
 namespace {
     void value_test() {
@@ -150,6 +148,24 @@ namespace {
 
         std::cout << "heur_cost: " << heur_cost << std::endl;
         std::cout << "exact cost: " << cost << std::endl;
+    }
+
+    void correctness_debug() {
+        auto const ch_curves = io::read_curves("data/characters/data");
+        std::vector<int> ch_indices = std::vector<int>();
+        for (int i = 0; i <= ch_curves.size(); ++i)
+            ch_indices.push_back(i);
+        int seed = 10;
+        std::mt19937_64 g(seed);
+        std::shuffle(ch_indices.begin(), ch_indices.end(), g);
+
+        Curve c1 = ch_curves[ch_indices[19]].naive_l_simplification(20);
+        Curve c2 = ch_curves[ch_indices[20]].naive_l_simplification(20);
+    
+        auto cdtw = CDTW<2, Norm::L1, Norm::L1>(c1, c2);
+        auto cost = cdtw.cost();
+        cdtw.write_warping_path();
+        std::cout << cost << std::endl;
     }
 
     void correctness_experiments() {
@@ -309,8 +325,29 @@ void debug() {
     write_polynomial_set(envelope.pieces, "test_data/lower_envelope.txt");
 }
 
+void cross() {
+    Points p1 = {};
+    Points p2 = {};
+
+    for (int i = 0; i < 100; ++i) {
+        if (i%2 == 0) {
+            p1.push_back({0, 1});
+            p2.push_back({0, 0});
+        } else {
+            p1.push_back({1, 0});
+            p2.push_back({1, 1});
+        }
+    }
+
+    Curve c1("", p1);
+    Curve c2("", p2);
+
+    auto cdtw = CDTW<2, Norm::L1, Norm::L1>(c1, c2);
+}
+
 int main() {
-    value_test();
+    // cross();
+    // value_test();
     // value_test_2();
     // value_test_3();
     // value_test_4();
@@ -318,9 +355,10 @@ int main() {
     // thesis_example();
     // warping_path_example();
     // correctness_experiments();
+    correctness_debug();
     // negative_valley_test();
     // generate_figure();
-    // running_time::experiment();
+    // running_time::run_experiments();
     // test_for_profiler();
     // debug();
     // lower_envelope_test();

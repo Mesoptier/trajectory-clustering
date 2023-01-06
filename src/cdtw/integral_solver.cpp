@@ -1,5 +1,12 @@
 #include "integral_solver.h"
 
+/*
+* Given an inequality lhs(x, y) ineq rhs(x, y), where 
+* ineq is "<" or ">", returns a bound on x that can be obtained
+* by rearranging the inequality. The type of bound to be returned
+* is determined by side ('left' or 'right').
+* If no such bound can be obtained, an empty vector is returned.
+*/
 std::vector<Polynomial<1>> x_constraints(
     BivariatePolynomial<1> lhs, BivariatePolynomial<1> rhs, 
     std::string ineq, std::string side) {
@@ -28,7 +35,13 @@ std::vector<Polynomial<1>> x_constraints(
         }})};
 }
 
-
+/*
+* Given an inequality lhs(x, y) ineq rhs(x, y), where 
+* ineq is "<" or ">", returns a bound on y that can be obtained
+* by rearranging the inequality. Only constant bounds are considered,
+* i.e., the coeeficients of x must cancel.
+* If no such bound can be obtained, an empty vector is returned.
+*/
 std::vector<double> y_constraints(
     BivariatePolynomial<1> lhs, BivariatePolynomial<1> rhs, 
     std::string ineq, std::string side) {
@@ -97,28 +110,23 @@ void update_constraints(BivariatePolynomial<1> lhs, BivariatePolynomial<1> rhs, 
     }
 }
 
-/**
- * Explicity solves an integral and returns a vector
- * of constrained bivariate quadratic functions
-*/
 std::vector<ConstrainedBivariatePolynomial<2>>
 solve_integral(BivariatePolynomial<1> low_lim, 
 BivariatePolynomial<1> hi_lim,
-BivariatePolynomial<1> integrand, double t_coeff,
+BivariatePolynomial<1> polynomial, double t_coeff,
 Interval_c y_range, std::vector<Polynomial<1>> left_constraints, std::vector<Polynomial<1>> right_constraints) {
     auto output = std::vector<ConstrainedBivariatePolynomial<2>>();
         /*
         This function solves an integral of the form
-        int_{low_lim}^{hi_lim}|integrad - a*t|dt
-        where low_lim, hi_lim and integrad are linear
-        functions in two variables.
+        int_{low_lim}^{hi_lim}|polynomial - a*t|dt
+        where low_lim, hi_lim and polynomial are linear
+        functions in x and y.
         */
-    
 
 
-        /**
-         * Impose low_lim <= hi_lim constraints
-        */
+        
+        // Impose low_lim <= hi_lim constraints
+
         double lo_a = low_lim.coefficients[1][0];
         double lo_b = low_lim.coefficients[0][1];
         double lo_c = low_lim.coefficients[0][0];
@@ -163,9 +171,9 @@ Interval_c y_range, std::vector<Polynomial<1>> left_constraints, std::vector<Pol
         auto p2y = hi_lim.coefficients[0][1];
         auto p2c = hi_lim.coefficients[0][0];
 
-        auto p3x = integrand.coefficients[1][0];
-        auto p3y = integrand.coefficients[0][1];
-        auto p3c = integrand.coefficients[0][0];
+        auto p3x = polynomial.coefficients[1][0];
+        auto p3y = polynomial.coefficients[0][1];
+        auto p3c = polynomial.coefficients[0][0];
 
         auto a = t_coeff;
 
@@ -223,71 +231,14 @@ Interval_c y_range, std::vector<Polynomial<1>> left_constraints, std::vector<Pol
         double y_upper_bound = y_range.max;
         double y_lower_bound = y_range.min;
 
-        // Impose constraints on x and y to ensure P_3(x,y) - a*P_1(x,y) >= 0 and P_3(x,y) - a*P_2(x,y) >= 0
-        // is satisfied.
-        // ineq1: p3x*x + p3y*y + p3c -a*p1x*x - a*p1y*y - a*p1c >= 0
-        //        (p3x - a*p1x)*x >= (a*p1 - p3y)*y + (a*p1c - p3c)
-        // ineq2: p3x*x + p3y*y + p3c -a*p2x*x - a*p2y*y - a*p2c >= 0
-        //        (p3x - a*p2x)*x >= (a*p2 - p3y)*y + (a*p2c - p3c)
-
-        // if (approx_equal(p3x, a*p2x)) {
-        //     if (a*p2y > p3y && !approx_equal(a*p2y, p3y)) {
-        //         y_upper_bound = std::min(y_upper_bound, (p3c-a*p2c) / (a*p2y-p3y));
-        //     }
-        //     else if (a*p2y < p3y && !approx_equal(a*p2y, p3y))
-        //         y_lower_bound = std::max(y_lower_bound, (p3c-a*p2c) / (a*p2y-p3y));
-        //     else if (approx_equal(a*p2y, p3y)) {
-        //         if (!(p3c-a*p2c > 0) && 
-        //         !approx_equal(p3c, a*p2c)) {
-        //             y_upper_bound = -1;
-        //         }
-        //     }
-        // } 
-        // else if (p3x > a*p2x) {
-        //     case_1_left_constraints.push_back(Polynomial<1>({
-        //         (a*p2c - p3c) / (p3x-a*p2x), 
-        //         (a*p2y-p3y) / (p3x-a*p2x) 
-        //     }));
-        // } else if (p3x < a*p2x) {
-        //     case_1_right_constraints.push_back(Polynomial<1>({
-        //         (a*p2c-p3c) / (p3x-a*p2x), 
-        //         (a*p2y-p3y) / (p3x-a*p2x) 
-        //     }));
-        // } 
-
+        // Impose constraints on x and y to ensure P_3(x,y) - a*P_1(x,y) >= 0 and P_3(x,y) - a*P_2(x,y) >= 0.
         update_constraints(P3, P2*a, ">", case_1_left_constraints, case_1_right_constraints,
         y_lower_bound, y_upper_bound);
-        
-
-        // if (approx_equal(p3x, a*p1x)) {
-        //     if (a*p1y > p3y) {
-        //         y_upper_bound = std::min(y_upper_bound, (p3c-a*p1c) / (a*p1y-p3y));
-        //     }
-        //     else if (a*p1y < p3y)
-        //         y_lower_bound = std::max(y_lower_bound, (p3c-a*p1c) / (a*p1y-p3y));
-        //     else if (approx_equal(a*p1y, p3y)) {
-        //         if (!(p3c-a*p1c > 0 || approx_equal(p3c, a*p1c))) {
-        //             y_upper_bound = -1;
-        //         }
-        //     }
-        // } else if (p3x > a*p1x) {
-        //     case_1_left_constraints.push_back(Polynomial<1>({
-        //         (a*p1c-p3c) / (p3x-a*p1x), 
-        //         (a*p1y-p3y) / (p3x-a*p1x) 
-        //     }));
-        // } else if (p3x < a*p1x) {
-        //     case_1_right_constraints.push_back(Polynomial<1>({
-        //         (a*p1c-p3c) / (p3x-a*p1x), 
-        //         (a*p1y-p3y) / (p3x-a*p1x) 
-        //     }));
-        // }
-
         update_constraints(P3, P1*a, ">", case_1_left_constraints, case_1_right_constraints,
         y_lower_bound, y_upper_bound);
 
         for (auto constraint: left_constraints) 
             case_1_left_constraints.push_back(constraint);
-
         for (auto constraint: right_constraints) 
             case_1_right_constraints.push_back(constraint);
         
@@ -347,59 +298,13 @@ Interval_c y_range, std::vector<Polynomial<1>> left_constraints, std::vector<Pol
         y_lower_bound = y_range.min;
 
         // Impose constraints to ensure P_3(x, y) -a*P_1(x, y) <= 0 && P_3(x, y) - a*P_2(x, y) <= 0
-        // if (approx_equal(p3x, a*p2x)) {
-        //     if (a*p2y > p3y)
-        //         y_lower_bound = std::max(y_lower_bound, (a*p2c-p3c) / (p3y-a*p2y));
-        //     else if (a*p2y < p3y)
-        //         y_upper_bound = std::min(y_upper_bound, (a*p2c-p3c) / (p3y-a*p2y));
-        //     else if (approx_equal(a*p2y, p3y)) {
-        //         if (!(p3c-a*p2c < 0) && !(approx_equal(p3c, a*p2c))) {
-        //             y_upper_bound = -1;
-        //         }
-        //     }
-        // } else if (p3x > a*p2x) {
-        //     case_2_right_constraints.push_back(Polynomial<1>({
-        //         (a*p2c-p3c) / (p3x-a*p2x), 
-        //         (a*p2y-p3y) / (p3x-a*p2x) 
-        //     }));
-        // } else if (p3x < a*p2x) {
-        //     case_2_left_constraints.push_back(Polynomial<1>({
-        //         (a*p2c-p3c) / (p3x-a*p2x), 
-        //         (a*p2y-p3y) / (p3x-a*p2x) 
-        //     }));
-        // }
-
         update_constraints(P3, P2*a, "<", case_2_left_constraints, case_2_right_constraints,
         y_lower_bound, y_upper_bound);
-
-        // if (approx_equal(p3x, a*p1x)) {
-        //     if (a*p1y > p3y)
-        //         y_lower_bound = std::max(y_lower_bound, (p3c-a*p1c) / (a*p1y-p3y));
-        //     else if (a*p1y < p3y)
-        //         y_upper_bound = std::min(y_upper_bound, (p3c-a*p1c) / (a*p1y-p3y));
-        //     else if (approx_equal(a*p1y, p3y)) {
-        //         if (!(p3c-a*p1c < 0) && !(approx_equal(p3c, a*p1c))) {
-        //             y_upper_bound = -1;
-        //         }
-        //     }
-        // } else if (p3x > a*p1x) {
-        //     case_2_right_constraints.push_back(Polynomial<1>({
-        //         (a*p1c-p3c) / (p3x-a*p1x), 
-        //         (a*p1y-p3y) / (p3x-a*p1x) 
-        //     }));
-        // } else if (p3x < a*p1x) {
-        //     case_2_left_constraints.push_back(Polynomial<1>({
-        //         (a*p1c-p3c) / (p3x-a*p1x), 
-        //         (a*p1y-p3y) / (p3x-a*p1x) 
-        //     }));
-        // }
-
         update_constraints(P3, P1*a, "<", case_2_left_constraints, case_2_right_constraints,
         y_lower_bound, y_upper_bound);
 
         for (auto constraint: left_constraints) 
             case_2_left_constraints.push_back(constraint);
-
         for (auto constraint: right_constraints) 
             case_2_right_constraints.push_back(constraint);
         
@@ -455,53 +360,9 @@ Interval_c y_range, std::vector<Polynomial<1>> left_constraints, std::vector<Pol
         y_upper_bound = y_range.max;
         y_lower_bound = y_range.min;
 
-        // if (approx_equal(p3x, p2x)) {
-        //     if (a*p2y > p3y)
-        //         y_lower_bound = std::max(y_lower_bound, (p3c-a*p2c) / (a*p2y-p3y));
-        //     else if (a*p2y < p3y)
-        //         y_upper_bound = std::min(y_upper_bound, (p3c-a*p2c) / (a*p2y-p3y));
-        //     else if (approx_equal(a*p2y, p3y)) {
-        //         if (!(p3c-a*p2c < 0) && !(approx_equal(p3c, a*p2c))) {
-        //             y_upper_bound = -1;
-        //         }
-        //     }
-        // } else if (p3x > a*p2x) {
-        //     case_3a_right_constraints.push_back(Polynomial<1>({
-        //         (a*p2c-p3c) / (p3x-a*p2x), 
-        //         (a*p2y-p3y) / (p3x-a*p2x) 
-        //     }));
-        // } else if (p3x < a*p2x) {
-        //     case_3a_left_constraints.push_back(Polynomial<1>({
-        //         (a*p2c-p3c) / (p3x-a*p2x), 
-        //         (a*p2y-p3y) / (p3x-a*p2x) 
-        //     }));
-        // }
-
+        // Impose constraints on x and y to ensure P_3(x,y) - a*P_1(x,y) >= 0 and P_3(x,y) - a*P_2(x,y) <= 0.
         update_constraints(P3, P2*a, "<", case_3a_left_constraints, case_3a_right_constraints,
         y_lower_bound, y_upper_bound);
-
-        // if (approx_equal(p3x, a*p1x)) {
-        //     if (a*p1y > p3y)
-        //         y_upper_bound = std::min(y_upper_bound, (p3c-a*p1c) / (a*p1y-p3y));
-        //     else if (a*p1y < p3y)
-        //         y_lower_bound = std::max(y_lower_bound, (p3c-a*p1c) / (a*p1y-p3y));
-        //     else if (approx_equal(a*p1y, p3y)) {
-        //         if (!(p3c-a*p1c > 0) && !(approx_equal(p3c, a*p1c))) {
-        //             y_upper_bound = -1;
-        //         }
-        //     }
-        // } else if (p3x > a*p1x) {
-        //     case_3a_left_constraints.push_back(Polynomial<1>({
-        //         (a*p1c-p3c) / (p3x-a*p1x), 
-        //         (a*p1y-p3y) / (p3x-a*p1x) 
-        //     }));
-        // } else if (p3x < a*p1x) {
-        //     case_3a_right_constraints.push_back(Polynomial<1>({
-        //         (a*p1c-p3c) / (p3x-a*p1x), 
-        //         (a*p1y-p3y) / (p3x-a*p1x) 
-        //     }));
-        // }
-
         update_constraints(P3, P1*a, ">", case_3a_left_constraints, case_3a_right_constraints,
         y_lower_bound, y_upper_bound);
 
@@ -566,53 +427,9 @@ Interval_c y_range, std::vector<Polynomial<1>> left_constraints, std::vector<Pol
         y_upper_bound = y_range.max;
         y_lower_bound = y_range.min;
 
-        // if (approx_equal(p3x, a*p2x)) {
-        //     if (a*p2y > p3y)
-        //         y_upper_bound = std::min(y_upper_bound, (p3c-a*p2c) / (a*p2y-p3y));
-        //     else if (a*p2y < p3y)
-        //         y_lower_bound = std::max(y_lower_bound, (p3c-a*p2c) / (a*p2y-p3y));
-        //     else if (approx_equal(a*p2y, p3y)) {
-        //         if (!(p3c-a*p2c > 0) && !(approx_equal(p3c, a*p2c))) {
-        //             y_upper_bound = -1;
-        //         }
-        //     }    
-        // } else if (p3x > a*p2x) {
-        //     case_3b_left_constraints.push_back(Polynomial<1>({
-        //         (a*p2c-p3c) / (p3x-a*p2x), 
-        //         (a*p2y-p3y) / (p3x-a*p2x) 
-        //     }));
-        // } else if (p3x < p2x) {
-        //     case_3b_right_constraints.push_back(Polynomial<1>({
-        //         (a*p2c-p3c) / (p3x-a*p2x), 
-        //         (a*p2y-p3y) / (p3x-a*p2x) 
-        //     }));
-        // }
-
+        // Impose constraints on x and y to ensure P_3(x,y) - a*P_1(x,y) <= 0 and P_3(x,y) - a*P_2(x,y) >= 0.
         update_constraints(P3, P2*a, ">", case_3b_left_constraints, case_3b_right_constraints,
         y_lower_bound, y_upper_bound);
-
-        // if (approx_equal(p3x, a*p1x)) {
-        //     if (a*p1y > p3y)
-        //         y_lower_bound = std::max(y_lower_bound, (p3c-a*p1c) / (a*p1y-p3y));
-        //     else if (a*p1y < p3y)
-        //         y_upper_bound = std::min(y_upper_bound, (p3c-a*p1c) / (a*p1y-p3y));
-        //     else if (approx_equal(a*p1y, p3y)) {
-        //         if (!(p3c-a*p1c < 0) && !(approx_equal(p3c, a*p1c))) {
-        //             y_upper_bound = -1;
-        //         }
-        //     }
-        // } else if (p3x > a*p1x) {
-        //     case_3b_right_constraints.push_back(Polynomial<1>({
-        //         (a*p1c-p3c) / (p3x-a*p1x), 
-        //         (a*p1y-p3y) / (p3x-a*p1x) 
-        //     }));
-        // } else if (p3x < a*p1x) {
-        //     case_3b_left_constraints.push_back(Polynomial<1>({
-        //         (a*p1c-p3c) / (p3x-a*p1x), 
-        //         (a*p1y-p3y) / (p3x-a*p1x) 
-        //     }));
-        // }
-
         update_constraints(P3, P1*a, "<", case_3b_left_constraints, case_3b_right_constraints,
         y_lower_bound, y_upper_bound);
 
@@ -631,7 +448,6 @@ Interval_c y_range, std::vector<Polynomial<1>> left_constraints, std::vector<Pol
             });
 
             output.back().history = "3b";
-
         }
 
     auto final_output = std::vector<ConstrainedBivariatePolynomial<2>>();

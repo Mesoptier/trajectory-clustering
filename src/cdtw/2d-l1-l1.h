@@ -45,12 +45,6 @@ horizontal_int_b2t(BivariatePolynomial<1> low_lim, BivariatePolynomial<1> hi_lim
 const Cell& cell, double height);
 
 std::vector<ConstrainedBivariatePolynomial<2>>
-axis_int_b2t(BivariatePolynomial<1> low_lim, BivariatePolynomial<1> hi_lim, const Cell& cell, Line axis,
-std::vector<Polynomial<1>> left_constraints, std::vector<Polynomial<1>> right_constraints, 
-Interval_c y_range);
-
-
-std::vector<ConstrainedBivariatePolynomial<2>>
 bottom_top_valley_integrals(Line axis, const Cell& cell);
 
 std::vector<ConstrainedBivariatePolynomial<2>>
@@ -62,7 +56,6 @@ PiecewisePolynomial<2> propagate(
     Iterator pieces_it,
     Iterator pieces_end
 );
-
 
 /**
  * Compute the cost function from the origin of the given cell to a point A along the bottom boundary of the cell.

@@ -362,9 +362,6 @@ template<class Iterator>
             // piece_out_cost: cost of optimal path from origin to point on out-boundary
             PiecewisePolynomial<D> piece_out_cost;
 
-            // if (approx_equal(cell_costs[0].f.coefficients[0][0], 0.0194395422591176) && approx_equal(cell_costs[0].f.coefficients[0][1], 0.18967521022380202)) {
-            //     std::cout << "hi\n";        
-            // }
 
             // cell_cost: cost of optimal path from point on in-boundary to point on out-boundary
             for (const auto& cell_cost : cell_costs) {
@@ -391,39 +388,20 @@ template<class Iterator>
             ++pieces_it;
         }
 
-        std::vector<PolynomialPiece<2>> suspects = {};
-        for (auto poly: min_pieces)
-            if (poly.history.path_type == AAU)
-                suspects.push_back(poly);
-
-        if (suspects.size() == 12 && pieces.size() == 2) {
-            
-            std::vector<ConstrainedBivariatePolynomial<2>> suspects_cell = {};
-            for (auto poly: cell_costs)
-                if (poly.path_type == AAU) {
-                    suspects_cell.push_back(poly);
-                
-                    distance_t cost_1 = pieces[1].polynomial(0) + poly.f.slice_at_y(1)(0);
-                    distance_t cost_2 = pieces[0].polynomial(0.99999979092296653) + poly.f.slice_at_y(1)(0.99999979092296653);
-                    auto diff = cost_2 - cost_1;
-                } 
-        }
-
-        // auto naive = naive_lower_envelope(min_pieces);
         // auto fast = fast_lower_envelope_v2(min_pieces);
-        // if (!are_equal(naive.pieces, fast.pieces)) {
-            // if (min_pieces.size() == 5) {
-                // std::cout << naive.pieces.back().polynomial(naive.pieces.back().interval.max) << std::endl;
-                // std::cout << fast.pieces.back().polynomial(fast.pieces.back().interval.max) << std::endl;
-                // are_equal(naive.pieces, fast.pieces);
-                // fast = fast_lower_envelope_v2(min_pieces);
-                // write_polynomial_set(min_pieces, "test_data/polynomial_set.txt");
-                // write_polynomial_set(naive.pieces, "test_data/naive.txt");
-                // write_polynomial_set(fast.pieces, "test_data/fast.txt");
-                // std::cout << "good\n"; 
-            // }
-            // are_equal(naive.pieces, fast.pieces);
+        // auto naive = naive_lower_envelope(min_pieces);
+        // if (!approx_equal(fast.pieces.back().polynomial(fast.pieces.back().interval.max),
+        // naive.pieces.back().polynomial(naive.pieces.back().interval.max))) {
+        //     std::cout << "difference: " << fast.pieces.back().polynomial(fast.pieces.back().interval.max) 
+        //     - naive.pieces.back().polynomial(naive.pieces.back().interval.max);
+        //     std::cout << "this is a problem\n";
         // }
+
+        // if (naive.pieces.back().history != fast.pieces.back().history)
+        //     std::cout << "this is also a problem\n";
+ 
+
+
         if (FAST_LOWER_ENVELOPE)
             return fast_lower_envelope_v2(min_pieces);
         else
@@ -462,9 +440,6 @@ void CDTW<dimension, image_norm, param_norm>::write_heat_map(const Curve& curve1
                 distance_t p2_frac = cp2.getFraction();
                 Point p2 = curve2[p2_id] + (curve2[p2_id+1] - curve2[p2_id])*p2_frac;
 
-
-                // Point p1 = new_curve1[cp1.getPoint()];
-                // Point p2 = new_curve2[cp2.getPoint()];
                 double height = norm == "L1" ? abs(p1.x - p2.x) + abs(p1.y - p2.y) :
                 sqrt(pow(p1.x - p2.x, 2) + pow(p1.y - p2.y, 2));
 
@@ -501,427 +476,425 @@ template<size_t dimension, Norm image_norm, Norm param_norm>
 void CDTW<dimension, image_norm, param_norm>::get_path_segs(PathType path_type, Boundaries boundaries, double in, double out,
 std::vector<std::vector<double>>& output, int i, int j, Line axis, bool left) {
 
-        std::vector<double> e1;
-        std::vector<double> e2;
-        std::vector<double> e3;
-        std::vector<double> e4;
+    std::vector<double> e1;
+    std::vector<double> e2;
+    std::vector<double> e3;
+    std::vector<double> e4;
 
-        double width; 
-        if (left && j > 0)
-            width = curve2.curve_length(j-1, j);
-        else if (j < curve2.size()-1)
-            width = curve2.curve_length(j, j+1);
-        else
-            width = 10000000;
+    double width; 
+    if (left && j > 0)
+        width = curve2.curve_length(j-1, j);
+    else if (j < curve2.size()-1)
+        width = curve2.curve_length(j, j+1);
+    else
+        width = 10000000;
 
-        double height;
-        if (left)
-            height = curve1.curve_length(i, i+1);
-        else if (i > 0)
-            height = curve1.curve_length(i-1, i);
-        else
-            height = 10000000;
+    double height;
+    if (left)
+        height = curve1.curve_length(i, i+1);
+    else if (i > 0)
+        height = curve1.curve_length(i-1, i);
+    else
+        height = 10000000;
 
-        std::vector<double> left_to_axis_a = {0, in, axis.getX(in), in};
-        std::vector<double> bottom_to_axis_u = {in, 0, in, axis.getY(in)};
-        std::vector<double> axis_to_right_a = {axis.getX(out), out, width, out};
-        std::vector<double> axis_to_top_u = {out, axis.getY(out), out, height};
+    std::vector<double> left_to_axis_a = {0, in, axis.getX(in), in};
+    std::vector<double> bottom_to_axis_u = {in, 0, in, axis.getY(in)};
+    std::vector<double> axis_to_right_a = {axis.getX(out), out, width, out};
+    std::vector<double> axis_to_top_u = {out, axis.getY(out), out, height};
 
-        std::vector<double> left_to_axis_u = {0, in, 0, axis.getY(0)};
-        std::vector<double> bottom_to_axis_a = {in, 0, axis.getX(0), 0};
-        std::vector<double> axis_to_right_u = {width, axis.getY(width), width, out};
-        std::vector<double> axis_to_top_a = {axis.getX(height), height, out, height};
+    std::vector<double> left_to_axis_u = {0, in, 0, axis.getY(0)};
+    std::vector<double> bottom_to_axis_a = {in, 0, axis.getX(0), 0};
+    std::vector<double> axis_to_right_u = {width, axis.getY(width), width, out};
+    std::vector<double> axis_to_top_a = {axis.getX(height), height, out, height};
 
-        std::vector<double> along_bt;// = {in, axis.getY(in), out, axis.getY(out)};
-        std::vector<double> along_br;// = {in, axis.getY(in), axis.getX(out), out};
-        std::vector<double> along_lr;// = {axis.getX(in), in, axis.getX(out), out};
-        std::vector<double> along_lt;// = {axis.getX(in), in, out, axis.getY(out)};
+    std::vector<double> along_bt;
+    std::vector<double> along_br;
+    std::vector<double> along_lr;
+    std::vector<double> along_lt;
 
-        switch (path_type) {
-            case (UAU): {
-                along_bt = {in, axis.getY(in), out, axis.getY(out)};
-                along_br = {in, axis.getY(in), axis.getX(out), out};
-                along_lr = {0, axis.getY(0), width, axis.getY(width)};
-                along_lt = {0, axis.getY(0), out, axis.getY(out)};
-                break;
-            }
-            case (UAA): {
-                along_bt = {in, axis.getY(in), axis.getX(height), height};
-                along_br = {in, axis.getY(in), axis.getX(out), out};
-                along_lr = {0, axis.getY(0), axis.getX(out), out};
-                along_lt = {0, axis.getY(0), axis.getX(height), height};
-                break;
-            }
-            case (AAA): {
-                along_bt = {axis.getX(0), 0, axis.getX(height), height};
-                along_br = {axis.getX(0), 0, width, axis.getY(width)};
-                along_lr = {axis.getX(in), in, axis.getX(out), out};
-                along_lt = {axis.getX(in), in, axis.getX(height), height};
-                break;
-            }
-            case (AAU): {
-                along_bt = {axis.getX(0), 0, out, axis.getY(out)};
-                along_br = {axis.getX(0), 0, axis.getX(out), out};
-                along_lr = {axis.getX(in), in, width, axis.getY(width)};
-                along_lt = {axis.getX(in), in, out, axis.getY(out)};
-                break;
-            }
-            case (AU):
-                break;
-            case (UA):
-                break;
-            case (NONE):
-                break;
+    switch (path_type) {
+        case (UAU): {
+            along_bt = {in, axis.getY(in), out, axis.getY(out)};
+            along_br = {in, axis.getY(in), axis.getX(out), out};
+            along_lr = {0, axis.getY(0), width, axis.getY(width)};
+            along_lt = {0, axis.getY(0), out, axis.getY(out)};
+            break;
+        }
+        case (UAA): {
+            along_bt = {in, axis.getY(in), axis.getX(height), height};
+            along_br = {in, axis.getY(in), axis.getX(out), out};
+            along_lr = {0, axis.getY(0), axis.getX(out), out};
+            along_lt = {0, axis.getY(0), axis.getX(height), height};
+            break;
+        }
+        case (AAA): {
+            along_bt = {axis.getX(0), 0, axis.getX(height), height};
+            along_br = {axis.getX(0), 0, width, axis.getY(width)};
+            along_lr = {axis.getX(in), in, axis.getX(out), out};
+            along_lt = {axis.getX(in), in, axis.getX(height), height};
+            break;
+        }
+        case (AAU): {
+            along_bt = {axis.getX(0), 0, out, axis.getY(out)};
+            along_br = {axis.getX(0), 0, axis.getX(out), out};
+            along_lr = {axis.getX(in), in, width, axis.getY(width)};
+            along_lt = {axis.getX(in), in, out, axis.getY(out)};
+            break;
+        }
+        case (AU):
+            break;
+        case (UA):
+            break;
+        case (NONE):
+            break;
+    }
+
+
+    if (path_type == UA) {
+
+        if (boundaries == BR) {
+
+            e2 = {width, out, in, out};
+            e1 = {in, out, in, 0};
+
+        } else if (boundaries == BT) {
+
+            e2 = {out, height, in, height};
+            e1 = {in, height, in, 0};
+
+        } else if (boundaries == LT) {
+
+            e2 = {out, height, 0, height};
+            e1 = {0, height, 0, in};
+
+        } else if (boundaries == LR) {
+
+            e2 = {width, out, 0, out};
+            e1 = {0, in, 0, in};
+
         }
 
+    } else if (path_type == AU) {
 
-        if (path_type == UA) {
+        if (boundaries == BR) {
 
-            if (boundaries == BR) {
+            e2 = {width, out, width, 0};
+            e1 = {width, 0, in, 0};
 
-                e2 = {width, out, in, out};
-                e1 = {in, out, in, 0};
+        } else if (boundaries == BT) {
 
-            } else if (boundaries == BT) {
+            e2 = {out, height, out, 0};
+            e1 = {out, 0, in, 0};
 
-                e2 = {out, height, in, height};
-                e1 = {in, height, in, 0};
+        } else if (boundaries == LT) {
 
-            } else if (boundaries == LT) {
+            e2 = {out, height, out, in};
+            e1 = {out, in, 0, in};
 
-                e2 = {out, height, 0, height};
-                e1 = {0, height, 0, in};
+        } else if (boundaries == LR) {
 
-            } else if (boundaries == LR) {
+            e2 = {width, out, 0, out};
+            e1 = {0, out, 0, in};
 
-                e2 = {width, out, 0, out};
-                e1 = {0, in, 0, in};
+        }
 
-            }
-
-        } else if (path_type == AU) {
-
-            if (boundaries == BR) {
-
-                e2 = {width, out, width, 0};
-                e1 = {width, 0, in, 0};
-
-            } else if (boundaries == BT) {
-
-                e2 = {out, height, out, 0};
-                e1 = {out, 0, in, 0};
-
-            } else if (boundaries == LT) {
-
-                e2 = {out, height, out, in};
-                e1 = {out, in, 0, in};
-
-            } else if (boundaries == LR) {
-
-                e2 = {width, out, 0, out};
-                e1 = {0, out, 0, in};
-
-            }
-
-        } else {
+    } else {
+        
+        if (boundaries == BR) {
             
-            if (boundaries == BR) {
+            if (path_type == UAU) {
+
+                e1 = bottom_to_axis_u;
+                e2 = along_br;
+                e3 = axis_to_right_u;
+
+            } else if (path_type == UAA) {
+
+                e1 = bottom_to_axis_u;
+                e2 = along_br;
+                e3 = axis_to_right_a;
+
+            } else if (path_type == AAA) {
+
+                e1 = bottom_to_axis_a;
+                e2 = along_br;
+                e3 = axis_to_right_a;
+
+            } else if (path_type == AAU) {
+
+                e1 = bottom_to_axis_a;
+                e2 = along_br;
+                e3 = axis_to_right_u;
+
+            }
+
+        } else if (boundaries == BT) {
+
+            if (path_type == UAU) {
+
+                e1 = bottom_to_axis_u;
+                e2 = along_bt;
+                e3 = axis_to_top_u;
+
+            } else if (path_type == UAA) {
+
+                e1 = bottom_to_axis_u;
+                e2 = along_bt;
+                e3 = axis_to_top_a;
+
+            } else if (path_type == AAA) {
                 
-                if (path_type == UAU) {
+                e1 = bottom_to_axis_a;
+                e2 = along_bt;
+                e3 = axis_to_top_a;
 
-                    e1 = bottom_to_axis_u;
-                    e2 = along_br;
-                    e3 = axis_to_right_u;
+            } else if (path_type == AAU) {
 
-                } else if (path_type == UAA) {
-
-                    e1 = bottom_to_axis_u;
-                    e2 = along_br;
-                    e3 = axis_to_right_a;
-
-                } else if (path_type == AAA) {
-
-                    e1 = bottom_to_axis_a;
-                    e2 = along_br;
-                    e3 = axis_to_right_a;
-
-                } else if (path_type == AAU) {
-
-                    e1 = bottom_to_axis_a;
-                    e2 = along_br;
-                    e3 = axis_to_right_u;
-
-                }
-
-            } else if (boundaries == BT) {
-
-                if (path_type == UAU) {
-
-                    e1 = bottom_to_axis_u;
-                    e2 = along_bt;
-                    e3 = axis_to_top_u;
-
-                } else if (path_type == UAA) {
-
-                    e1 = bottom_to_axis_u;
-                    e2 = along_bt;
-                    e3 = axis_to_top_a;
-
-                } else if (path_type == AAA) {
-                    
-                    e1 = bottom_to_axis_a;
-                    e2 = along_bt;
-                    e3 = axis_to_top_a;
-
-                } else if (path_type == AAU) {
-
-                    e1 = bottom_to_axis_a;
-                    e2 = along_bt;
-                    e3 = axis_to_top_u;
-
-                }
-
-            } else if (boundaries == LR) {
-
-                if (path_type == UAU) {
-
-                    e1 = left_to_axis_u;
-                    e2 = along_lr;
-                    e3 = axis_to_right_u;
-
-                } else if (path_type == UAA) {
-
-                    e1 = left_to_axis_u;
-                    e2 = along_lr;
-                    e3 = axis_to_right_a;
-
-                } else if (path_type == AAA) {
-                    
-                    e1 = left_to_axis_a;
-                    e2 = along_lr;
-                    e3 = axis_to_right_a;
-
-                } else if (path_type == AAU) {
-
-                    e1 = left_to_axis_a;
-                    e2 = along_lr;
-                    e3 = axis_to_right_u;
-
-                }
-
-            } else if (boundaries == LT) {
-
-                if (path_type == UAU) {
-
-                    e1 = left_to_axis_u;
-                    e2 = along_lt;
-                    e3 = axis_to_top_u;
-
-                } else if (path_type == UAA) {
-
-                    e1 = left_to_axis_u;
-                    e2 = along_lt;
-                    e3 = axis_to_top_a;
-
-                } else if (path_type == AAA) {
-                    
-                    e1 = left_to_axis_a;
-                    e2 = along_lt;
-                    e3 = axis_to_top_a;
-
-                } else if (path_type == AAU) {
-
-                    e1 = left_to_axis_a;
-                    e2 = along_lt;
-                    e3 = axis_to_top_u;
-
-                }
+                e1 = bottom_to_axis_a;
+                e2 = along_bt;
+                e3 = axis_to_top_u;
 
             }
-        }
 
-        if (((boundaries == BR) || (boundaries == BT)) && i == 0) {
-            e4 = {0, 0, in, 0};
-        } else if (((boundaries == LR) || (boundaries == LT)) && j == 0) {
-            e4 = {0, 0, 0, in};
-        }
+        } else if (boundaries == LR) {
 
-        int count = 0;
+            if (path_type == UAU) {
 
-        if (e3.size() > 0) {
-            output.push_back(e3);
-            ++count;
-        }
-        if (e2.size() > 0){
-            output.push_back(e2);
-            ++count;
-        }
-         if (e1.size() > 0) {
-            output.push_back(e1);
-            ++count;
-        }
-        if (e4.size() > 0) {
-            output.push_back(e4);
-            ++count;
-        }
+                e1 = left_to_axis_u;
+                e2 = along_lr;
+                e3 = axis_to_right_u;
 
-        double x_translation;
-        double y_translation;
+            } else if (path_type == UAA) {
 
-        for (int k = 0; k < count; ++k) {
-            if (i > 0) {
-                y_translation = left ? curve1.curve_length(0, i) : curve1.curve_length(0, i-1);
-                output[output.size()-1-k][1] = output[output.size()-1-k][1] + y_translation;
-                output[output.size()-1-k][3] = output[output.size()-1-k][3] + y_translation;
+                e1 = left_to_axis_u;
+                e2 = along_lr;
+                e3 = axis_to_right_a;
+
+            } else if (path_type == AAA) {
+                
+                e1 = left_to_axis_a;
+                e2 = along_lr;
+                e3 = axis_to_right_a;
+
+            } else if (path_type == AAU) {
+
+                e1 = left_to_axis_a;
+                e2 = along_lr;
+                e3 = axis_to_right_u;
+
             }
 
-            if (j > 0) {
-                x_translation = left ? curve2.curve_length(0, j-1) : curve2.curve_length(0, j);
-                output[output.size()-1-k][0] = output[output.size()-1-k][0] + x_translation;
-                output[output.size()-1-k][2] = output[output.size()-1-k][2] + x_translation;
+        } else if (boundaries == LT) {
+
+            if (path_type == UAU) {
+
+                e1 = left_to_axis_u;
+                e2 = along_lt;
+                e3 = axis_to_top_u;
+
+            } else if (path_type == UAA) {
+
+                e1 = left_to_axis_u;
+                e2 = along_lt;
+                e3 = axis_to_top_a;
+
+            } else if (path_type == AAA) {
+                
+                e1 = left_to_axis_a;
+                e2 = along_lt;
+                e3 = axis_to_top_a;
+
+            } else if (path_type == AAU) {
+
+                e1 = left_to_axis_a;
+                e2 = along_lt;
+                e3 = axis_to_top_u;
+
             }
         }
     }
+
+    if (((boundaries == BR) || (boundaries == BT)) && i == 0) {
+        e4 = {0, 0, in, 0};
+    } else if (((boundaries == LR) || (boundaries == LT)) && j == 0) {
+        e4 = {0, 0, 0, in};
+    }
+
+    int count = 0;
+
+    if (e3.size() > 0) {
+        output.push_back(e3);
+        ++count;
+    }
+    if (e2.size() > 0){
+        output.push_back(e2);
+        ++count;
+    }
+        if (e1.size() > 0) {
+        output.push_back(e1);
+        ++count;
+    }
+    if (e4.size() > 0) {
+        output.push_back(e4);
+        ++count;
+    }
+
+    double x_translation;
+    double y_translation;
+
+    for (int k = 0; k < count; ++k) {
+        if (i > 0) {
+            y_translation = left ? curve1.curve_length(0, i) : curve1.curve_length(0, i-1);
+            output[output.size()-1-k][1] = output[output.size()-1-k][1] + y_translation;
+            output[output.size()-1-k][3] = output[output.size()-1-k][3] + y_translation;
+        }
+
+        if (j > 0) {
+            x_translation = left ? curve2.curve_length(0, j-1) : curve2.curve_length(0, j);
+            output[output.size()-1-k][0] = output[output.size()-1-k][0] + x_translation;
+            output[output.size()-1-k][2] = output[output.size()-1-k][2] + x_translation;
+        }
+    }
+}
+    
+template<size_t dimension, Norm image_norm, Norm param_norm>
+void CDTW<dimension, image_norm, param_norm>::compute_warping_path(std::vector<std::vector<double>>& output, int i, int j, double y, bool left) {
+
+    if (i + j == 0)
+        return;
+
+    PolynomialPiece<2> piece = PolynomialPiece<2>({0, 1}, Polynomial<2>({{0, 0, 0}}));
+
+    if (left) {
+        piece = in_functions[i][j].left.get_piece(y);
+    } else {
+        piece = in_functions[i][j].bottom.get_piece(y);
+    }
+
+    auto boundaries = piece.history.boundaries;
+    auto path_type = piece.history.path_type;
+    auto axis = piece.history.axis;
+    double x = piece.history.x_poly(y);
+
+    get_path_segs(path_type, boundaries, x, y, output, i, j, axis, left);
+
+    switch(boundaries) {
+        case BR:
+            assert(left);
+            if (j == 0)
+                break;
+            else
+                compute_warping_path(output, i, j-1, x, false);
+            break;
+        case LR:
+            assert(left);
+            if (j == 0)
+                break;
+            else
+                compute_warping_path(output, i, j-1, x, true);
+            break;
+        case BT:
+            assert(!left);
+            if (i == 0)
+                break;
+            else
+                compute_warping_path(output, i-1, j, x, false);
+            break;
+        case LT:
+            assert(!left);
+            if (i == 0)
+                break;
+            else
+                compute_warping_path(output, i-1, j, x, true);
+            break;
+    }
+
+    for (int i = 0; i < output.size(); ++i) {
+        auto seg = output[i];
+        double x1 = seg[0];
+        double y1 = seg[1];
+        double x2 = seg[2];
+        double y2 = seg[3];
+
+        if ((x2 < x1 && !approx_equal(x1, x2)) 
+        || (y2 < y1 && !approx_equal(y, y2))) {
+            output[i] = {x2, y2, x1, y1};
+        }
+    }
+
+    io::write_path("warping_path.txt", output, curve1.size(), curve2.size()); 
+}
+
+template<size_t dimension, Norm image_norm, Norm param_norm>
+void CDTW<dimension, image_norm, param_norm>::write_warping_path() {
+    write_heat_map(curve1, curve2);
+    auto output = std::vector<std::vector<double>>();
+    compute_warping_path(output, n-2, m-1, curve1.curve_length(n-2, n-1), true);
+    io::export_points("c1.txt", curve1.get_points());
+    io::export_points("c2.txt", curve2.get_points());
+}
+
+template<size_t dimension, Norm image_norm, Norm param_norm>
+void CDTW<dimension, image_norm, param_norm>::process_cell(int i, int j, const Curve& curve1, const Curve& curve2) {
+    
+    auto cell_t = Cell(curve1[i], curve2[j], curve1[i+1], curve2[j+1]);
+    const Cell cell(curve2[j], curve1[i], curve2[j+1], curve1[i+1]);
+    
+    if (i == 0 && j == 0) {
+        auto bottom_poly = base_bottom(cell);
+        auto left_poly = base_bottom(cell_t);
+
+        for (auto piece: left_poly.pieces)
+            piece.history.transpose();
+
+        in_functions[0][0].bottom = bottom_poly;
+        in_functions[0][0].left = left_poly;
+    
+    } 
+
+    auto right_out_functions = std::vector<PolynomialPiece<D>>();
+    auto top_out_functions = std::vector<PolynomialPiece<D>>();
+
+    if (i > 0 || j == 0) {
+        // std::cout << in_functions[i][j].bottom.pieces.size();
+        auto b2r = bottom_to_right(in_functions[i][j].bottom, cell);
+        for (auto piece: b2r.pieces)
+            right_out_functions.push_back(piece);
+
+        auto b2t = bottom_to_top(in_functions[i][j].bottom, cell);
+        for (auto piece: b2t.pieces)
+            top_out_functions.push_back(piece);
+
+    }
+
+    if (j > 0 || i == 0) {
+        auto l2r = bottom_to_top(in_functions[i][j].left, cell_t);
 
     
-    template<size_t dimension, Norm image_norm, Norm param_norm>
-    void CDTW<dimension, image_norm, param_norm>::compute_warping_path(std::vector<std::vector<double>>& output, int i, int j, double y, bool left) {
-
-        if (i + j == 0)
-            return;
-
-        PolynomialPiece<2> piece = PolynomialPiece<2>({0, 1}, Polynomial<2>({{0, 0, 0}}));
-
-        if (left) {
-            piece = in_functions[i][j].left.get_piece(y);
-        } else {
-            piece = in_functions[i][j].bottom.get_piece(y);
+        for (auto piece: l2r.pieces) {
+            right_out_functions.push_back(piece);
+            right_out_functions.back().history.transpose();
         }
 
-        auto boundaries = piece.history.boundaries;
-        auto path_type = piece.history.path_type;
-        auto axis = piece.history.axis;
-        double x = piece.history.x_poly(y);
-
-        get_path_segs(path_type, boundaries, x, y, output, i, j, axis, left);
-
-        switch(boundaries) {
-            case BR:
-                assert(left);
-                if (j == 0)
-                    break;
-                else
-                    compute_warping_path(output, i, j-1, x, false);
-                break;
-            case LR:
-                assert(left);
-                if (j == 0)
-                    break;
-                else
-                    compute_warping_path(output, i, j-1, x, true);
-                break;
-            case BT:
-                assert(!left);
-                if (i == 0)
-                    break;
-                else
-                    compute_warping_path(output, i-1, j, x, false);
-                break;
-            case LT:
-                assert(!left);
-                if (i == 0)
-                    break;
-                else
-                    compute_warping_path(output, i-1, j, x, true);
-                break;
-        }
-
-        for (int i = 0; i < output.size(); ++i) {
-            auto seg = output[i];
-            double x1 = seg[0];
-            double y1 = seg[1];
-            double x2 = seg[2];
-            double y2 = seg[3];
-
-            if ((x2 < x1 && !approx_equal(x1, x2)) 
-            || (y2 < y1 && !approx_equal(y, y2))) {
-                output[i] = {x2, y2, x1, y1};
-            }
-        }
-
-        io::write_path("warping_path.txt", output, curve1.size(), curve2.size()); 
-    }
-
-    template<size_t dimension, Norm image_norm, Norm param_norm>
-    void CDTW<dimension, image_norm, param_norm>::write_warping_path() {
-        write_heat_map(curve1, curve2);
-        auto output = std::vector<std::vector<double>>();
-        compute_warping_path(output, n-2, m-1, curve1.curve_length(n-2, n-1), true);
-        io::export_points("c1.txt", curve1.get_points());
-        io::export_points("c2.txt", curve2.get_points());
-    }
-
-    template<size_t dimension, Norm image_norm, Norm param_norm>
-    void CDTW<dimension, image_norm, param_norm>::process_cell(int i, int j, const Curve& curve1, const Curve& curve2) {
-        
-        auto cell_t = Cell(curve1[i], curve2[j], curve1[i+1], curve2[j+1]);
-        const Cell cell(curve2[j], curve1[i], curve2[j+1], curve1[i+1]);
-        
-        if (i == 0 && j == 0) {
-            auto bottom_poly = base_bottom(cell);
-            auto left_poly = base_bottom(cell_t);
-
-            for (auto piece: left_poly.pieces)
-                piece.history.transpose();
-
-            in_functions[0][0].bottom = bottom_poly;
-            in_functions[0][0].left = left_poly;
-        
-        } 
-
-        auto right_out_functions = std::vector<PolynomialPiece<D>>();
-        auto top_out_functions = std::vector<PolynomialPiece<D>>();
-
-        if (i > 0 || j == 0) {
-            // std::cout << in_functions[i][j].bottom.pieces.size();
-            auto b2r = bottom_to_right(in_functions[i][j].bottom, cell);
-            for (auto piece: b2r.pieces)
-                right_out_functions.push_back(piece);
-
-            auto b2t = bottom_to_top(in_functions[i][j].bottom, cell);
-            for (auto piece: b2t.pieces)
-                top_out_functions.push_back(piece);
-
-        }
-
-        if (j > 0 || i == 0) {
-            auto l2r = bottom_to_top(in_functions[i][j].left, cell_t);
-
-        
-            for (auto piece: l2r.pieces) {
-                right_out_functions.push_back(piece);
-                right_out_functions.back().history.transpose();
-            }
-
-            auto l2t = bottom_to_right(in_functions[i][j].left, cell_t);
-            for (auto piece: l2t.pieces) {
-                top_out_functions.push_back(piece);
-                top_out_functions.back().history.transpose();
-            }
-        }
-
-        if (FAST_LOWER_ENVELOPE) {
-            if (j < in_functions[i].size()-1)
-                in_functions[i][j+1].left = fast_lower_envelope_v2(right_out_functions);
-            if (i < in_functions.size()-1)
-                in_functions[i+1][j].bottom = fast_lower_envelope_v2(top_out_functions);
-        } else {
-            if (j < in_functions[i].size()-1)
-                in_functions[i][j+1].left = naive_lower_envelope(right_out_functions);
-            if (i < in_functions.size()-1)
-                in_functions[i+1][j].bottom = naive_lower_envelope(top_out_functions);
+        auto l2t = bottom_to_right(in_functions[i][j].left, cell_t);
+        for (auto piece: l2t.pieces) {
+            top_out_functions.push_back(piece);
+            top_out_functions.back().history.transpose();
         }
     }
+
+    if (FAST_LOWER_ENVELOPE) {
+        if (j < in_functions[i].size()-1)
+            in_functions[i][j+1].left = fast_lower_envelope_v2(right_out_functions);
+        if (i < in_functions.size()-1)
+            in_functions[i+1][j].bottom = fast_lower_envelope_v2(top_out_functions);
+    } else {
+        if (j < in_functions[i].size()-1)
+            in_functions[i][j+1].left = naive_lower_envelope(right_out_functions);
+        if (i < in_functions.size()-1)
+            in_functions[i+1][j].bottom = naive_lower_envelope(top_out_functions);
+    }
+}
 
 template<size_t dimension, Norm image_norm, Norm param_norm>
 void CDTW<dimension, image_norm, param_norm>::print_complexity() const {
@@ -1025,7 +998,6 @@ void CDTW<dimension, image_norm, param_norm>::check_table() {
             //     assert(false);
         }
     }
-
 }
 
 
@@ -1155,21 +1127,6 @@ CDTW<dimension, image_norm, param_norm>::CDTW(Curve const& _curve1, Curve const&
         for (int j = 0; j < m-1; ++j) {
             process_cell(i, j, curve1, curve2);
         }
-    // write_heat_map(new_curve1, new_curve2);
-    // compute_warping_path(new_curve1, new_curve2, output, n-2, m-1, new_curve1.curve_length(n-2, n-1), true);
-    // io::export_points("c1.txt", new_curve1.get_points());
-    // io::export_points("c2.txt", new_curve2.get_points());
-
-    // for (int i = output.size()-1; i > -1; --i) {
-    //     Point p1(output[i][0], output[i][1]);
-    //     Point p2(output[i][2], output[i][3]);
-
-    //     if (warping_path.size() == 0 || !approx_equal(warping_path.back(), p1))
-    //         warping_path.push_back(p1);
-
-    //     if (!approx_equal(p1, p2))
-    //         warping_path.push_back(p2);
-    // }
 
     double max_x = 0;
     double max_y = 0;
@@ -1194,9 +1151,6 @@ CDTW<dimension, image_norm, param_norm>::CDTW(Curve const& _curve1, Curve const&
     path.close();
 
     max_pieces = std::max(in_functions[in_functions.size()-2].back().left.pieces.size(), in_functions.back()[in_functions[0].size()-2].bottom.pieces.size());
-
-    // std::cout << "segments: " << output.size() << std::endl;
-    // std::cout << "computed cdtw...\n";
 }
 
 template<size_t dimension, Norm image_norm, Norm param_norm>

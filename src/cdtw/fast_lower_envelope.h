@@ -1,41 +1,5 @@
 #include "PiecewisePolynomial.h"
 
-
-template <size_t D>
-std::vector<PolynomialPiece<D>> fill_gaps(std::vector<PolynomialPiece<D>> pieces, double min, double max) {
-    return pieces;
-    std::vector<PolynomialPiece<D>> output = std::vector<PolynomialPiece<D>>();
-    std::array<double, D+1> coeffs = std::array<double, D+1>();
-    coeffs[0] = std::numeric_limits<double>::infinity();
-    for (int i = 1; i < D; ++i)
-        coeffs[i] = 0;
-    auto inf_poly = Polynomial<D>(coeffs);
-
-    for (int i = 0; i < pieces.size(); ++i) {
-        auto piece = pieces[i];
-        if (piece == pieces.front()) {
-            if (piece.interval.min > min && !approx_equal(piece.interval.min, min)) {
-                output.push_back(PolynomialPiece<2>({min, piece.interval.min}, inf_poly));
-            }
-        }
-
-        output.push_back(piece);
-        
-        if (i != pieces.size()-1) {
-            auto next = pieces[i+1];
-            if (piece.interval.max < next.interval.min && !approx_equal(piece.interval.max, next.interval.min)) {
-                output.push_back(PolynomialPiece<D>({piece.interval.max, next.interval.min}, inf_poly));
-            }
-        } else {
-                if (piece.interval.max < max) {
-                output.push_back(PolynomialPiece<2>({piece.interval.max, max}, inf_poly));
-            }
-        }
-    }
-
-    return output;
-}
-
 template <size_t D>
 std::vector<PolynomialPiece<D>> reduce_list(std::vector<PolynomialPiece<D>> pieces) {
     auto output = std::vector<PolynomialPiece<D>>();
@@ -104,19 +68,21 @@ std::vector<PolynomialPiece<2>> read_pieces(std::string filename) {
  */
 template <size_t D>
 PiecewisePolynomial<D> fast_lower_envelope_v2(const std::vector<PolynomialPiece<D>>& pieces) {
-    if (pieces.empty()) {
+    if (pieces.empty())
         return {};
-    }
+    
     if (pieces.size() == 1) 
         return PiecewisePolynomial<D>(pieces);
 
     auto output_pieces = std::vector<PolynomialPiece<D>>();
 
     // Recursively compute the lower envelopes of the left and right halves.
-    auto left = fast_lower_envelope_v2(fill_gaps(
-        std::vector<PolynomialPiece<D>>(pieces.begin(), pieces.begin() + pieces.size() / 2), pieces.front().interval.min, pieces[pieces.size()/2 - 1].interval.max)).pieces;
-    auto right = fast_lower_envelope_v2(fill_gaps(
-        std::vector<PolynomialPiece<D>>(pieces.begin() + pieces.size() / 2, pieces.end()), pieces[pieces.size()/2].interval.min, pieces.back().interval.max)).pieces;
+    auto left = fast_lower_envelope_v2(
+        std::vector<PolynomialPiece<D>>(pieces.begin(), pieces.begin() + pieces.size() / 2)
+    ).pieces;
+    auto right = fast_lower_envelope_v2(
+        std::vector<PolynomialPiece<D>>(pieces.begin() + pieces.size() / 2, pieces.end())
+    ).pieces;
 
     // Reverse the order of left and right so the left-most piece
     // can be added/removed in constant time
@@ -272,8 +238,6 @@ PiecewisePolynomial<D> fast_lower_envelope_v2(const std::vector<PolynomialPiece<
     if (output_pieces.size() == 0)
         return {};
 
-    output_pieces = fill_gaps(output_pieces, output_pieces.front().interval.min, output_pieces.back().interval.max);
     output_pieces = reduce_list(output_pieces);
     return PiecewisePolynomial<D>(output_pieces);
-    
 }

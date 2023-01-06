@@ -109,7 +109,6 @@ private:
         Iterator pieces_end
     ) const;
 
-
     PiecewisePolynomial<2> bottom_to_right(const PiecewisePolynomial<D>& in, const Cell& cell) const;
 
     PiecewisePolynomial<2> bottom_to_top(const PiecewisePolynomial<D>& in, const Cell& cell) const;

@@ -4,7 +4,6 @@ set(Eigen3_DIR "/usr/include/eigen-3.4-rc1/build")
 find_package(Eigen3 3.3 REQUIRED NO_MODULE)
 
 set(SOURCE_FILES
-    test.cpp
     cdtw/Polynomial.cpp
     cdtw/Interval.cpp
     cdtw/2d-l1-l1.cpp

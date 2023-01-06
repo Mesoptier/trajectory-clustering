@@ -96,27 +96,9 @@ bool domain_covered(std::vector<ConstrainedBivariatePolynomial<2>> costs, const 
         tr = tr || constr.valid_point({tx, ty});
     }
 
-    // if (!bl)
-    //     std::cout << "bottom left not covered...\n";
-    // if (!br)
-    //     std::cout << "bottom right not covered...\n";
-    // if (!tl)
-    //     std::cout << "top left not covered...\n";
-    // if (!tr)
-    //     std::cout << "top right not covered...\n";
-
-
     return bl && br && tl && tr;
 }
 
-/**
- * @brief checks whether a and b are parallel
- * 
- * @param a 
- * @param b 
- * @return true 
- * @return false 
- */
 bool is_parallel(Constraint a, Constraint b) {
     if (a.is_y_constraint && b.is_y_constraint)
         return true;
@@ -273,9 +255,6 @@ std::vector<Point> sample_domain(ConstrainedBivariatePolynomial<2>& poly) {
         }
     }
 
-    if (poly.right_constraints.size() == 0)
-        std::cout << "...\n";
-
     return output;
 }
 
@@ -369,7 +348,6 @@ distance_t l1_h_function(const Cell& cell, Point p) {
     Point p2 = cell.s2 + vec2 * p.y;
     return abs(p1.x - p2.x) + abs(p1.y - p2.y);
 }
-
 
 Line get_proper_axis(const Cell& cell, Line v1, Line v2) {
     Point int_point = intersect(v1, v2);

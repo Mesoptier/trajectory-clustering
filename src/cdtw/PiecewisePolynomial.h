@@ -20,6 +20,15 @@ struct History {
     path_type(_path_type), boundaries(_boundaries), axis(_axis), 
     x_poly(_x_poly) {};
 
+    bool operator==(const History& other) {
+        return x_poly == other.x_poly;
+        return path_type == other.path_type;
+    }
+
+    bool operator!=(const History& other) {
+        return !(*this==other); 
+    }
+
     void transpose() {
 
         auto dir = axis.direction;

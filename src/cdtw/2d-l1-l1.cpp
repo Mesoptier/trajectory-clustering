@@ -18,6 +18,18 @@ namespace {
 
 using Cnstrnts = std::vector<Polynomial<1>>;
 
+/**
+ * @brief Computes a vector of constrained bivariate polynomials
+ * representing the cost of integrating along a horizontal line
+ * from low_lim to hi_lim.
+ * 
+ * @param low_lim 
+ * @param hi_lim 
+ * @param cell 
+ * @param y_coef 
+ * @param y_const Determines whether y is to be treated as a constant.
+ * @return std::vector<ConstrainedBivariatePolynomial<2>> 
+ */
 std::vector<ConstrainedBivariatePolynomial<2>>
 horizontal_int(BivariatePolynomial<1> low_lim, BivariatePolynomial<1> hi_lim,
 const Cell& cell, double y_coef, bool y_const) {
@@ -41,8 +53,11 @@ const Cell& cell, double y_coef, bool y_const) {
 
     if (y_const) {
         auto terms_x = solve_integral(low_lim, hi_lim,
+            // Polynomial
             BivariatePolynomial<1>({{{{s1.x-s2.x - y_coef*_cos(beta), 0}},{{0, 0}}}}),
-            -_cos(alpha), {sy, ty},
+            // a
+            -_cos(alpha), 
+            {sy, ty},
             {Polynomial<1>({sx, 0})}, {Polynomial<1>({tx, 0})} 
         );
 
@@ -50,8 +65,11 @@ const Cell& cell, double y_coef, bool y_const) {
             xterms.push_back(term);
 
         auto terms_y = solve_integral(low_lim, hi_lim,
+            // polynomial
             BivariatePolynomial<1>({{{{s1.y-s2.y - y_coef*_sin(beta), 0}},{{0, 0}}}}),
-            -_sin(alpha), {sy, ty},
+            // a
+            -_sin(alpha), 
+            {sy, ty},
             {Polynomial<1>({sx, 0})}, {Polynomial<1>({tx, 0})} 
         );
 
@@ -61,8 +79,11 @@ const Cell& cell, double y_coef, bool y_const) {
             
     } else {
         auto terms_x = solve_integral(low_lim, hi_lim,
+            // polynomial
             BivariatePolynomial<1>({{{{s1.x-s2.x, -_cos(beta)}},{{0, 0}}}}),
-            -_cos(alpha), {sy, ty},
+            // a
+            -_cos(alpha), 
+            {sy, ty},
             {Polynomial<1>({sx, 0})}, {Polynomial<1>({tx, 0})} 
         );
 
@@ -70,8 +91,11 @@ const Cell& cell, double y_coef, bool y_const) {
             xterms.push_back(term);
 
         auto terms_y = solve_integral(low_lim, hi_lim,
+            // polynomial
             BivariatePolynomial<1>({{{{s1.y-s2.y, -_sin(beta)}},{{0, 0}}}}),
-            -_sin(alpha), {sy, ty},
+            // a
+            -_sin(alpha), 
+            {sy, ty},
             {Polynomial<1>({sx, 0})}, {Polynomial<1>({tx, 0})} 
         );
 
@@ -94,6 +118,19 @@ const Cell& cell, double y_coef, bool y_const) {
     return valid_results;
 }
 
+/**
+ * @brief Computes a vector of constrained bivariate polynomials
+ * representing the cost of integrating along a vertical line from
+ * low_lim to hi_lim. The variable x represents the incomming position
+ * on the bottom boundary and y represents the position on the outgoing boundary.
+ * 
+ * @param low_lim 
+ * @param hi_lim 
+ * @param cell 
+ * @param x_coef 
+ * @param x_const boolean determining whether x is to be treated as a variable
+ * @return std::vector<ConstrainedBivariatePolynomial<2>> 
+ */
 std::vector<ConstrainedBivariatePolynomial<2>>
 vertical_int(BivariatePolynomial<1> low_lim, BivariatePolynomial<1> hi_lim,
 const Cell& cell, double x_coef, bool x_const
@@ -119,8 +156,11 @@ const Cell& cell, double x_coef, bool x_const
     
     if (x_const) {
         auto terms_x = solve_integral(low_lim, hi_lim,
+            // polynomial
             BivariatePolynomial<1>({{{{x_coef*_cos(alpha) + s1.x-s2.x, 0}},{{0, 0}}}}),
-            _cos(beta), {sy, ty},
+            // a
+            _cos(beta), 
+            {sy, ty},
             {Polynomial<1>({sx, 0})}, {Polynomial<1>({tx, 0})}
         );
 
@@ -128,8 +168,11 @@ const Cell& cell, double x_coef, bool x_const
             xterms.push_back(term);
 
         auto terms_y = solve_integral(low_lim, hi_lim,
+            // polynomial
             BivariatePolynomial<1>({{{{x_coef * _sin(alpha) + s1.y-s2.y, 0}},{{0, 0}}}}),
-            _sin(beta), {sy, ty},
+            // a
+            _sin(beta), 
+            {sy, ty},
             {Polynomial<1>({sx, 0})}, {Polynomial<1>({tx, 0})}
         );
 
@@ -173,7 +216,20 @@ const Cell& cell, double x_coef, bool x_const
     return valid_results;
 }
 
-
+/**
+ * @brief Computes a vector of constrained bivariate polynomials
+ * representing the cost of integrating along the specified axis
+ * from low_liw to hi_lim.
+ * 
+ * @param low_lim 
+ * @param hi_lim 
+ * @param cell 
+ * @param axis 
+ * @param left_constraints 
+ * @param right_constraints 
+ * @param y_range 
+ * @return std::vector<ConstrainedBivariatePolynomial<2>> 
+ */
 std::vector<ConstrainedBivariatePolynomial<2>>
 axis_int(BivariatePolynomial<1> low_lim, BivariatePolynomial<1> hi_lim, const Cell& cell, Line axis,
 std::vector<Polynomial<1>> left_constraints, std::vector<Polynomial<1>> right_constraints, 
@@ -183,10 +239,10 @@ Interval_c y_range) {
     Point t1 = cell.t1;
     Point t2 = cell.t2;
 
-    double sx = cell.s.x; //- cell.mid.x;
-    double sy = cell.s.y; //- cell.mid.y;
-    double tx = cell.t.x; //- cell.mid.x;
-    double ty = cell.t.y; //- cell.mid.y;
+    double sx = cell.s.x;
+    double sy = cell.s.y;
+    double tx = cell.t.x;
+    double ty = cell.t.y;
 
     double alpha = angle(s1, t1);
     double beta = angle(s2, t2);
@@ -196,22 +252,30 @@ Interval_c y_range) {
     double m = gi.x;
     double b = gi.y;
 
-    /*
-    * int_{l0}^{l1} | h(t, mt+b) |dt = int | t*_cos()alpha) - (mt+b)*_cos()beta) | + |t*_sin(alpha) - (mt+b)*_sin(alpha)|dt
-    */
+    // The integral has the following form:
+    // int_{l0}^{l1} | h(t, mt+b) |dt 
+    // = int_{l0}^{l1} | t*_cos(alpha) - (mt+b)*_cos(beta) | + |t*_sin(alpha) - (mt+b)*_sin(alpha)|dt
+    //
 
+    // Integral corresponding to the first term in the integrand above
     auto xterms = solve_integral(
         low_lim, hi_lim,
+        // polynomial
         BivariatePolynomial<1>({{{{s1.x-s2.x - b*_cos(beta), 0}},{{0, 0}}}}),
-        m*_cos(beta) - _cos(alpha), y_range,
+        // a
+        m*_cos(beta) - _cos(alpha), 
+        y_range,
         left_constraints, right_constraints
     );
 
-
+    // Integral corresponding to the second term in the integrand above
     auto yterms = solve_integral(
         low_lim, hi_lim,
+        // polynomial
         BivariatePolynomial<1>({{{{s1.y-s2.y - b*_sin(beta), 0}},{{0, 0}}}}),
-        m*_sin(beta) - _sin(alpha), y_range,
+        // a
+        m*_sin(beta) - _sin(alpha), 
+        y_range,
         left_constraints, right_constraints
     );
 
@@ -317,7 +381,14 @@ std::vector<std::vector<ConstrainedBivariatePolynomial<2>>> yterms) {
     return results;
 }
 
-
+/**
+ * @brief Computes a vector of constrained bivariate quadratics respresenting
+ * the cost of integrating along the cell axis 
+ * 
+ * @param axis 
+ * @param cell 
+ * @return * std::vector<ConstrainedBivariatePolynomial<2>> 
+ */
 std::vector<ConstrainedBivariatePolynomial<2>>
 bottom_right_axis_integrals(Line axis, const Cell& cell) {
     double sx = cell.s.x; //- cell.mid.x;
@@ -325,12 +396,19 @@ bottom_right_axis_integrals(Line axis, const Cell& cell) {
     double tx = cell.t.x; //- cell.mid.x;
     double ty = cell.t.y; //- cell.mid.y;
 
+    // axis given by y = m*x + b
     double m = axis.grad_int().x;
     double b = axis.grad_int().y;
 
     auto costs = std::vector<ConstrainedBivariatePolynomial<2>>();
 
-    // up, axis, across
+    // Impose constraints for each type of path.
+    // e.g., if the path moves up to the axis, the starting position
+    // must be to the right/below the axis which can be expressed as
+    // x >= -b/m.
+    // If the path moves horizontally from the axis to the right cell boundary,
+    // the outgoing point must be below the axis which can be expressed as 
+    // y <= m*tx + b
     Polynomial<1> up_to_axis_xl = Polynomial<1>({-b/m, 0});
     Polynomial<1> up_to_axis_xr = Polynomial<1>({(ty-b)/m, 0});
     double right_from_axis_ymin = 0;
@@ -341,8 +419,9 @@ bottom_right_axis_integrals(Line axis, const Cell& cell) {
     double up_from_axis_ymin = m*tx + b;
     double up_from_axis_ymax = ty;
 
-
     std::vector<Polynomial<1>> right_to_axis_l_const = {};
+
+    // up, axis, across
 
     auto uaa_up_terms = vertical_int(
         BivariatePolynomial<1>({{{{0, 0}},{{0, 0}}}}),
@@ -352,7 +431,6 @@ bottom_right_axis_integrals(Line axis, const Cell& cell) {
 
     double x_int = axis.getX(sy);
     double y_int = axis.getY(tx);
-
 
     std::vector<Polynomial<1>> test = {Polynomial<1>({tx, 0}), up_to_axis_xr, Polynomial<1>({-b/m, 1/m})};
 
@@ -371,14 +449,14 @@ bottom_right_axis_integrals(Line axis, const Cell& cell) {
         cell, 1, false
     );
 
-
     auto up_axis_across = combine_steps(3, {uaa_up_terms, uaa_axis_terms, uaa_across_terms});
     for (auto& poly: up_axis_across) {
         poly.path_type = UAA;
         poly.axis = axis;
         costs.push_back(poly);
     }
-    // across, axis, up
+
+    // across-axis-up
 
     auto aau_across_terms = horizontal_int(
         BivariatePolynomial<1>({{{{0, 0}},{{1, 0}}}}),
@@ -406,8 +484,9 @@ bottom_right_axis_integrals(Line axis, const Cell& cell) {
         poly.axis = axis;
         costs.push_back(poly);
     }
-    // up axis up
 
+    // up-axis-up
+    
     auto uau_up_terms_1 = vertical_int(
         BivariatePolynomial<1>({{{{0, 0}},{{0, 0}}}}),
         BivariatePolynomial<1>({{{{b, 0}},{{m, 0}}}}),
@@ -436,7 +515,7 @@ bottom_right_axis_integrals(Line axis, const Cell& cell) {
         costs.push_back(poly);
     }
 
-    // across axis across
+    // across-axis-across
 
     auto aaa_across_terms_1 = horizontal_int(
         BivariatePolynomial<1>({{{{0, 0}},{{1, 0}}}}),
@@ -466,18 +545,18 @@ bottom_right_axis_integrals(Line axis, const Cell& cell) {
         costs.push_back(poly);
     }
 
-    // for (auto cost: costs) {
-    //     if (valid_point(cost, {tx, 0}) && !approx_zero(cost.f({tx, 0}))) {
-    //         auto value = cost.f({tx, 0});            
-    //         // assert(false);
-    //     }
-    //     else if (valid_point(cost, {tx, 0}))
-    //         std::cout << "cost: " << cost.f({tx, 0}) << std::endl;
-    // }
 
     return costs;
 }
 
+/**
+ * @brief Computes a vector of constrained bivariate quadratics
+ * representing the costs of integrating along paths from the bottom
+ * to the right boundary of a cell.
+ * 
+ * @param cell 
+ * @return std::vector<ConstrainedBivariatePolynomial<2>> 
+ */
 std::vector<ConstrainedBivariatePolynomial<2>>
 bottom_to_right_costs_2D(const Cell& cell) {
     double sx = cell.s.x;
@@ -498,7 +577,6 @@ bottom_to_right_costs_2D(const Cell& cell) {
     Point t2 = cell.t2;
 
     // up and across
-
     auto ua_up_terms = vertical_int(
         BivariatePolynomial<1>({{{{sy, 0}},{{0, 0}}}}),
         BivariatePolynomial<1>({{{{0, 1}},{{0, 0}}}}),
@@ -519,7 +597,6 @@ bottom_to_right_costs_2D(const Cell& cell) {
     }
 
     // across and up
-
     auto au_across_terms = horizontal_int(
         BivariatePolynomial<1>({{{{0, 0}},{{1, 0}}}}),
         BivariatePolynomial<1>({{{{tx, 0}},{{0, 0}}}}),
@@ -547,13 +624,6 @@ bottom_to_right_costs_2D(const Cell& cell) {
             costs.push_back(poly);
     }
 
-    // if (axes.size() == 2) {
-    //     Line axis = axes[1];
-    //     auto axis_costs = bottom_right_valley_integrals(axis, cell);
-    //     for (auto poly: axis_costs)
-    //         costs.push_back(poly);
-    // }
-
     for (auto& cost: costs)
         cost.boundaries = BR;
 
@@ -561,6 +631,17 @@ bottom_to_right_costs_2D(const Cell& cell) {
     return costs;
 }
 
+/**
+ * @brief Computes a vector of constrained bivariate quadratics representing
+ * the cost of integrating along a vertical segment where the variables x and y
+ * represent positions on the segment corresponding to the bottom/top cell boundaries.
+ * 
+ * @param low_lim 
+ * @param hi_lim 
+ * @param cell 
+ * @param fixed_var 
+ * @return std::vector<ConstrainedBivariatePolynomial<2>> 
+ */
 std::vector<ConstrainedBivariatePolynomial<2>>
 vertical_int_b2t(BivariatePolynomial<1> low_lim, BivariatePolynomial<1> hi_lim,
 const Cell& cell, std::string fixed_var) {
@@ -583,33 +664,27 @@ const Cell& cell, std::string fixed_var) {
     std::vector<ConstrainedBivariatePolynomial<2>> y_terms;
 
     if (fixed_var == "y") {
-
         x_terms = solve_integral(low_lim, hi_lim,
             BivariatePolynomial<1>({{{{s1.x-s2.x, _cos(alpha)}},{{0, 0}}}}),
             _cos(beta), {sy, ty},
             {Polynomial<1>({sx, 0})}, {Polynomial<1>({tx, 0})} 
         );
-
         y_terms = solve_integral(low_lim, hi_lim,
             BivariatePolynomial<1>({{{{s1.y-s2.y, _sin(alpha)}},{{0, 0}}}}),
             _sin(beta), {sy, ty},
             {Polynomial<1>({sx, 0})}, {Polynomial<1>({tx, 0})} 
         );
-
     } else if (fixed_var == "x") {
-
         x_terms = solve_integral(low_lim, hi_lim,
             BivariatePolynomial<1>({{{{s1.x-s2.x, 0}},{{_cos(alpha), 0}}}}),
             _cos(beta), {sy, ty},
             {Polynomial<1>({sx, 0})}, {Polynomial<1>({tx, 0})} 
         );
-
         y_terms = solve_integral(low_lim, hi_lim,
             BivariatePolynomial<1>({{{{s1.y-s2.y, 0}},{{_sin(alpha), 0}}}}),
             _sin(beta), {sy, ty},
             {Polynomial<1>({sx, 0})}, {Polynomial<1>({tx, 0})} 
         );
-
     }
 
 
@@ -627,6 +702,18 @@ const Cell& cell, std::string fixed_var) {
     return valid_results;
 }
 
+/**
+ * @brief Computes constrained bivariate quadratics
+ * representing the cost of integrating along a horizontal
+ * line where both variables x and y represent positions on the
+ * the segment corresponding to the bottom/top cell boundaries.
+ * 
+ * @param low_lim 
+ * @param hi_lim 
+ * @param cell 
+ * @param height 
+ * @return std::vector<ConstrainedBivariatePolynomial<2>> 
+ */
 std::vector<ConstrainedBivariatePolynomial<2>>
 horizontal_int_b2t(BivariatePolynomial<1> low_lim, BivariatePolynomial<1> hi_lim,
 const Cell& cell, double height) {
@@ -648,15 +735,21 @@ const Cell& cell, double height) {
 
     auto x_terms = solve_integral(
         low_lim, hi_lim,
+        // polynomial
         BivariatePolynomial<1>({{{{s2.x-s1.x + height*_cos(beta), 0}},{{0, 0}}}}),
-        _cos(alpha), {sy, ty},
+        // a
+        _cos(alpha), 
+        {sy, ty},
         {Polynomial<1>({sx, 0})}, {Polynomial<1>({tx, 0})}
     );
 
     auto y_terms = solve_integral(
         low_lim, hi_lim,
+        // polynomial
         BivariatePolynomial<1>({{{{s2.y-s1.y + height*_sin(beta), 0}},{{0, 0}}}}),
-       _sin(alpha), {sy, ty},
+        // a
+        _sin(alpha), 
+        {sy, ty},
         {Polynomial<1>({sx, 0})}, {Polynomial<1>({tx, 0})}
     );
 
@@ -674,57 +767,16 @@ const Cell& cell, double height) {
     return valid_results;
 }
 
-std::vector<ConstrainedBivariatePolynomial<2>>
-axis_int_b2t(BivariatePolynomial<1> low_lim, BivariatePolynomial<1> hi_lim, const Cell& cell, Line axis,
-std::vector<Polynomial<1>> left_constraints, std::vector<Polynomial<1>> right_constraints, 
-Interval_c y_range) {
-    Point s1 = cell.s1;
-    Point s2 = cell.s2;
-    Point t1 = cell.t1;
-    Point t2 = cell.t2;
-
-    double sx = cell.s.x;
-    double sy = cell.s.x;
-    double tx = cell.t.x;
-    double ty = cell.t.x;
-
-    double alpha = angle(s1, t1);
-    double beta = angle(s2, t2);
-
-    auto gi = axis.grad_int();
-
-    double m = gi.x;
-    double b = gi.y;
-
-    auto xterms = solve_integral(
-        low_lim, hi_lim,
-        BivariatePolynomial<1>({{{{s1.x-s2.x - b*_cos(beta), 0}},{{0, 0}}}}),
-        m*_cos(beta) - _cos(alpha), y_range,
-        left_constraints, right_constraints
-    );
-
-    auto yterms = solve_integral(
-        low_lim, hi_lim,
-        BivariatePolynomial<1>({{{{s1.y-s2.y - b*_sin(beta), 0}},{{0, 0}}}}),
-        m*_sin(beta) - _sin(alpha), y_range,
-        left_constraints, right_constraints
-    );
-
-    std::vector<ConstrainedBivariatePolynomial<2>> results = std::vector<ConstrainedBivariatePolynomial<2>>();
-
-    for (auto xterm: xterms)
-        for (auto yterm: yterms)
-            results.push_back(xterm + yterm);
-
-    auto valid_results = std::vector<ConstrainedBivariatePolynomial<2>>();
-
-    for (auto f: results)
-        if (valid_constraints(f))
-            valid_results.push_back(f);
-
-    return valid_results;
-}
-
+/**
+ * @brief Computes a vector of constrained bivariate quadratics
+ * representing the cost of integrating along the cell axis where
+ * both x and y variables are positions on the segment corresponding to the bottom/top
+ * cell boundaries
+ * 
+ * @param axis 
+ * @param cell 
+ * @return std::vector<ConstrainedBivariatePolynomial<2>> 
+ */
 std::vector<ConstrainedBivariatePolynomial<2>>
 bottom_top_axis_integrals(Line axis, const Cell& cell) {
 
@@ -741,6 +793,7 @@ bottom_top_axis_integrals(Line axis, const Cell& cell) {
     Point s2 = cell.s2;
     Point t2 = cell.t2;
 
+    // The axis is given by y = mx + b
     double m = axis.grad_int().x;
     double b = axis.grad_int().y;
 
@@ -749,12 +802,18 @@ bottom_top_axis_integrals(Line axis, const Cell& cell) {
     auto bottom_int = axis.getX(0);
     auto top_int = axis.getX(cell.len2);
 
+    // Constraints on x which need to be satisfied for each path type
+    // eg: up_to_axis_xl = left constraint on x for a path which moves up to the axis
+    // from the bottom of the cell. 
+    // For such a path, the starting point, (x, 0), must
+    // be to the right of the axis which can be expressed as -b/m <= x.
     Polynomial<1> up_to_axis_xl = Polynomial<1>({-b/m, 0});
     Polynomial<1> up_to_axis_xr = Polynomial<1>({(ty-b)/m, 0});
     Polynomial<1> right_to_axis_xl = Polynomial<1>({0, 0});
     Polynomial<1> right_to_axis_xr = Polynomial<1>({-b/m, 0});
-
+    
     // up-axis-up
+
     auto uau_u1_terms = vertical_int_b2t(
         BivariatePolynomial<1>({{{{0, 0}},{{0, 0}}}}),
         BivariatePolynomial<1>({{{{b, 0}},{{m, 0}}}}),
@@ -784,6 +843,7 @@ bottom_top_axis_integrals(Line axis, const Cell& cell) {
     }
 
     // across-axis-up
+
     auto aau_across_terms = horizontal_int_b2t(
         BivariatePolynomial<1>({{{{0, 0}},{{1, 0}}}}),
         BivariatePolynomial<1>({{{{bottom_int, 0}},{{0, 0}}}}),
@@ -843,6 +903,7 @@ bottom_top_axis_integrals(Line axis, const Cell& cell) {
     }
 
     // across-axis-across
+
     auto aaa_a1_terms = horizontal_int_b2t(
         BivariatePolynomial<1>({{{{0, 0}},{{1, 0}}}}),
         BivariatePolynomial<1>({{{{bottom_int, 0}},{{0, 0}}}}),
@@ -883,7 +944,6 @@ bottom_top_axis_integrals(Line axis, const Cell& cell) {
     return valid_results;
 }
 
-
 std::vector<ConstrainedBivariatePolynomial<2>>
 bottom_to_top_costs_2D(const Cell& cell) {
     double sx = cell.s.x;
@@ -904,6 +964,7 @@ bottom_to_top_costs_2D(const Cell& cell) {
     Point t2 = cell.t2;
 
     // up and across
+
     auto ua_up_terms = vertical_int_b2t(
         BivariatePolynomial<1>({{{{0, 0}},{{0, 0}}}}),
         BivariatePolynomial<1>({{{{cell.len2, 0}},{{0, 0}}}}),
@@ -941,7 +1002,6 @@ bottom_to_top_costs_2D(const Cell& cell) {
         poly.path_type = AU;
         costs.push_back(poly);
     }
-
 
     if (axes.size() == 1) {
         Line axis = axes[0];
